@@ -2,10 +2,8 @@ module github.com/MagalixCorp/new-magalix-agent
 
 go 1.17
 
-replace github.com/MagalixCorp/new-magalix-agent/pkg => /home/chaddad/magalix/admission/pkg
-
 require (
-	github.com/MagalixCorp/new-magalix-agent/pkg v0.0.0-00010101000000-000000000000
+	github.com/MagalixCorp/new-magalix-agent/pkg v0.0.0-20220113145102-e2db3709de5a
 	github.com/MagalixTechnologies/core/logger v1.0.3
 	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c

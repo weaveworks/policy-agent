@@ -46,6 +46,8 @@ github.com/Azure/go-autorest/logger v0.2.1/go.mod h1:T9E3cAhj2VqvPOtCYAvby9aBXkZ
 github.com/Azure/go-autorest/tracing v0.6.0/go.mod h1:+vhtPC754Xsa23ID7GlGsrdKBpUA79WCAKPPZVC2DeU=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
+github.com/MagalixCorp/new-magalix-agent/pkg v0.0.0-20220113145102-e2db3709de5a h1:vHLi2iwnNDn9NgYxh5X+KQuk8ev7RueGhBrvnITDzi4=
+github.com/MagalixCorp/new-magalix-agent/pkg v0.0.0-20220113145102-e2db3709de5a/go.mod h1:tSe0B3dUFSNV7KYsoZRrlr2KVucOni57awmZAAhBhl4=
 github.com/MagalixTechnologies/core/logger v1.0.3 h1:glZZ5hpjci60FPiw+9b+hzbMUMmP1d1uwq787OsniCA=
 github.com/MagalixTechnologies/core/logger v1.0.3/go.mod h1:HUb6GF/FKiBWkVCiRNCpxo3btqIxp8Ek4HZNt4Ga0KA=
 github.com/MagalixTechnologies/opa-core v1.0.11 h1:RYymkBwRlvxghVdHiRug+Hw7x4Bryq7vFz+XzwoZHwU=
