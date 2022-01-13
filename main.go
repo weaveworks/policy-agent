@@ -6,6 +6,7 @@ import (
 	"github.com/MagalixCorp/new-magalix-agent/admission"
 	magalixv1 "github.com/MagalixCorp/new-magalix-agent/apiextensions/magalix.com/v1"
 	policiesClient "github.com/MagalixCorp/new-magalix-agent/clients/magalix.com/v1"
+	"github.com/MagalixCorp/new-magalix-agent/pkg/validation"
 	"github.com/MagalixCorp/new-magalix-agent/policies/crd"
 	"github.com/MagalixCorp/new-magalix-agent/sink/logging"
 	"github.com/MagalixTechnologies/core/logger"
@@ -87,13 +88,17 @@ func main() {
 
 		logSink := logging.NewLogSink()
 
+		validator := validation.NewOpaValidator(
+			policiesSource,
+			config.WriteCompliance,
+			logSink,
+		)
+
 		admissionServer := admission.NewAdmissionHandler(
 			config.WebhookListen,
 			config.WebhookCertFile,
 			config.WebhhokKeyFile,
-			policiesSource,
-			config.WriteCompliance,
-			logSink,
+			validator,
 		)
 		logger.Info("Starting admission server...")
 		err = admissionServer.Run(contextCli.Context)

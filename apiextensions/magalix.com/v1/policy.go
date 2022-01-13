@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"github.com/MagalixCorp/new-magalix-agent/validation"
+	"github.com/MagalixCorp/new-magalix-agent/pkg/domain"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -9,7 +9,7 @@ import (
 type Policy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              validation.Policy `json:"spec"`
+	Spec              domain.Policy `json:"spec"`
 }
 
 type PolicyList struct {
@@ -19,8 +19,8 @@ type PolicyList struct {
 	Items []Policy `json:"items"`
 }
 
-func (p *Policy) GetSpec() validation.Policy {
-	return validation.Policy{
+func (p *Policy) GetSpec() domain.Policy {
+	return domain.Policy{
 		ID:         p.Spec.ID,
 		Name:       p.Spec.Name,
 		Code:       p.Spec.Code,

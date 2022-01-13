@@ -1,9 +1,9 @@
-package validation
+package domain
 
 import "context"
 
 type PoliciesSource interface {
-	GetPolicies(ctx context.Context) ([]Policy, error)
+	GetAll(ctx context.Context) ([]Policy, error)
 }
 
 type ValidationResultSink interface {

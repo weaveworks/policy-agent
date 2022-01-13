@@ -9,7 +9,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/MagalixCorp/new-magalix-agent/validation"
+	"github.com/MagalixCorp/new-magalix-agent/pkg/domain"
+	"github.com/MagalixCorp/new-magalix-agent/pkg/validation"
 	"github.com/MagalixTechnologies/core/logger"
 	"golang.org/x/sync/errgroup"
 	v1 "k8s.io/api/admission/v1"
@@ -26,7 +27,7 @@ type AdmissionHandler struct {
 	address   string
 	CertFile  string
 	KeyFile   string
-	validator *validation.Validator
+	validator validation.Validator
 }
 
 const SourceAdmission = "admission"
@@ -35,15 +36,7 @@ func NewAdmissionHandler(
 	address string,
 	certFile string,
 	keyFile string,
-	policicesSource validation.PoliciesSource,
-	writeCompliance bool,
-	resultsSink ...validation.ValidationResultSink) *AdmissionHandler {
-	validator := validation.NewValidator(
-		policicesSource,
-		writeCompliance,
-		SourceAdmission,
-		resultsSink...,
-	)
+	validator validation.Validator) *AdmissionHandler {
 	return &AdmissionHandler{
 		address:   address,
 		CertFile:  certFile,
@@ -108,13 +101,14 @@ func (a *AdmissionHandler) Watch(ctx context.Context, reviewRequest v1.Admission
 		return &reviewResponse, nil
 	}
 
-	var entity map[string]interface{}
-	err := json.Unmarshal(reviewRequest.Request.Object.Raw, &entity)
+	var entitySpec map[string]interface{}
+	err := json.Unmarshal(reviewRequest.Request.Object.Raw, &entitySpec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get entity info from admission request")
 	}
 
-	result, err := a.validator.Validate(ctx, entity)
+	entity := domain.NewEntityBySpec(entitySpec)
+	result, err := a.validator.Validate(ctx, entity, SourceAdmission)
 	if err != nil {
 		return nil, err
 	}

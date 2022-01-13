@@ -6,35 +6,32 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/MagalixCorp/new-magalix-agent/pkg/domain"
 	opa "github.com/MagalixTechnologies/opa-core"
 	uuid "github.com/MagalixTechnologies/uuid-go"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 const PolicyQuery = "violation"
 
-type Validator struct {
-	policiesSource  PoliciesSource
-	resultsSinks    []ValidationResultSink
+type OpaValidator struct {
+	policiesSource  domain.PoliciesSource
+	resultsSinks    []domain.ValidationResultSink
 	writeCompliance bool
-	source          string
 }
 
-func NewValidator(
-	policiesSource PoliciesSource,
+func NewOpaValidator(
+	policiesSource domain.PoliciesSource,
 	writeCompliance bool,
-	source string,
-	resultsSinks ...ValidationResultSink,
-) *Validator {
-	return &Validator{
+	resultsSinks ...domain.ValidationResultSink,
+) *OpaValidator {
+	return &OpaValidator{
 		policiesSource:  policiesSource,
 		resultsSinks:    resultsSinks,
 		writeCompliance: writeCompliance,
-		source:          source,
 	}
 }
 
-func matchEntity(resource unstructured.Unstructured, policy Policy) bool {
+func matchEntity(entity domain.Entity, policy domain.Policy) bool {
 	var matchKind bool
 	var matchNamespace bool
 	var matchLabel bool
@@ -42,7 +39,7 @@ func matchEntity(resource unstructured.Unstructured, policy Policy) bool {
 	if len(policy.Targets.Kind) == 0 {
 		matchKind = true
 	} else {
-		resourceKind := resource.GetKind()
+		resourceKind := entity.Kind
 		for _, kind := range policy.Targets.Kind {
 			if resourceKind == kind {
 				matchKind = true
@@ -54,7 +51,7 @@ func matchEntity(resource unstructured.Unstructured, policy Policy) bool {
 	if len(policy.Targets.Namespace) == 0 {
 		matchNamespace = true
 	} else {
-		resourceNamespace := resource.GetNamespace()
+		resourceNamespace := entity.Namespace
 		for _, namespace := range policy.Targets.Namespace {
 			if resourceNamespace == namespace {
 				matchNamespace = true
@@ -69,7 +66,7 @@ func matchEntity(resource unstructured.Unstructured, policy Policy) bool {
 	outer:
 		for _, obj := range policy.Targets.Label {
 			for key, val := range obj {
-				entityVal, ok := resource.GetLabels()[key]
+				entityVal, ok := entity.Labels[key]
 				if ok {
 					if val != "*" && val != entityVal {
 						continue
@@ -84,31 +81,20 @@ func matchEntity(resource unstructured.Unstructured, policy Policy) bool {
 	return matchKind && matchNamespace && matchLabel
 }
 
-func getPolicyParamsValues(parameters []PolicyParameters) map[string]interface{} {
-	res := make(map[string]interface{})
-	for _, param := range parameters {
-		res[param.Name] = param.Default
-	}
-	return res
-}
-
-func (v *Validator) Validate(ctx context.Context, entity map[string]interface{}) (*ValidationSummary, error) {
-	kubeEntity := unstructured.Unstructured{Object: entity}
-	violations := make([]ValidationResult, 0)
-	compliances := make([]ValidationResult, 0)
+func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, source string) (*domain.ValidationSummary, error) {
+	violations := make([]domain.ValidationResult, 0)
+	compliances := make([]domain.ValidationResult, 0)
 	var err error
-	entityKind := kubeEntity.GetKind()
-	entityName := kubeEntity.GetName()
 
-	policies, err := v.policiesSource.GetPolicies(ctx)
+	policies, err := v.policiesSource.GetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get policies from source, %w", err)
 	}
 
 	var enqueueGroup sync.WaitGroup
 	var dequeueGroup sync.WaitGroup
-	violationsChan := make(chan ValidationResult)
-	compliancesChan := make(chan ValidationResult)
+	violationsChan := make(chan domain.ValidationResult)
+	compliancesChan := make(chan domain.ValidationResult)
 	errsChan := make(chan error)
 
 	for i := range policies {
@@ -116,7 +102,7 @@ func (v *Validator) Validate(ctx context.Context, entity map[string]interface{})
 		go (func(index int) {
 			defer enqueueGroup.Done()
 			policy := policies[index]
-			match := matchEntity(kubeEntity, policy)
+			match := matchEntity(entity, policy)
 			if !match {
 				return
 			}
@@ -125,16 +111,15 @@ func (v *Validator) Validate(ctx context.Context, entity map[string]interface{})
 				errsChan <- fmt.Errorf("Failed to parse policy %s, %w", policy.ID, err)
 			}
 			var opaErr opa.OPAError
-			res := ValidationResult{
-				ID:         uuid.NewV4().String(),
-				PolicyID:   policy.ID,
-				EntityName: entityName,
-				EntityKind: entityKind,
-				Source:     v.source,
+			res := domain.ValidationResult{
+				ID:     uuid.NewV4().String(),
+				Policy: policy,
+				Entity: entity,
+				Source: source,
 			}
 
-			parameters := getPolicyParamsValues(policy.Parameters)
-			err = opaPolicy.EvalGateKeeperCompliant(entity, parameters, PolicyQuery)
+			parameters := policy.GetParametersMap()
+			err = opaPolicy.EvalGateKeeperCompliant(entity.Spec, parameters, PolicyQuery)
 			if err != nil {
 				if errors.As(err, &opaErr) {
 					details := make(map[string]interface{})
@@ -151,8 +136,8 @@ func (v *Validator) Validate(ctx context.Context, entity map[string]interface{})
 						title = policy.Name
 					}
 
-					msg := fmt.Sprintf("%s in %s %s", title, entityKind, entityName)
-					res.Status = ValidationResultStatusViolating
+					msg := fmt.Sprintf("%s in %s %s. Policy: %s", title, entity.Kind, entity.Name, policy.ID)
+					res.Status = domain.ValidationResultStatusViolating
 					res.Message = msg
 					violationsChan <- res
 				} else {
@@ -160,7 +145,7 @@ func (v *Validator) Validate(ctx context.Context, entity map[string]interface{})
 				}
 
 			} else {
-				res.Status = ValidationResultStatusCompliant
+				res.Status = domain.ValidationResultStatusCompliant
 				compliancesChan <- res
 
 			}
@@ -200,7 +185,7 @@ func (v *Validator) Validate(ctx context.Context, entity map[string]interface{})
 		return nil, fmt.Errorf("Encountered errors while validating policies, %w", err)
 	}
 
-	validationSummary := ValidationSummary{
+	validationSummary := domain.ValidationSummary{
 		Violations:  violations,
 		Compliances: compliances,
 	}
@@ -210,7 +195,7 @@ func (v *Validator) Validate(ctx context.Context, entity map[string]interface{})
 	return &validationSummary, nil
 }
 
-func (v *Validator) writeToSinks(ctx context.Context, validationSummary ValidationSummary) {
+func (v *OpaValidator) writeToSinks(ctx context.Context, validationSummary domain.ValidationSummary) {
 	for _, resutsSink := range v.resultsSinks {
 		if len(validationSummary.Violations) > 0 {
 			resutsSink.Write(ctx, validationSummary.Violations)

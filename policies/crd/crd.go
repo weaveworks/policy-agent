@@ -5,7 +5,7 @@ import (
 	"time"
 
 	policiesCRDclient "github.com/MagalixCorp/new-magalix-agent/clients/magalix.com/v1"
-	"github.com/MagalixCorp/new-magalix-agent/validation"
+	"github.com/MagalixCorp/new-magalix-agent/pkg/domain"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -28,8 +28,8 @@ func (p *PoliciesCRD) Close() {
 	p.informer.Stop()
 }
 
-func (p *PoliciesCRD) GetPolicies(ctx context.Context) ([]validation.Policy, error) {
-	var policies []validation.Policy
+func (p *PoliciesCRD) GetAll(ctx context.Context) ([]domain.Policy, error) {
+	var policies []domain.Policy
 	policiesCRD := p.informer.List()
 	for i := range policiesCRD {
 		policies = append(policies, policiesCRD[i].GetSpec())
