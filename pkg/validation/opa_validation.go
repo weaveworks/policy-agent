@@ -31,56 +31,6 @@ func NewOpaValidator(
 	}
 }
 
-func matchEntity(entity domain.Entity, policy domain.Policy) bool {
-	var matchKind bool
-	var matchNamespace bool
-	var matchLabel bool
-
-	if len(policy.Targets.Kind) == 0 {
-		matchKind = true
-	} else {
-		resourceKind := entity.Kind
-		for _, kind := range policy.Targets.Kind {
-			if resourceKind == kind {
-				matchKind = true
-				break
-			}
-		}
-	}
-
-	if len(policy.Targets.Namespace) == 0 {
-		matchNamespace = true
-	} else {
-		resourceNamespace := entity.Namespace
-		for _, namespace := range policy.Targets.Namespace {
-			if resourceNamespace == namespace {
-				matchNamespace = true
-				break
-			}
-		}
-	}
-
-	if len(policy.Targets.Label) == 0 {
-		matchLabel = true
-	} else {
-	outer:
-		for _, obj := range policy.Targets.Label {
-			for key, val := range obj {
-				entityVal, ok := entity.Labels[key]
-				if ok {
-					if val != "*" && val != entityVal {
-						continue
-					}
-					matchLabel = true
-					break outer
-				}
-			}
-		}
-	}
-
-	return matchKind && matchNamespace && matchLabel
-}
-
 func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, source string) (*domain.ValidationSummary, error) {
 	violations := make([]domain.ValidationResult, 0)
 	compliances := make([]domain.ValidationResult, 0)
@@ -190,18 +140,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 		Compliances: compliances,
 	}
 
-	v.writeToSinks(ctx, validationSummary)
+	writeToSinks(ctx, v.resultsSinks, validationSummary, v.writeCompliance)
 
 	return &validationSummary, nil
-}
-
-func (v *OpaValidator) writeToSinks(ctx context.Context, validationSummary domain.ValidationSummary) {
-	for _, resutsSink := range v.resultsSinks {
-		if len(validationSummary.Violations) > 0 {
-			resutsSink.Write(ctx, validationSummary.Violations)
-		}
-		if v.writeCompliance && len(validationSummary.Compliances) > 0 {
-			resutsSink.Write(ctx, validationSummary.Compliances)
-		}
-	}
 }
