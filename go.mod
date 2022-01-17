@@ -3,6 +3,7 @@ module github.com/MagalixCorp/magalix-policy-agent
 go 1.17
 
 require (
+	github.com/MagalixCorp/magalix-policy-agent/pkg v0.0.0-20220117074850-4d2179497b92
 	github.com/MagalixTechnologies/core/logger v1.0.3
 	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
