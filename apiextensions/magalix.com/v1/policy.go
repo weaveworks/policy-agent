@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"github.com/MagalixCorp/new-magalix-agent/pkg/domain"
+	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

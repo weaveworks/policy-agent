@@ -3,7 +3,7 @@ package logging
 import (
 	"context"
 
-	"github.com/MagalixCorp/new-magalix-agent/pkg/domain"
+	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	"github.com/MagalixTechnologies/core/logger"
 )
 

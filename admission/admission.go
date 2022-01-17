@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/MagalixCorp/new-magalix-agent/pkg/domain"
-	"github.com/MagalixCorp/new-magalix-agent/pkg/validation"
+	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
+	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation"
 	"github.com/MagalixTechnologies/core/logger"
 	"golang.org/x/sync/errgroup"
 	v1 "k8s.io/api/admission/v1"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	magalixv1 "github.com/MagalixCorp/new-magalix-agent/apiextensions/magalix.com/v1"
+	magalixv1 "github.com/MagalixCorp/magalix-policy-agent/apiextensions/magalix.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"

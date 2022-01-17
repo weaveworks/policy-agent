@@ -10,6 +10,7 @@ const (
 )
 
 type ValidationResult struct {
+	//@TODO ACCount id cluster id
 	ID        string    `json:"id"`
 	Policy    Policy    `json:"policy"`
 	Entity    Entity    `json:"entity"`

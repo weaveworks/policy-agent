@@ -3,12 +3,12 @@ package main
 import (
 	"os"
 
-	"github.com/MagalixCorp/new-magalix-agent/admission"
-	magalixv1 "github.com/MagalixCorp/new-magalix-agent/apiextensions/magalix.com/v1"
-	policiesClient "github.com/MagalixCorp/new-magalix-agent/clients/magalix.com/v1"
-	"github.com/MagalixCorp/new-magalix-agent/pkg/validation"
-	"github.com/MagalixCorp/new-magalix-agent/policies/crd"
-	"github.com/MagalixCorp/new-magalix-agent/sink/logging"
+	"github.com/MagalixCorp/magalix-policy-agent/admission"
+	magalixv1 "github.com/MagalixCorp/magalix-policy-agent/apiextensions/magalix.com/v1"
+	policiesClient "github.com/MagalixCorp/magalix-policy-agent/clients/magalix.com/v1"
+	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation"
+	"github.com/MagalixCorp/magalix-policy-agent/policies/crd"
+	"github.com/MagalixCorp/magalix-policy-agent/sink/logging"
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/urfave/cli/v2"
 	"k8s.io/client-go/kubernetes/scheme"

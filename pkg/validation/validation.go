@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/MagalixCorp/new-magalix-agent/pkg/domain"
+	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	opa "github.com/MagalixTechnologies/opa-core"
 	uuid "github.com/MagalixTechnologies/uuid-go"
 )

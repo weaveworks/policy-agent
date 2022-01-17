@@ -1,4 +1,4 @@
-module github.com/MagalixCorp/new-magalix-agent/pkg
+module github.com/MagalixCorp/magalix-policy-agent/pkg
 
 go 1.17
 

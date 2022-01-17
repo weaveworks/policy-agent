@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	policiesCRDclient "github.com/MagalixCorp/new-magalix-agent/clients/magalix.com/v1"
-	"github.com/MagalixCorp/new-magalix-agent/pkg/domain"
+	policiesCRDclient "github.com/MagalixCorp/magalix-policy-agent/clients/magalix.com/v1"
+	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	"k8s.io/client-go/tools/cache"
 )
 
