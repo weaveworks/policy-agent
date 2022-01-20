@@ -25,22 +25,28 @@ var universalDeserializer = serializer.NewCodecFactory(runtime.NewScheme()).Univ
 
 type AdmissionHandler struct {
 	address   string
-	CertFile  string
-	KeyFile   string
+	certFile  string
+	keyFile   string
+	logLevel  string
 	validator validation.Validator
 }
 
-const SourceAdmission = "admission"
+const (
+	SourceAdmission = "Admission"
+	DebugLevel      = "debug"
+)
 
 func NewAdmissionHandler(
 	address string,
 	certFile string,
 	keyFile string,
+	logLevel string,
 	validator validation.Validator) *AdmissionHandler {
 	return &AdmissionHandler{
 		address:   address,
-		CertFile:  certFile,
-		KeyFile:   keyFile,
+		certFile:  certFile,
+		keyFile:   keyFile,
+		logLevel:  logLevel,
 		validator: validator,
 	}
 }
@@ -58,23 +64,33 @@ func writeResponse(writer http.ResponseWriter, v interface{}, status int) {
 	writer.Write(buf.Bytes())
 }
 
-// Register function to handle admission requests
+// Register regsiters a function to handle admission requests
 func (a *AdmissionHandler) Register(admissionFunc AdmissionWatcher) http.HandlerFunc {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		body, err := ioutil.ReadAll(request.Body)
 		if err != nil {
-			writeResponse(writer, "Unexpected error while reading request body", http.StatusInternalServerError)
+			msg := "unexpected error while reading request body"
+			logger.Warn(msg)
+			writeResponse(writer, msg, http.StatusInternalServerError)
 			return
+		}
+
+		if a.logLevel == DebugLevel {
+			var payload map[string]interface{}
+			json.Unmarshal(body, &payload)
+			logger.Debugw("admission request", "payload", payload)
 		}
 		var reviewRequest v1.AdmissionReview
 		_, _, err = universalDeserializer.Decode(body, nil, &reviewRequest)
 
 		if err != nil || reviewRequest.Request == nil {
-			writeResponse(writer, "Received incorrect admission request", http.StatusInternalServerError)
+			msg := "received incorrect admission request"
+			logger.Warn(msg)
+			writeResponse(writer, msg, http.StatusInternalServerError)
 			return
 		}
 
-		reviewResponse, err := a.Watch(request.Context(), reviewRequest)
+		reviewResponse, err := admissionFunc(request.Context(), reviewRequest)
 		if err != nil {
 			logger.Errorf("validating admission request error", "error", err)
 			writeResponse(writer, err.Error(), http.StatusInternalServerError)
@@ -84,8 +100,8 @@ func (a *AdmissionHandler) Register(admissionFunc AdmissionWatcher) http.Handler
 	})
 }
 
-// Watch include logic to validate admission requests
-func (a *AdmissionHandler) Watch(ctx context.Context, reviewRequest v1.AdmissionReview) (*v1.AdmissionReview, error) {
+// Validate include logic to validate admission requests
+func (a *AdmissionHandler) ValidateRequest(ctx context.Context, reviewRequest v1.AdmissionReview) (*v1.AdmissionReview, error) {
 
 	reviewResponse := v1.AdmissionReview{
 		Response: &v1.AdmissionResponse{
@@ -124,17 +140,17 @@ func (a *AdmissionHandler) Watch(ctx context.Context, reviewRequest v1.Admission
 	return &reviewResponse, nil
 }
 
-// Start start the admission webhook server
+// Run start the admission webhook server
 func (a *AdmissionHandler) Run(ctx context.Context) error {
 	eg, _ := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		mux := http.NewServeMux()
-		mux.Handle("/admission", a.Register(a.Watch))
+		mux.Handle("/admission", a.Register(a.ValidateRequest))
 		server := &http.Server{
 			Addr:    a.address,
 			Handler: mux,
 		}
-		return server.ListenAndServeTLS(a.CertFile, a.KeyFile)
+		return server.ListenAndServeTLS(a.certFile, a.keyFile)
 	})
 	return eg.Wait()
 }
