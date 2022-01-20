@@ -100,7 +100,7 @@ func (a *AdmissionHandler) Register(admissionFunc AdmissionWatcher) http.Handler
 	})
 }
 
-// Validate include logic to validate admission requests
+// ValidateRequest include logic to validate admission requests
 func (a *AdmissionHandler) ValidateRequest(ctx context.Context, reviewRequest v1.AdmissionReview) (*v1.AdmissionReview, error) {
 
 	reviewResponse := v1.AdmissionReview{
