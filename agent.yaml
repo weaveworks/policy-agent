@@ -1,0 +1,214 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    agent-admission: ignore
+    app.kubernetes.io/name: "magalix-system"
+    app.kubernetes.io/version: "1"
+    app.kubernetes.io/component: "namespace"
+    app.kubernetes.io/tier: "backend"
+  name: magalix-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+  labels:
+    app.kubernetes.io/name: "magalix-policy-agent"
+    app.kubernetes.io/version: "1"
+    app.kubernetes.io/component: "service-account"
+    app.kubernetes.io/tier: "backend"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: magalix-policy-agent
+  labels:
+    app.kubernetes.io/name: "magalix-policy-agent"
+    app.kubernetes.io/version: "1"
+    app.kubernetes.io/component: "cluster-role"
+    app.kubernetes.io/tier: "backend"
+rules:
+- apiGroups:
+  - 'magalix.com'
+  resources:
+  - 'policies'
+  verbs:
+  - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: magalix-policy-agent
+  labels:
+    app.kubernetes.io/name: "magalix-policy-agent"
+    app.kubernetes.io/version: "1"
+    app.kubernetes.io/component: "cluster-role-binding"
+    app.kubernetes.io/tier: "backend"
+subjects:
+- kind: ServiceAccount
+  name: magalix-policy-agent
+  namespace: magalix-system
+roleRef:
+  kind: ClusterRole
+  name: magalix-policy-agent
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+spec:
+  storageClassName: {fill storage class name}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+data:
+  AGENT_ACCOUNT_ID: 0b3afa81-0084-4451-b57d-f8f810480c69
+  AGENT_CLUSTER_ID: d47315d3-51b6-4951-8090-1af8e1476f95
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+type: kubernetes.io/tls
+data:
+  tls.crt: |
+      {add server certificate here}
+  tls.key: |
+      {add server private key here}
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+  labels:
+    app.kubernetes.io/name: "magalix-policy-agent"
+    app.kubernetes.io/instance: "magalix-policy-agent"
+    app.kubernetes.io/part-of: "magalix-policy-agent"
+    app.kubernetes.io/managed-by: "magalix"
+    app.kubernetes.io/version: "1"
+    app.kubernetes.io/component: "magalix-policy-agent"
+    app.kubernetes.io/tier: "backend"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name:  magalix-policy-agent
+  template:
+    metadata:
+      labels:
+        name: magalix-policy-agent
+    spec:
+      serviceAccountName: magalix-policy-agent
+      restartPolicy: Always
+      containers:
+        - image: magalixcorp/magalix-policy-agent:master
+          imagePullPolicy: Always
+          name: policy-agent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: true
+            runAsGroup: 1000
+            runAsUser: 1000
+          resources:
+            limits:
+              memory: 750Mi
+              cpu: 1
+            requests:
+              memory: 200Mi
+              cpu: 100m
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9000
+            initialDelaySeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 9000
+            initialDelaySeconds: 5
+          ports:
+          - containerPort: 8443
+            name: webhook
+            protocol: TCP
+          envFrom:
+          - configMapRef:
+              name: magalix-policy-agent
+          volumeMounts:
+          - name: cert
+            mountPath: /certs
+            readOnly: true
+          - name: validation-results
+            mountPath: /var
+      volumes:
+      - name: cert
+        secret:
+          secretName: magalix-policy-agent
+      - name: validation-results
+        persistentVolumeClaim:
+          claimName: magalix-policy-agent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+spec:
+  ports:
+  - name: https-admission-webhook
+    port: 443
+    targetPort: webhook
+  selector:
+    name:  magalix-policy-agent
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: magalix-policy-agent
+  labels:
+    app.kubernetes.io/name: magalix-policy-agent
+webhooks:
+  - name: admission.agent.magalix
+    clientConfig:
+      service:
+        namespace: magalix-system
+        name: magalix-policy-agent
+        path: /admission
+      caBundle: {add CA certificate here}
+    rules:
+      - operations: [ "CREATE", "UPDATE" ]
+        apiVersions: ["*"]
+        apiGroups: ["", "extensions", "apps", "batch", "metrics.k8s.io", "networking.k8s.io"]
+        resources: ["nodes", "nodes/stats", "nodes/metrics", "nodes/proxy", "namespaces", "pods", "limitranges", "deployments", "replicationcontrollers", "statefulsets", "daemonsets", "replicasets", "jobs", "cronjobs", "ingresses", "ingressclasses", "services", "networkpolicies"]
+      - operations: [ "CREATE", "UPDATE" ]
+        apiVersions: ["*"]
+        apiGroups: ["", "rbac.authorization.k8s.io", "storage.k8s.io"]
+        resources: ["clusterrolebindings", "clusterroles", "roles", "rolebindings", "persistentvolumes", "persistentvolumeclaims", "storageclasses"]
+    timeoutSeconds: 5
+    failurePolicy: Fail
+    admissionReviewVersions: ["v1", "v1beta1"]
+    sideEffects: None
+    matchPolicy: Equivalent
+    namespaceSelector:
+      matchExpressions:
+      - key: agent-admission
+        operator: NotIn
+        values: ["ignore"]
