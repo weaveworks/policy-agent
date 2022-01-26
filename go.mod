@@ -6,6 +6,7 @@ require (
 	github.com/MagalixTechnologies/core/logger v1.0.3
 	github.com/MagalixTechnologies/opa-core v1.0.11
 	github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e
+	github.com/golang/mock v1.6.0
 	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	k8s.io/api v0.23.1
