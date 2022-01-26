@@ -6,6 +6,7 @@ import (
 
 	policiesCRDclient "github.com/MagalixCorp/magalix-policy-agent/clients/magalix.com/v1"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
+	"github.com/MagalixTechnologies/core/logger"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -31,8 +32,9 @@ func (p *PoliciesCRD) Close() {
 func (p *PoliciesCRD) GetAll(ctx context.Context) ([]domain.Policy, error) {
 	var policies []domain.Policy
 	policiesCRD := p.informer.List()
+	logger.Debugw("retrieved CRD policies from cache", "count", len(policiesCRD))
 	for i := range policiesCRD {
-		policies = append(policies, policiesCRD[i].GetSpec())
+		policies = append(policies, policiesCRD[i].Spec)
 	}
 	return policies, nil
 }

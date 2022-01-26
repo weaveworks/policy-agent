@@ -7,5 +7,5 @@ type PoliciesSource interface {
 }
 
 type ValidationResultSink interface {
-	Write(ctx context.Context, violations []ValidationResult) error
+	Write(ctx context.Context, validationResults []ValidationResult) error
 }

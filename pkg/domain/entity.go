@@ -1,6 +1,11 @@
 package domain
 
-import "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+import (
+	"encoding/json"
+	"fmt"
+
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+)
 
 type Entity struct {
 	ID              string                 `json:"id"`
@@ -10,6 +15,15 @@ type Entity struct {
 	Spec            map[string]interface{} `json:"spec"`
 	ResourceVersion string                 `json:"resource_version"`
 	Labels          map[string]string      `json:"labels"`
+}
+
+func NewEntityByStringSpec(entityStringSpec string) (Entity, error) {
+	var entitySpec map[string]interface{}
+	err := json.Unmarshal([]byte(entityStringSpec), &entitySpec)
+	if err != nil {
+		return Entity{}, fmt.Errorf("invalid string format, %w", err)
+	}
+	return NewEntityBySpec(entitySpec), nil
 }
 
 func NewEntityBySpec(entitySpec map[string]interface{}) Entity {

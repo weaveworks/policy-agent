@@ -5,13 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	opa "github.com/MagalixTechnologies/opa-core"
 	uuid "github.com/MagalixTechnologies/uuid-go"
 )
 
-const PolicyQuery = "violation"
+const (
+	PolicyQuery = "violation"
+	maxWorkers  = 25
+)
 
 type OpaValidator struct {
 	policiesSource  domain.PoliciesSource
@@ -46,11 +50,16 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 	violationsChan := make(chan domain.ValidationResult)
 	compliancesChan := make(chan domain.ValidationResult)
 	errsChan := make(chan error)
+	bound := make(chan struct{}, maxWorkers)
 
 	for i := range policies {
+		bound <- struct{}{}
 		enqueueGroup.Add(1)
 		go (func(index int) {
-			defer enqueueGroup.Done()
+			defer func() {
+				<-bound
+				enqueueGroup.Done()
+			}()
 			policy := policies[index]
 			match := matchEntity(entity, policy)
 			if !match {
@@ -62,10 +71,11 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 			}
 			var opaErr opa.OPAError
 			res := domain.ValidationResult{
-				ID:     uuid.NewV4().String(),
-				Policy: policy,
-				Entity: entity,
-				Source: source,
+				ID:        uuid.NewV4().String(),
+				Policy:    policy,
+				Entity:    entity,
+				Source:    source,
+				CreatedAt: time.Now(),
 			}
 
 			parameters := policy.GetParametersMap()
