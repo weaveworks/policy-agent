@@ -41,8 +41,8 @@ func (p *ProbesHandler) readinessHandler(w http.ResponseWriter, _ *http.Request)
 	}
 }
 
-func (p *ProbesHandler) SetReady() {
-	p.ready.Store(true)
+func (p *ProbesHandler) MarkReady(ready bool) {
+	p.ready.Store(ready)
 }
 
 func (p *ProbesHandler) Run(ctx context.Context) error {

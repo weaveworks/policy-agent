@@ -7,10 +7,10 @@ type PolicyTargets struct {
 }
 
 type PolicyParameters struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Default  string `json:"default"`
-	Required bool   `json:"required"`
+	Name     string      `json:"name"`
+	Type     string      `json:"type"`
+	Default  interface{} `json:"default"`
+	Required bool        `json:"required"`
 }
 
 type Policy struct {

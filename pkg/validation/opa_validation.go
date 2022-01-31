@@ -47,8 +47,8 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 
 	var enqueueGroup sync.WaitGroup
 	var dequeueGroup sync.WaitGroup
-	violationsChan := make(chan domain.ValidationResult)
-	compliancesChan := make(chan domain.ValidationResult)
+	violationsChan := make(chan domain.ValidationResult, len(policies))
+	compliancesChan := make(chan domain.ValidationResult, len(policies))
 	errsChan := make(chan error)
 	bound := make(chan struct{}, maxWorkers)
 
@@ -68,6 +68,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 			opaPolicy, err := opa.Parse(policy.Code, PolicyQuery)
 			if err != nil {
 				errsChan <- fmt.Errorf("Failed to parse policy %s, %w", policy.ID, err)
+				return
 			}
 			var opaErr opa.OPAError
 			res := domain.ValidationResult{
@@ -99,6 +100,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 					msg := fmt.Sprintf("%s in %s %s. Policy: %s", title, entity.Kind, entity.Name, policy.ID)
 					res.Status = domain.ValidationResultStatusViolating
 					res.Message = msg
+
 					violationsChan <- res
 				} else {
 					errsChan <- fmt.Errorf("unable to evaluate resource against policy. policy id: %s. %w", policy.ID, err)

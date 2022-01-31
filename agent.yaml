@@ -157,7 +157,7 @@ spec:
             mountPath: /certs
             readOnly: true
           - name: validation-results
-            mountPath: /var
+            mountPath: /tmp
       volumes:
       - name: cert
         secret:

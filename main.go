@@ -105,7 +105,7 @@ func main() {
 			Name:        "sink-file-path",
 			Usage:       "file path to write validation result to",
 			Destination: &config.SinkFilePath,
-			Value:       "/var/results.json", //@TODO remove default value and only add sink when a value is specified
+			Value:       "/tmp/results.json", //@TODO remove default value and only add sink when a value is specified
 			EnvVars:     []string{"AGENT_SINK_FILE_PATH"},
 		},
 	}
@@ -187,7 +187,7 @@ func main() {
 			validator,
 		)
 
-		probeHandler.SetReady()
+		probeHandler.MarkReady(true)
 		logger.Info("starting admission server...")
 		err = admissionServer.Run(contextCli.Context)
 		if err != nil {

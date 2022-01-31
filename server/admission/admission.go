@@ -32,8 +32,10 @@ type AdmissionHandler struct {
 }
 
 const (
-	SourceAdmission = "Admission"
-	DebugLevel      = "debug"
+	SourceAdmission         = "Admission"
+	DebugLevel              = "debug"
+	invalidRequestBody      = "unexpected error while reading request body"
+	invalidadmissionRequest = "received incorrect admission request"
 )
 
 func NewAdmissionHandler(
@@ -69,9 +71,8 @@ func (a *AdmissionHandler) Register(admissionFunc AdmissionWatcher) http.Handler
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		body, err := ioutil.ReadAll(request.Body)
 		if err != nil {
-			msg := "unexpected error while reading request body"
-			logger.Warn(msg)
-			writeResponse(writer, msg, http.StatusInternalServerError)
+			logger.Warn(invalidRequestBody)
+			writeResponse(writer, invalidRequestBody, http.StatusInternalServerError)
 			return
 		}
 
@@ -84,15 +85,14 @@ func (a *AdmissionHandler) Register(admissionFunc AdmissionWatcher) http.Handler
 		_, _, err = universalDeserializer.Decode(body, nil, &reviewRequest)
 
 		if err != nil || reviewRequest.Request == nil {
-			msg := "received incorrect admission request"
-			logger.Warn(msg)
-			writeResponse(writer, msg, http.StatusInternalServerError)
+			logger.Warn(invalidadmissionRequest)
+			writeResponse(writer, invalidadmissionRequest, http.StatusInternalServerError)
 			return
 		}
 
 		reviewResponse, err := admissionFunc(request.Context(), reviewRequest)
 		if err != nil {
-			logger.Errorf("validating admission request error", "error", err)
+			logger.Errorw("validating admission request error", "error", err)
 			writeResponse(writer, err.Error(), http.StatusInternalServerError)
 			return
 		}

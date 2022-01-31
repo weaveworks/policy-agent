@@ -2,7 +2,7 @@
 
 In order to get the agent up and running there are some extra steps that needs to be performed by the user to have a usable deployment file. Those additional configurations are user sepcific and for now they are left up to the user to fill them out. In the future those details should be pre filled to the user though either an interface or through generating those values to the user.
 
-## policies
+## Policies
 
 The agent needs access to policies to validate the user's requests against. These are provided to him as CRDs running in the cluster. Thus having those CRDs in the cluster is necessary for the agent to function. The policies are hosted in the policies library [repo](https://github.com/MagalixTechnologies/policy-library).
 
