@@ -1,0 +1,179 @@
+version: 2
+jobs:
+  "build & push":
+    docker:
+      - image: magalixcorp/circleci-golang-lite:1.17
+
+    steps:
+      - run:
+          name: Set up source path directory
+          command: |
+            echo 'export SOURCE_PATH=/home/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME' >> $BASH_ENV
+            echo 'export GO111MODULE=on' >> $BASH_ENV
+            echo 'export GOPRIVATE=github.com/MagalixTechnologies' >> $BASH_ENV
+            echo 'export PATH=/usr/local/bin/upx:$PATH' >> $BASH_ENV
+            echo 'export PATH=/usr/bin/gcloud:$PATH' >> $BASH_ENV
+            echo 'export PATH=/root/google-cloud-sdk/bin:$PATH' >> $BASH_ENV
+
+      - run:
+          name: Install Google Cloud SDK
+          command: |
+            apk update
+            apk add python3
+
+            # Update the package list and install the Cloud SDK
+            curl https://sdk.cloud.google.com | bash -s -- --disable-prompts
+
+            # The next line updates PATH for the Google Cloud SDK.
+            source /root/google-cloud-sdk/completion.bash.inc
+
+            source $BASH_ENV
+      - run:
+          name: Checkout code
+          command: |
+            mkdir -p ~/.ssh
+            echo 'StrictHostKeyChecking no' >> ~/.ssh/config
+
+            git config --global \
+              url."ssh://git@github.com".insteadOf "https://github.com"
+
+            git clone -q --recursive "$CIRCLE_REPOSITORY_URL" "$SOURCE_PATH"
+
+            cd $SOURCE_PATH
+
+            if [[ "$CIRCLE_TAG" ]]; then
+              git checkout -q "$CIRCLE_TAG"
+            fi
+
+            if [[ "$CIRCLE_BRANCH" ]]; then
+              git checkout -q "$CIRCLE_BRANCH"
+            fi
+
+      - run:
+          name: Should push?
+          command: |
+            if [[ "$CIRCLE_BRANCH" == "dev" || "$CIRCLE_BRANCH" == "master" ]]
+            then
+              echo 'export SHOULD_PUSH=true' >> $BASH_ENV
+            else
+              echo :: will not push
+            fi
+
+      - restore_cache:
+          keys:
+            - go-src-pkg-cache-v2
+
+      - run:
+          name: Build binary
+          command: |
+
+            export GOCACHE=/go/cache/
+
+            cd $SOURCE_PATH
+            make build
+
+      - save_cache:
+          key: go-src-pkg-cache-v2
+          paths:
+            - /go/src/k8s.io/
+            - /go/pkg/
+            - /go/cache/
+
+      - setup_remote_docker
+
+      - run:
+          name: Build docker image
+          command: |
+            if [[ ! "$SHOULD_PUSH" ]]; then
+              echo :: no push
+
+              exit 0
+            fi
+            cd $SOURCE_PATH
+
+            if [[ "$CIRCLE_BRANCH" == "master" ]]; then
+              export VERSION=latest
+            fi
+
+            if [[ "$CIRCLE_BRANCH" == "dev" ]]; then
+              export VERSION=dev
+            fi
+
+            make image VERSION=$VERSION
+
+      - run:
+          name: run test
+          command: |
+            cd $SOURCE_PATH
+            apk add build-base
+
+            go test -v -cover -covermode=atomic -coverprofile=coverage.txt ./...
+            bash <(curl -s https://codecov.io/bash) -F unit
+
+      - run:
+          name: Scan The Image
+          command: |
+            if [[ ! "$SHOULD_PUSH" ]]; then
+              echo :: no push
+
+              exit 0
+            fi
+            if [[ "$CIRCLE_BRANCH" == "master" ]]; then
+              export VERSION=latest
+            fi
+
+            if [[ "$CIRCLE_BRANCH" == "dev" ]]; then
+              export VERSION=dev
+            fi
+
+            cd $SOURCE_PATH
+            make anchore_scan VERSION=$VERSION
+
+      - store_artifacts:
+          path: anchore-reports/
+
+      - deploy:
+          name: Push to Docker Registry
+          command: |
+            if [[ ! "$SHOULD_PUSH" ]]; then
+              echo :: no push
+
+              exit 0
+            fi
+
+            cd $SOURCE_PATH
+
+            docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
+
+            if [[ "$CIRCLE_BRANCH" == "master" ]]; then
+              export VERSION=latest
+            fi
+
+            if [[ "$CIRCLE_BRANCH" == "dev" ]]; then
+              export VERSION=dev
+            fi
+
+            make push@magalixcorp tag-file=new-tag version-file=new-version VERSION=$VERSION
+
+workflows:
+  version: 2
+  "build & push":
+    jobs:
+      - integration-test-image:
+          context: org-global
+      - integration-test:
+          context: org-global
+          requires:
+            - integration-test-image
+      - "build & push":
+          context: org-global
+          requires:
+            - integration-test
+      - update:
+          context: org-global
+          requires:
+            - "build & push"
+          filters:
+            branches:
+              only:
+                - dev
