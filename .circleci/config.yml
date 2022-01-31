@@ -84,12 +84,11 @@ jobs:
       - run:
           name: Build docker image
           command: |
-            if [[ ! "$SHOULD_PUSH" ]]; then
-              echo :: no push
-
-              exit 0
-            fi
             cd $SOURCE_PATH
+
+            COMMIT_COUNT=$(git rev-list --count HEAD)
+            SHORT_HASH=$(git rev-parse --short HEAD)
+            VERSION=${CIRCLE_BRANCH}-${COMMIT_COUNT}-${SHORT_HASH}
 
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
               export VERSION=latest
@@ -113,11 +112,11 @@ jobs:
       - run:
           name: Scan The Image
           command: |
-            if [[ ! "$SHOULD_PUSH" ]]; then
-              echo :: no push
+            cd $SOURCE_PATH
+            COMMIT_COUNT=$(git rev-list --count HEAD)
+            SHORT_HASH=$(git rev-parse --short HEAD)
+            VERSION=${CIRCLE_BRANCH}-${COMMIT_COUNT}-${SHORT_HASH}
 
-              exit 0
-            fi
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
               export VERSION=latest
             fi
@@ -126,7 +125,6 @@ jobs:
               export VERSION=dev
             fi
 
-            cd $SOURCE_PATH
             make anchore_scan VERSION=$VERSION
 
       - store_artifacts:

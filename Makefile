@@ -28,7 +28,7 @@ build@go:
 		-ldflags "-X main.version=$(VERSION)" \
 		-gcflags "-trimpath $(GOPATH)/src"
 
-image: strip
+image:
 	@echo :: building image $(NAME):$(VERSION)
 	@docker build -t $(NAME):$(VERSION) -f Dockerfile .
 
