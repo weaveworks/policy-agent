@@ -26,6 +26,7 @@ type Policy struct {
 	Severity    string             `json:"severity"`
 }
 
+// GetParametersMap returns policy parameters as a map
 func (p *Policy) GetParametersMap() map[string]interface{} {
 	res := make(map[string]interface{})
 	for _, param := range p.Parameters {

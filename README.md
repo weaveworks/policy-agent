@@ -1,3 +1,55 @@
-# New magalix agent
+# Magalix Policy Agent
 
-Contains the newly designed magalix agent
+Policy agent that enforces rego policies by reporting the cluster's workloads and serving as admission control to refuse violating controllers.
+
+## Features
+
+- Enforce policies at deploy time
+- Report runtime violations and compliance
+- Support for multiple sinks for validation results
+- Extend policies by defining your own policy using Custom Resource Definitions
+
+## Running the agent
+
+### As a Kubernetes workload
+
+Refer to this [doc](docs/running_agent.md) for the steps needed to run the agent with all its necessary componenets.
+
+### Local
+
+The agent needs the following arguments to start, they can be specified as command line arguments or as environment variables:
+
+- `kube-config-file` | `AGENT_KUBE_CONFIG_FILE`: path to the kubernetes config file to access the cluster
+- `account-id` | `AGENT_ACCOUNT_ID`: unique identifier that signifies the owner of that agent
+- `cluster-id` | `AGENT_CLUSTER_ID`: unique identifier for the cluster that the agent will run against
+
+There are additional arguments that can be specified, refer to the help for more info.
+
+```bash
+agent -h
+NAME:
+   Magalix agent - Enforces compliance on your kubernetes cluster
+
+USAGE:
+   agent [global options] command [command options] [arguments...]
+
+VERSION:
+   0.0.1
+
+COMMANDS:
+   help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --kube-config-file value   path to kubernetes client config file [$AGENT_KUBE_CONFIG_FILE]
+   --account-id value         Account id, unique per organization [$AGENT_ACCOUNT_ID]
+   --cluster-id value         Cluster id, cluster identifier [$AGENT_CLUSTER_ID]
+   --webhook-listen value     address for the admission webhook server to listen on (default: ":8443") [$AGENT_WEBHOOK_LISTEN]
+   --webhook-cert-file value  cert file path for webhook server (default: "/certs/tls.crt") [$AGENT_WEBHOOK_CERT_FILE]
+   --webhook-key-file value   key file path for webhook server (default: "/certs/tls.key") [$AGENT_WEBHOOK_KEY_FILE]
+   --probes-listen value      address for the probes server to run on (default: ":9000") [$AGENT_PROBES_LISTEN]
+   --write-compliance         enables writing compliance results (default: false) [$AGENT_WRITE_COMPLIANCE]
+   --log-level value          app log level (default: "info") [$AGENT_LOG_LEVEL]
+   --sink-file-path value     file path to write validation result to (default: "/tmp/results.json") [$AGENT_SINK_FILE_PATH]
+   --help, -h                 show help (default: false)
+   --version, -v              print the version (default: false)
+```

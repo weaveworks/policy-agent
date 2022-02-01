@@ -17,6 +17,7 @@ type Entity struct {
 	Labels          map[string]string      `json:"labels"`
 }
 
+// NewEntityByStringSpec takes string representing a Kubernetes entity and parses it into Entity struct
 func NewEntityByStringSpec(entityStringSpec string) (Entity, error) {
 	var entitySpec map[string]interface{}
 	err := json.Unmarshal([]byte(entityStringSpec), &entitySpec)
@@ -26,6 +27,7 @@ func NewEntityByStringSpec(entityStringSpec string) (Entity, error) {
 	return NewEntityBySpec(entitySpec), nil
 }
 
+// NewEntityBySpec takes map representing a Kubernetes entity and parses it into Entity struct
 func NewEntityBySpec(entitySpec map[string]interface{}) Entity {
 	kubeEntity := unstructured.Unstructured{Object: entitySpec}
 	return Entity{

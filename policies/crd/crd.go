@@ -16,6 +16,7 @@ type PoliciesCRD struct {
 	informer *policiesCRDclient.PoliciesInformer
 }
 
+// NewPoliciesCRD returns a policies source that fetches them from Kubernetes API
 func NewPoliciesCRD(client *policiesCRDclient.KubePoliciesClient) (*PoliciesCRD, error) {
 	informer := policiesCRDclient.NewPoliciesInformer(client, cache.ResourceEventHandlerFuncs{}, syncPeriod)
 	err := informer.Start()
@@ -25,10 +26,12 @@ func NewPoliciesCRD(client *policiesCRDclient.KubePoliciesClient) (*PoliciesCRD,
 	return &PoliciesCRD{informer: informer}, nil
 }
 
+// Close stops the policies client informer
 func (p *PoliciesCRD) Close() {
 	p.informer.Stop()
 }
 
+// GetAll returns all policies, implements github.com/MagalixCorp/magalix-policy-agent/pkg/domain.PoliciesSource
 func (p *PoliciesCRD) GetAll(ctx context.Context) ([]domain.Policy, error) {
 	var policies []domain.Policy
 	policiesCRD := p.informer.List()

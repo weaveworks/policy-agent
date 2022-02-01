@@ -15,6 +15,7 @@ type KubePoliciesClient struct {
 	client rest.Interface
 }
 
+// NewKubePoliciesClient returns kubernetes policies CRD client
 func NewKubePoliciesClient(c *rest.Config) *KubePoliciesClient {
 	config := *c
 	config.ContentConfig.GroupVersion = &schema.GroupVersion{Group: magalixv1.GroupName, Version: magalixv1.GroupVersion}
@@ -30,6 +31,7 @@ func NewKubePoliciesClient(c *rest.Config) *KubePoliciesClient {
 	return &KubePoliciesClient{client: client}
 }
 
+// List gets policies CRD from Kubernetes API
 func (p *KubePoliciesClient) List(ctx context.Context, opts metav1.ListOptions) (*magalixv1.PolicyList, error) {
 	result := magalixv1.PolicyList{}
 	err := p.client.
@@ -41,6 +43,7 @@ func (p *KubePoliciesClient) List(ctx context.Context, opts metav1.ListOptions) 
 	return &result, err
 }
 
+// Get returns a specific policy CRD
 func (c *KubePoliciesClient) Get(ctx context.Context, name string, opts metav1.GetOptions) (*magalixv1.Policy, error) {
 	result := magalixv1.Policy{}
 	err := c.client.
@@ -54,6 +57,7 @@ func (c *KubePoliciesClient) Get(ctx context.Context, name string, opts metav1.G
 	return &result, err
 }
 
+// Watch watches changes on policies CRD
 func (p *KubePoliciesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
 	opts.Watch = true
 	return p.client.

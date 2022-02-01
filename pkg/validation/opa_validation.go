@@ -23,6 +23,7 @@ type OpaValidator struct {
 	writeCompliance bool
 }
 
+// NewOpaValidator returns an opa validator to validate entities
 func NewOpaValidator(
 	policiesSource domain.PoliciesSource,
 	writeCompliance bool,
@@ -35,6 +36,7 @@ func NewOpaValidator(
 	}
 }
 
+// Validate validate policies using opa library, implements validation.Validator
 func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, source string) (*domain.ValidationSummary, error) {
 	violations := make([]domain.ValidationResult, 0)
 	compliances := make([]domain.ValidationResult, 0)

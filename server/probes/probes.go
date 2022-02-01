@@ -13,6 +13,7 @@ type ProbesHandler struct {
 	ready   *atomic.Value
 }
 
+// NewProbesHandler returns a probe server instance
 func NewProbesHandler(address string) *ProbesHandler {
 	ready := &atomic.Value{}
 	ready.Store(false)
@@ -41,10 +42,12 @@ func (p *ProbesHandler) readinessHandler(w http.ResponseWriter, _ *http.Request)
 	}
 }
 
+// MarkReady sets probe server's state as ready
 func (p *ProbesHandler) MarkReady(ready bool) {
 	p.ready.Store(ready)
 }
 
+// Run starts the probe server
 func (p *ProbesHandler) Run(ctx context.Context) error {
 	eg, _ := errgroup.WithContext(ctx)
 	eg.Go(func() error {
