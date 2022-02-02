@@ -55,27 +55,30 @@ roleRef:
   name: magalix-policy-agent
   apiGroup: rbac.authorization.k8s.io
 ---
+{{if eq .Values.usePersistence true }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: magalix-policy-agent
   namespace: magalix-system
 spec:
-  storageClassName: {fill storage class name}
+  storageClassName: {{ .Values.storageClassName }}
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: {{ .Values.claimStorage }}
 ---
+{{end}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: magalix-policy-agent
   namespace: magalix-system
 data:
-  AGENT_ACCOUNT_ID: 0b3afa81-0084-4451-b57d-f8f810480c69
-  AGENT_CLUSTER_ID: d47315d3-51b6-4951-8090-1af8e1476f95
+  AGENT_ACCOUNT_ID: {{ .Values.accountId }}
+  AGENT_CLUSTER_ID: {{ .Values.clusterId }}
+  AGENT_SINK_FILE_PATH: {{.Values.sinkDir}}/results.json
 ---
 apiVersion: v1
 kind: Secret
@@ -85,9 +88,9 @@ metadata:
 type: kubernetes.io/tls
 data:
   tls.crt: |
-      {add server certificate here}
+      {{ .Values.certificate | b64enc }}
   tls.key: |
-      {add server private key here}
+      {{ .Values.key | b64enc }}
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -115,7 +118,7 @@ spec:
       serviceAccountName: magalix-policy-agent
       restartPolicy: Always
       containers:
-        - image: magalixcorp/magalix-policy-agent:master
+        - image: {{.Values.image}}
           imagePullPolicy: Always
           name: policy-agent
           securityContext:
@@ -125,7 +128,6 @@ spec:
               - ALL
             privileged: false
             procMount: Default
-            readOnlyRootFilesystem: true
             runAsGroup: 1000
             runAsUser: 1000
           resources:
@@ -156,15 +158,19 @@ spec:
           - name: cert
             mountPath: /certs
             readOnly: true
+          {{- if eq .Values.usePersistence true }}
           - name: validation-results
-            mountPath: /tmp
+            mountPath: {{.Values.sinkDir}}
+          {{- end}}
       volumes:
       - name: cert
         secret:
           secretName: magalix-policy-agent
+      {{- if eq .Values.usePersistence true }}
       - name: validation-results
         persistentVolumeClaim:
           claimName: magalix-policy-agent
+      {{- end}}
 ---
 apiVersion: v1
 kind: Service
@@ -192,7 +198,7 @@ webhooks:
         namespace: magalix-system
         name: magalix-policy-agent
         path: /admission
-      caBundle: {add CA certificate here}
+      caBundle: {{ .Values.caCertificate | b64enc }}
     rules:
       - operations: [ "CREATE", "UPDATE" ]
         apiVersions: ["*"]
@@ -203,7 +209,7 @@ webhooks:
         apiGroups: ["", "rbac.authorization.k8s.io", "storage.k8s.io"]
         resources: ["clusterrolebindings", "clusterroles", "roles", "rolebindings", "persistentvolumes", "persistentvolumeclaims", "storageclasses"]
     timeoutSeconds: 5
-    failurePolicy: Fail
+    failurePolicy: {{ .Values.failurePolicy }}
     admissionReviewVersions: ["v1", "v1beta1"]
     sideEffects: None
     matchPolicy: Equivalent

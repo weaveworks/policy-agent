@@ -29,7 +29,7 @@ The following are the `Kubernetes` entities needed to run the agent:
 
 ## Filling in the data
 
-Before you could run the yaml [file](../agent.yaml) the following values need to be manually filled first.
+Before you can start running the agent, the following values need to be manually filled first. You need to have [helm](https://helm.sh/) installed to generate the agent yaml. The chart directory for the agent can be found [here](../helm/Chart.yaml).
 
 ### Persistent volume
 
@@ -37,40 +37,24 @@ The agent writes the result of its validation requests to a local file. This fil
 
 The user will have to define a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) and then define a claim that binds to that volume and mount that on the agent deployment.
 
-An example of a `PersistentVolumeClaim`:
+To use a persistent volume you need to set the following values in your helm values file:
 
 ```yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: magalix-policy-agent
-  namespace: magalix-system
-spec:
-  storageClassName: manual
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+storageClassName: example # storage class for the persistent volume
+usePersistence: true # flag to add claim configuration to yaml and mounts to the deployment
+claimStorage: xGi # claim size, optional
+sinkDir: /dir # location of mount, optional
 ```
 
-The `agent.yaml` file assumes that the user would want to mount his results file and that it uses a claim with the name `magalix-policy-agent` in the `magalix-system` namespace. If this isn't a desired behavior then these sections needs to be removed from the file:
+This will generate a claim from a pre-existing volume and mount those volumes to the agent with the specified configuration.
 
-From the `containers` section in the yaml:
+### Configmap
 
-```yaml
-volumeMounts:
-    ...
-    - name: validation-results
-      mountPath: /var
-```
+The configmap needs to be configured to configure the agent with the available command line arguments. The following are the required arguements before the agent can start:
 
 ```yaml
-volumes:
-    ...
-    - name: validation-results
-      persistentVolumeClaim:
-        claimName: magalix-policy-agent
+accountId: account-id # unique identifier for the agent owner
+clusterId: cluster-id # unique identifier for the cluster that the agent is running on
 ```
 
 ### TLS certificates
@@ -123,39 +107,22 @@ openssl x509 -req -in admission.csr -CA ca.crt -CAkey ca.key -CAcreateserial -ou
 ```
 
 Now that we generated the needed files we need to add them to the yaml.
-We need to add the `tls.crt` and `tls.key` to the secret `magalix-policy-agent`. First they should be base64 encoded.
-
-```bash
-crt_base64="$(cat tls.crt | base64)"
-key_base64="$(cat tls.key | base64)"
-```
-
-Then in the yaml:
+We need to add the `tls.crt` and `tls.key` to the secret `magalix-policy-agent`. As well as the configuration for the validating webhook.
+To do that we copy the content of the files to the helm values file:
 
 ```yaml
-data:
-  tls.crt: |
-      $crt_base64
-  tls.key: |
-      $key_base64
+certificate: |
+  <crt>
+key: |
+  <key>
+CaCertificate:
+  <cacert>
 ```
 
-Encode the CA certificate:
+## Generating the file
+
+After filling all the data you need to generate the valid deployment using the values file and `helm`, run this command at the root of thte repo:
 
 ```bash
-ca_b64="$(openssl base64 -A <"ca.crt")"
+helm3 template -f {values-file} ./helm > agent.yaml
 ```
-
-Lastly add it to the `ValidatingWebhookConfiguration`:
-
-```yaml
-webhooks:
-  - name: admission.agent.magalix
-    clientConfig:
-      service:
-        namespace: magalix-system
-        name: magalix-policy-agent
-        path: /admission
-      caBundle: $ca_b64
-```
-
