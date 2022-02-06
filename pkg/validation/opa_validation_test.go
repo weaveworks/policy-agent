@@ -221,7 +221,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "matching multiple",
+			name: "multiple policies only one matching",
 			init: init{
 				writeCompliance: false,
 				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockValidationResultSink) {
