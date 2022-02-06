@@ -22,7 +22,6 @@ Contains the implementations of the `PoliciesSource` interface that is responsib
 
 The server package houses both the probes server, used for readiness and liveness probes and the admission server, which serves as a webhook that listens to admission requests and triggers the validation process and refuses the operation if it encounters any violation.
 
-
 ## sink
 
 Contains the implementations of `ValidationResultSink`, responsible of writing the validation results to a specified source.

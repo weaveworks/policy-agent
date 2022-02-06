@@ -12,9 +12,9 @@ Policy agent that enforces rego policies by controlling admission of violating r
 - Support for multiple sinks for validation results
 - Extend policies by defining your own policy using Custom Resource Definitions
 
-## Running the agent
+## Running the Agent
 
-### As a Kubernetes workload
+### Kubernetes Workload
 
 Refer to this [doc](docs/running_agent.md) for the steps needed to run the agent with all its necessary componenets.
 

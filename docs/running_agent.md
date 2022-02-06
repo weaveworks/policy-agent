@@ -1,4 +1,4 @@
-# Running the agent with admission control
+# Running the Agent
 
 In order to get the agent up and running there are some extra steps that needs to be performed by the user to have a usable deployment file. Those additional configurations are user sepcific and for now they are left up to the user to fill them out. In the future those details should be pre filled to the user through either an interface or through generating those values to the user.
 
@@ -14,7 +14,7 @@ kubectl apply -f crd.yaml
 
 You can then check the `policies` directory and apply the required policies.
 
-## Agent componenets
+## Agent Componenets
 
 The following are the `Kubernetes` entities needed to run the agent:
 
@@ -27,11 +27,11 @@ The following are the `Kubernetes` entities needed to run the agent:
 - `Service`: exposes the admission webhook server
 - `ValidatingWebhookConfiguration`: configures the admission control(needs user input for the CA public certificate)
 
-## Filling in the data
+## Required Data
 
-Before you can start running the agent, the following values need to be manually filled first. You need to have [helm](https://helm.sh/) installed to generate the agent yaml. The chart directory for the agent can be found [here](../helm/Chart.yaml).
+Before you can start running the agent, the following values need to be filled first. You need to have [helm](https://helm.sh/) installed to generate the agent yaml. The chart directory for the agent can be found [here](../helm/Chart.yaml).
 
-### Persistent volume
+### Persistent Volume
 
 The agent writes the result of its validation requests to a local file. This file naturally won't persist after a container restart and thus the history will be removed and the written results won't be able to be exported or used afterwards. Hence it is pretty important to mount the results file to an existing storage solution if the results of the validation are of importance to the user.
 
@@ -57,7 +57,7 @@ accountId: account-id # unique identifier for the agent owner
 clusterId: cluster-id # unique identifier for the cluster that the agent is running on
 ```
 
-### TLS certificates
+### TLS Certificates
 
 For a server to be registered as an admission control it needs to be able to serve HTTPS traffic. Since the server should only be accessible as a webhook server, self signed certificates will be used.
 
@@ -119,7 +119,7 @@ CaCertificate:
   <cacert>
 ```
 
-## Generating the file
+## Generating the File
 
 After filling all the data you need to generate the valid deployment using the values file and `helm`, run this command at the root of thte repo:
 
