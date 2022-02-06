@@ -3,7 +3,7 @@
 
 # Magalix Policy Agent
 
-Policy agent that enforces rego policies by reporting the cluster's workloads and serving as admission control to refuse violating controllers.
+Policy agent that enforces rego policies by controlling admission of violating resources.
 
 ## Features
 

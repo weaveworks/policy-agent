@@ -17,18 +17,18 @@ type Entity struct {
 	Labels          map[string]string      `json:"labels"`
 }
 
-// NewEntityByStringSpec takes string representing a Kubernetes entity and parses it into Entity struct
-func NewEntityByStringSpec(entityStringSpec string) (Entity, error) {
+// NewEntityFromStringSpec takes string representing a Kubernetes entity and parses it into Entity struct
+func NewEntityFromStringSpec(entityStringSpec string) (Entity, error) {
 	var entitySpec map[string]interface{}
 	err := json.Unmarshal([]byte(entityStringSpec), &entitySpec)
 	if err != nil {
 		return Entity{}, fmt.Errorf("invalid string format, %w", err)
 	}
-	return NewEntityBySpec(entitySpec), nil
+	return NewEntityFromSpec(entitySpec), nil
 }
 
-// NewEntityBySpec takes map representing a Kubernetes entity and parses it into Entity struct
-func NewEntityBySpec(entitySpec map[string]interface{}) Entity {
+// NewEntityFromSpec takes map representing a Kubernetes entity and parses it into Entity struct
+func NewEntityFromSpec(entitySpec map[string]interface{}) Entity {
 	kubeEntity := unstructured.Unstructured{Object: entitySpec}
 	return Entity{
 		ID:              string(kubeEntity.GetUID()),

@@ -37,7 +37,7 @@ func NewPoliciesInformer(client *KubePoliciesClient, resoureceHandler cache.Reso
 	}
 }
 
-// Start starts watching policies CRD wiat until a cache is built with current CRDs in the cluster
+// Start starts watching policies CRD and waits until a cache is built with current CRDs in the cluster
 func (in *PoliciesInformer) Start() error {
 	go in.controller.Run(in.stop)
 	err := in.waitForCache()

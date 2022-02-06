@@ -63,7 +63,7 @@ func (f *FileSystemSink) writeValidationResutl(validationResult domain.Validatio
 	}
 	err := json.NewEncoder(f.File).Encode(result)
 	if err != nil {
-		return fmt.Errorf("faile to write result to file, %w", err)
+		return fmt.Errorf("failed to write result to file, %w", err)
 	}
 	return nil
 }

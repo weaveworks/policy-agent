@@ -123,7 +123,7 @@ func (a *AdmissionHandler) ValidateRequest(ctx context.Context, reviewRequest v1
 		return nil, fmt.Errorf("failed to get entity info from admission request")
 	}
 
-	entity := domain.NewEntityBySpec(entitySpec)
+	entity := domain.NewEntityFromSpec(entitySpec)
 	result, err := a.validator.Validate(ctx, entity, SourceAdmission)
 	if err != nil {
 		return nil, err

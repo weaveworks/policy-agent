@@ -1,6 +1,6 @@
 # Running the agent with admission control
 
-In order to get the agent up and running there are some extra steps that needs to be performed by the user to have a usable deployment file. Those additional configurations are user sepcific and for now they are left up to the user to fill them out. In the future those details should be pre filled to the user though either an interface or through generating those values to the user.
+In order to get the agent up and running there are some extra steps that needs to be performed by the user to have a usable deployment file. Those additional configurations are user sepcific and for now they are left up to the user to fill them out. In the future those details should be pre filled to the user through either an interface or through generating those values to the user.
 
 ## Policies
 

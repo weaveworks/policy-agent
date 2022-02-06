@@ -2,7 +2,7 @@
 
 ## apiextensions
 
-This folder contains the defintion of new CRDs neede by the agent, mainly the policies CRD. It defines all the required objects to make the Kubernetes API client aware of the new policy object and allows operations that are possible to the other built in Kubernets objects.
+This folder contains the defintion of new CRDs needed by the agent, mainly the policies CRD. It defines all the required objects to make the Kubernetes API client aware of the new policy object and allows operations that are possible to the other built-in Kubernets objects.
 
 ## clients
 
@@ -16,7 +16,7 @@ Includes the libraries used by the agent. Namely the follownig:
 
 ## policies
 
-Contains the implementations of the `PoliciesSource` interface that is responsible for returning the policies to the validation operation. Has the `crd` implementation which fetches them from the Kubernets API.
+Contains the implementations of the `PoliciesSource` interface that is responsible for returning the policies to the validation operation. It contains the `crd` implementation which fetches them from the Kubernets API.
 
 ## server
 

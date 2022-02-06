@@ -69,8 +69,8 @@ func TestOpaValidator_Validate(t *testing.T) {
 
 	entityText := testdata.Entity
 	source := "unit-test"
-	entity, _ := domain.NewEntityByStringSpec(entityText)
-	compliantEntity, _ := domain.NewEntityByStringSpec(testdata.CompliantEntity)
+	entity, _ := domain.NewEntityFromStringSpec(entityText)
+	compliantEntity, _ := domain.NewEntityFromStringSpec(testdata.CompliantEntity)
 	tests := []struct {
 		name    string
 		init    init
