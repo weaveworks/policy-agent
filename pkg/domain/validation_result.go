@@ -10,8 +10,9 @@ const (
 )
 
 type ValidationResult struct {
-	//@TODO ACCount id cluster id
 	ID        string    `json:"id"`
+	AccountID string    `json:"account_id"`
+	ClusterID string    `json:"cluster_id"`
 	Policy    Policy    `json:"policy"`
 	Entity    Entity    `json:"entity"`
 	Status    string    `json:"status"`

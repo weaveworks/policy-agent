@@ -1,0 +1,220 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    agent-admission: ignore
+    app.kubernetes.io/name: "magalix-system"
+    app.kubernetes.io/version: "1"
+    app.kubernetes.io/component: "namespace"
+    app.kubernetes.io/tier: "backend"
+  name: magalix-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+  labels:
+    app.kubernetes.io/name: "magalix-policy-agent"
+    app.kubernetes.io/version: "1"
+    app.kubernetes.io/component: "service-account"
+    app.kubernetes.io/tier: "backend"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: magalix-policy-agent
+  labels:
+    app.kubernetes.io/name: "magalix-policy-agent"
+    app.kubernetes.io/version: "1"
+    app.kubernetes.io/component: "cluster-role"
+    app.kubernetes.io/tier: "backend"
+rules:
+- apiGroups:
+  - 'magalix.com'
+  resources:
+  - 'policies'
+  verbs:
+  - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: magalix-policy-agent
+  labels:
+    app.kubernetes.io/name: "magalix-policy-agent"
+    app.kubernetes.io/version: "1"
+    app.kubernetes.io/component: "cluster-role-binding"
+    app.kubernetes.io/tier: "backend"
+subjects:
+- kind: ServiceAccount
+  name: magalix-policy-agent
+  namespace: magalix-system
+roleRef:
+  kind: ClusterRole
+  name: magalix-policy-agent
+  apiGroup: rbac.authorization.k8s.io
+---
+{{if eq .Values.usePersistence true }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+spec:
+  storageClassName: {{ .Values.storageClassName }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.claimStorage }}
+---
+{{end}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+data:
+  AGENT_ACCOUNT_ID: {{ .Values.accountId }}
+  AGENT_CLUSTER_ID: {{ .Values.clusterId }}
+  AGENT_SINK_FILE_PATH: {{.Values.sinkDir}}/results.json
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+type: kubernetes.io/tls
+data:
+  tls.crt: |
+      {{ .Values.certificate | b64enc }}
+  tls.key: |
+      {{ .Values.key | b64enc }}
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+  labels:
+    app.kubernetes.io/name: "magalix-policy-agent"
+    app.kubernetes.io/instance: "magalix-policy-agent"
+    app.kubernetes.io/part-of: "magalix-policy-agent"
+    app.kubernetes.io/managed-by: "magalix"
+    app.kubernetes.io/version: "1"
+    app.kubernetes.io/component: "magalix-policy-agent"
+    app.kubernetes.io/tier: "backend"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name:  magalix-policy-agent
+  template:
+    metadata:
+      labels:
+        name: magalix-policy-agent
+    spec:
+      serviceAccountName: magalix-policy-agent
+      restartPolicy: Always
+      containers:
+        - image: {{.Values.image}}
+          imagePullPolicy: Always
+          name: policy-agent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            procMount: Default
+            runAsGroup: 1000
+            runAsUser: 1000
+          resources:
+            limits:
+              memory: 750Mi
+              cpu: 1
+            requests:
+              memory: 200Mi
+              cpu: 100m
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9000
+            initialDelaySeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 9000
+            initialDelaySeconds: 5
+          ports:
+          - containerPort: 8443
+            name: webhook
+            protocol: TCP
+          envFrom:
+          - configMapRef:
+              name: magalix-policy-agent
+          volumeMounts:
+          - name: cert
+            mountPath: /certs
+            readOnly: true
+          {{- if eq .Values.usePersistence true }}
+          - name: validation-results
+            mountPath: {{.Values.sinkDir}}
+          {{- end}}
+      volumes:
+      - name: cert
+        secret:
+          secretName: magalix-policy-agent
+      {{- if eq .Values.usePersistence true }}
+      - name: validation-results
+        persistentVolumeClaim:
+          claimName: magalix-policy-agent
+      {{- end}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magalix-policy-agent
+  namespace: magalix-system
+spec:
+  ports:
+  - name: https-admission-webhook
+    port: 443
+    targetPort: webhook
+  selector:
+    name:  magalix-policy-agent
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: magalix-policy-agent
+  labels:
+    app.kubernetes.io/name: magalix-policy-agent
+webhooks:
+  - name: admission.agent.magalix
+    clientConfig:
+      service:
+        namespace: magalix-system
+        name: magalix-policy-agent
+        path: /admission
+      caBundle: {{ .Values.caCertificate | b64enc }}
+    rules:
+      - operations: [ "CREATE", "UPDATE" ]
+        apiVersions: ["*"]
+        apiGroups: ["", "extensions", "apps", "batch", "metrics.k8s.io", "networking.k8s.io"]
+        resources: ["nodes", "nodes/stats", "nodes/metrics", "nodes/proxy", "namespaces", "pods", "limitranges", "deployments", "replicationcontrollers", "statefulsets", "daemonsets", "replicasets", "jobs", "cronjobs", "ingresses", "ingressclasses", "services", "networkpolicies"]
+      - operations: [ "CREATE", "UPDATE" ]
+        apiVersions: ["*"]
+        apiGroups: ["", "rbac.authorization.k8s.io", "storage.k8s.io"]
+        resources: ["clusterrolebindings", "clusterroles", "roles", "rolebindings", "persistentvolumes", "persistentvolumeclaims", "storageclasses"]
+    timeoutSeconds: 5
+    failurePolicy: {{ .Values.failurePolicy }}
+    admissionReviewVersions: ["v1", "v1beta1"]
+    sideEffects: None
+    matchPolicy: Equivalent
+    namespaceSelector:
+      matchExpressions:
+      - key: agent-admission
+        operator: NotIn
+        values: ["ignore"]

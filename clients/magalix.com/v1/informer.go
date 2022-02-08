@@ -18,6 +18,7 @@ type PoliciesInformer struct {
 	stop       chan struct{}
 }
 
+// NewPoliciesInformer returns PoliciesInformer to watch policies CRD
 func NewPoliciesInformer(client *KubePoliciesClient, resoureceHandler cache.ResourceEventHandler, period time.Duration) *PoliciesInformer {
 	listWatcher := cache.ListWatch{
 		ListFunc: func(lo metav1.ListOptions) (result runtime.Object, err error) {
@@ -36,6 +37,7 @@ func NewPoliciesInformer(client *KubePoliciesClient, resoureceHandler cache.Reso
 	}
 }
 
+// Start starts watching policies CRD and waits until a cache is built with current CRDs in the cluster
 func (in *PoliciesInformer) Start() error {
 	go in.controller.Run(in.stop)
 	err := in.waitForCache()
@@ -45,6 +47,7 @@ func (in *PoliciesInformer) Start() error {
 	return nil
 }
 
+// Stop stops the watcher
 func (in *PoliciesInformer) Stop() {
 	in.stop <- struct{}{}
 }
@@ -56,6 +59,7 @@ func (in *PoliciesInformer) waitForCache() error {
 	return nil
 }
 
+// List returns all the policies from the informer cache
 func (in *PoliciesInformer) List() []*magalixv1.Policy {
 	var policies []*magalixv1.Policy
 	listResponse := in.store.List()

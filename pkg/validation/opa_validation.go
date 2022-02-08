@@ -5,13 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	opa "github.com/MagalixTechnologies/opa-core"
 	uuid "github.com/MagalixTechnologies/uuid-go"
 )
 
-const PolicyQuery = "violation"
+const (
+	PolicyQuery = "violation"
+	maxWorkers  = 25
+)
 
 type OpaValidator struct {
 	policiesSource  domain.PoliciesSource
@@ -19,6 +23,7 @@ type OpaValidator struct {
 	writeCompliance bool
 }
 
+// NewOpaValidator returns an opa validator to validate entities
 func NewOpaValidator(
 	policiesSource domain.PoliciesSource,
 	writeCompliance bool,
@@ -31,6 +36,7 @@ func NewOpaValidator(
 	}
 }
 
+// Validate validate policies using opa library, implements validation.Validator
 func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, source string) (*domain.ValidationSummary, error) {
 	violations := make([]domain.ValidationResult, 0)
 	compliances := make([]domain.ValidationResult, 0)
@@ -43,14 +49,19 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 
 	var enqueueGroup sync.WaitGroup
 	var dequeueGroup sync.WaitGroup
-	violationsChan := make(chan domain.ValidationResult)
-	compliancesChan := make(chan domain.ValidationResult)
+	violationsChan := make(chan domain.ValidationResult, len(policies))
+	compliancesChan := make(chan domain.ValidationResult, len(policies))
 	errsChan := make(chan error)
+	bound := make(chan struct{}, maxWorkers)
 
 	for i := range policies {
+		bound <- struct{}{}
 		enqueueGroup.Add(1)
 		go (func(index int) {
-			defer enqueueGroup.Done()
+			defer func() {
+				<-bound
+				enqueueGroup.Done()
+			}()
 			policy := policies[index]
 			match := matchEntity(entity, policy)
 			if !match {
@@ -59,13 +70,15 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 			opaPolicy, err := opa.Parse(policy.Code, PolicyQuery)
 			if err != nil {
 				errsChan <- fmt.Errorf("Failed to parse policy %s, %w", policy.ID, err)
+				return
 			}
 			var opaErr opa.OPAError
 			res := domain.ValidationResult{
-				ID:     uuid.NewV4().String(),
-				Policy: policy,
-				Entity: entity,
-				Source: source,
+				ID:        uuid.NewV4().String(),
+				Policy:    policy,
+				Entity:    entity,
+				Source:    source,
+				CreatedAt: time.Now(),
 			}
 
 			parameters := policy.GetParametersMap()
@@ -89,6 +102,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 					msg := fmt.Sprintf("%s in %s %s. Policy: %s", title, entity.Kind, entity.Name, policy.ID)
 					res.Status = domain.ValidationResultStatusViolating
 					res.Message = msg
+
 					violationsChan <- res
 				} else {
 					errsChan <- fmt.Errorf("unable to evaluate resource against policy. policy id: %s. %w", policy.ID, err)

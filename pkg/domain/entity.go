@@ -1,6 +1,11 @@
 package domain
 
-import "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+import (
+	"encoding/json"
+	"fmt"
+
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+)
 
 type Entity struct {
 	ID              string                 `json:"id"`
@@ -12,7 +17,18 @@ type Entity struct {
 	Labels          map[string]string      `json:"labels"`
 }
 
-func NewEntityBySpec(entitySpec map[string]interface{}) Entity {
+// NewEntityFromStringSpec takes string representing a Kubernetes entity and parses it into Entity struct
+func NewEntityFromStringSpec(entityStringSpec string) (Entity, error) {
+	var entitySpec map[string]interface{}
+	err := json.Unmarshal([]byte(entityStringSpec), &entitySpec)
+	if err != nil {
+		return Entity{}, fmt.Errorf("invalid string format, %w", err)
+	}
+	return NewEntityFromSpec(entitySpec), nil
+}
+
+// NewEntityFromSpec takes map representing a Kubernetes entity and parses it into Entity struct
+func NewEntityFromSpec(entitySpec map[string]interface{}) Entity {
 	kubeEntity := unstructured.Unstructured{Object: entitySpec}
 	return Entity{
 		ID:              string(kubeEntity.GetUID()),
