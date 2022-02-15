@@ -11,7 +11,7 @@ import (
 func (g *Gateway) getAuthorizationToken(question []byte) ([]byte, error) {
 	payload := []byte{}
 	payload = append(payload, question...)
-	payload = append(payload, []byte(g.secret)...)
+	payload = append(payload, g.secret...)
 	payload = append(payload, question...)
 
 	sha := sha512.New()

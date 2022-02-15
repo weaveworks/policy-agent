@@ -23,7 +23,6 @@ const (
 	PacketKindHello                PacketKind = "hello"
 	PacketKindAuthorizationRequest PacketKind = "authorization/request"
 	PacketKindAuthorizationAnswer  PacketKind = "authorization/answer"
-	PacketKindBye                  PacketKind = "bye"
 	PacketKindAuditResult          PacketKind = "audit/result"
 	PacketKindPing                 PacketKind = "ping"
 )
@@ -56,10 +55,6 @@ type PacketAuthorizationAnswer struct {
 type PacketAuthorizationFailure struct{}
 type PacketAuthorizationSuccess struct{}
 
-type PacketBye struct {
-	Reason string `json:"reason,omitempty"`
-}
-
 type PacketPing struct {
 	Number  int       `json:"number,omitempty"`
 	Started time.Time `json:"started"`
@@ -68,11 +63,6 @@ type PacketPing struct {
 type PacketPong struct {
 	Number  int       `json:"number,omitempty"`
 	Started time.Time `json:"started"`
-}
-
-type PacketLogItem struct {
-	Date time.Time `json:"date"`
-	Data string    `json:"data"`
 }
 
 type AuditResultStatus string

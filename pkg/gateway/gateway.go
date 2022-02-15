@@ -16,11 +16,10 @@ const (
 	maxConnRetries   = 10
 	maxPingRetries   = 3
 	backOffTimeout   = 1 * time.Second
-	watchdogInterval = 3 * time.Second
+	watchdogInterval = 10 * time.Second
 )
 
 type Gateway struct {
-	options    channel.ChannelOptions
 	client     *channel.Client
 	accountID  uuid.UUID
 	clusterID  uuid.UUID
@@ -31,23 +30,24 @@ type Gateway struct {
 	lock       *sync.Mutex
 }
 
-func New(gatewayURL url.URL, accountID, clusterID uuid.UUID, secret []byte) *Gateway {
-	options := channel.ChannelOptions{
-		ProtoHandshake: time.Second,
-		ProtoWrite:     time.Second,
-		ProtoRead:      2 * time.Second,
-		ProtoReconnect: time.Second,
+func New(gatewayURL url.URL, accountID, clusterID uuid.UUID, secret []byte, options *channel.ChannelOptions) *Gateway {
+	if options == nil {
+		options = &channel.ChannelOptions{
+			ProtoHandshake: time.Second,
+			ProtoWrite:     time.Second,
+			ProtoRead:      2 * time.Second,
+			ProtoReconnect: time.Second,
+		}
 	}
 
 	gateway := Gateway{
-		options:   options,
 		accountID: accountID,
 		clusterID: clusterID,
 		secret:    secret,
 		lock:      &sync.Mutex{},
 	}
 
-	gateway.client = channel.NewClient(gatewayURL, options)
+	gateway.client = channel.NewClient(gatewayURL, *options)
 	return &gateway
 }
 
@@ -121,7 +121,11 @@ func (g *Gateway) watchdog(ctx context.Context) {
 					connected = true
 				}
 			}
-			withLock(g.lock, func() { g.connected = connected })
+
+			if g.connected != connected {
+				withLock(g.lock, func() { g.connected = connected })
+			}
+
 			logger.Infow("wachdog status:", "connected", connected, "authorized", g.authorized)
 
 		case <-ctx.Done():
