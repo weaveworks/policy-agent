@@ -18,7 +18,7 @@ type FileSystemSink struct {
 	File                 *os.File
 	AccountID            string
 	ClusterID            string
-	validationResultChan chan domain.ValidationResult
+	PolicyValidationChan chan domain.PolicyValidation
 	cancelWorker         context.CancelFunc
 }
 
@@ -32,7 +32,7 @@ func NewFileSystemSink(filePath string, accountID, clusterID string) (*FileSyste
 		File:                 file,
 		AccountID:            accountID,
 		ClusterID:            clusterID,
-		validationResultChan: make(chan domain.ValidationResult, 50),
+		PolicyValidationChan: make(chan domain.PolicyValidation, 50),
 	}, nil
 }
 
@@ -40,39 +40,23 @@ func NewFileSystemSink(filePath string, accountID, clusterID string) (*FileSyste
 func (f *FileSystemSink) Start(ctx context.Context) error {
 	cancelCtx, cancel := context.WithCancel(ctx)
 	f.cancelWorker = cancel
-	go f.WriteValidationResultWorker(cancelCtx)
+	go f.WritePolicyValidationWorker(cancelCtx)
 	return nil
 }
 
-func (f *FileSystemSink) writeValidationResutl(validationResult domain.ValidationResult) error {
-	result := Result{
-		ID:         validationResult.ID,
-		AccountID:  f.AccountID,
-		ClusterID:  f.ClusterID,
-		PolicyID:   validationResult.Policy.ID,
-		Status:     validationResult.Status,
-		Type:       validationResult.Source,
-		Provider:   kubernetespProvider,
-		EntityName: validationResult.Entity.Name,
-		EntityType: validationResult.Entity.Kind,
-		CreatedAt:  validationResult.CreatedAt,
-		Message:    validationResult.Message,
-		Info:       map[string]interface{}{"spec": validationResult.Entity.Spec},
-		CategoryID: validationResult.Policy.Category,
-		Severity:   validationResult.Policy.Severity,
-	}
-	err := json.NewEncoder(f.File).Encode(result)
+func (f *FileSystemSink) writeValidationResutl(policyValidation domain.PolicyValidation) error {
+	err := json.NewEncoder(f.File).Encode(policyValidation)
 	if err != nil {
 		return fmt.Errorf("failed to write result to file, %w", err)
 	}
 	return nil
 }
 
-// WriteValidationResultWorker worker that listens on results and admits them to a file
-func (f *FileSystemSink) WriteValidationResultWorker(ctx context.Context) {
+// WritePolicyValidationWorker worker that listens on results and admits them to a file
+func (f *FileSystemSink) WritePolicyValidationWorker(ctx context.Context) {
 	for {
 		select {
-		case result := <-f.validationResultChan:
+		case result := <-f.PolicyValidationChan:
 			err := f.writeValidationResutl(result)
 			if err != nil {
 				logger.Errorw(
@@ -88,11 +72,11 @@ func (f *FileSystemSink) WriteValidationResultWorker(ctx context.Context) {
 	}
 }
 
-// Write adds results to buffer, implements github.com/MagalixCorp/magalix-policy-agent/pkg/domain.ValidationResultSink
-func (f *FileSystemSink) Write(ctx context.Context, validationResults []domain.ValidationResult) error {
-	for i := range validationResults {
-		validationResult := validationResults[i]
-		f.validationResultChan <- validationResult
+// Write adds results to buffer, implements github.com/MagalixCorp/magalix-policy-agent/pkg/domain.PolicyValidationSink
+func (f *FileSystemSink) Write(ctx context.Context, policyValidations []domain.PolicyValidation) error {
+	for i := range policyValidations {
+		PolicyValidation := policyValidations[i]
+		f.PolicyValidationChan <- PolicyValidation
 	}
 
 	return nil

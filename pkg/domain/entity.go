@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -12,9 +13,10 @@ type Entity struct {
 	Name            string                 `json:"name"`
 	Kind            string                 `json:"kind"`
 	Namespace       string                 `json:"namespace"`
-	Spec            map[string]interface{} `json:"spec"`
+	Manifest        map[string]interface{} `json:"spec"`
 	ResourceVersion string                 `json:"resource_version"`
 	Labels          map[string]string      `json:"labels"`
+	GitCommit       string                 `json:"git_commit,omitempty,"`
 }
 
 // NewEntityFromStringSpec takes string representing a Kubernetes entity and parses it into Entity struct
@@ -35,8 +37,25 @@ func NewEntityFromSpec(entitySpec map[string]interface{}) Entity {
 		Name:            kubeEntity.GetName(),
 		Kind:            kubeEntity.GetKind(),
 		Namespace:       kubeEntity.GetNamespace(),
-		Spec:            entitySpec,
+		Manifest:        entitySpec,
 		ResourceVersion: kubeEntity.GetResourceVersion(),
 		Labels:          kubeEntity.GetLabels(),
 	}
+}
+
+type EntitiesList struct {
+	HasNext bool
+	KeySet  string
+	Data    []Entity
+}
+
+type EntitiesSource interface {
+	// List returns entities
+	List(ctx context.Context, listOptions *ListOptions) (*EntitiesList, error)
+	// Kind returns kind of entities it retireves
+	Kind() string
+}
+type ListOptions struct {
+	Limit  int
+	KeySet string
 }

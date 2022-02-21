@@ -8,8 +8,8 @@ type PoliciesSource interface {
 	GetAll(ctx context.Context) ([]Policy, error)
 }
 
-// ValidationResultSink acts as a sink to send the results of a validation to
-type ValidationResultSink interface {
+// PolicyValidationSink acts as a sink to send the results of a validation to
+type PolicyValidationSink interface {
 	// Write saves the results
-	Write(ctx context.Context, validationResults []ValidationResult) error
+	Write(ctx context.Context, PolicyValidations []PolicyValidation) error
 }

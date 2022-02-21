@@ -24,6 +24,8 @@ type Policy struct {
 	Category    string             `json:"category"`
 	Tags        []string           `json:"tags"`
 	Severity    string             `json:"severity"`
+	GitCommit   string             `json:"git_commit,omitempty"`
+	Controls    []string           `json:"controls"`
 }
 
 // GetParametersMap returns policy parameters as a map

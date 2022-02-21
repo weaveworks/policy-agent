@@ -14,12 +14,12 @@ import (
 
 const (
 	PolicyQuery = "violation"
-	maxWorkers  = 25
+	maxWorkers  = 50
 )
 
 type OpaValidator struct {
 	policiesSource  domain.PoliciesSource
-	resultsSinks    []domain.ValidationResultSink
+	resultsSinks    []domain.PolicyValidationSink
 	writeCompliance bool
 }
 
@@ -27,7 +27,7 @@ type OpaValidator struct {
 func NewOpaValidator(
 	policiesSource domain.PoliciesSource,
 	writeCompliance bool,
-	resultsSinks ...domain.ValidationResultSink,
+	resultsSinks ...domain.PolicyValidationSink,
 ) *OpaValidator {
 	return &OpaValidator{
 		policiesSource:  policiesSource,
@@ -37,9 +37,9 @@ func NewOpaValidator(
 }
 
 // Validate validate policies using opa library, implements validation.Validator
-func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, source string) (*domain.ValidationSummary, error) {
-	violations := make([]domain.ValidationResult, 0)
-	compliances := make([]domain.ValidationResult, 0)
+func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, validationType, trigger string) (*domain.PolicyValidationSummary, error) {
+	violations := make([]domain.PolicyValidation, 0)
+	compliances := make([]domain.PolicyValidation, 0)
 	var err error
 
 	policies, err := v.policiesSource.GetAll(ctx)
@@ -49,9 +49,9 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 
 	var enqueueGroup sync.WaitGroup
 	var dequeueGroup sync.WaitGroup
-	violationsChan := make(chan domain.ValidationResult, len(policies))
-	compliancesChan := make(chan domain.ValidationResult, len(policies))
-	errsChan := make(chan error)
+	violationsChan := make(chan domain.PolicyValidation, len(policies))
+	compliancesChan := make(chan domain.PolicyValidation, len(policies))
+	errsChan := make(chan error, len(policies))
 	bound := make(chan struct{}, maxWorkers)
 
 	for i := range policies {
@@ -73,16 +73,16 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 				return
 			}
 			var opaErr opa.OPAError
-			res := domain.ValidationResult{
+			res := domain.PolicyValidation{
 				ID:        uuid.NewV4().String(),
 				Policy:    policy,
 				Entity:    entity,
-				Source:    source,
+				Type:      validationType,
 				CreatedAt: time.Now(),
 			}
 
 			parameters := policy.GetParametersMap()
-			err = opaPolicy.EvalGateKeeperCompliant(entity.Spec, parameters, PolicyQuery)
+			err = opaPolicy.EvalGateKeeperCompliant(entity.Manifest, parameters, PolicyQuery)
 			if err != nil {
 				if errors.As(err, &opaErr) {
 					details := make(map[string]interface{})
@@ -100,7 +100,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 					}
 
 					msg := fmt.Sprintf("%s in %s %s. Policy: %s", title, entity.Kind, entity.Name, policy.ID)
-					res.Status = domain.ValidationResultStatusViolating
+					res.Status = domain.PolicyValidationStatusViolating
 					res.Message = msg
 
 					violationsChan <- res
@@ -109,10 +109,11 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 				}
 
 			} else {
-				res.Status = domain.ValidationResultStatusCompliant
+				res.Status = domain.PolicyValidationStatusCompliant
 				compliancesChan <- res
 
 			}
+
 		})(i)
 	}
 	dequeueGroup.Add(1)
@@ -149,12 +150,11 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, sourc
 		return nil, fmt.Errorf("Encountered errors while validating policies, %w", err)
 	}
 
-	validationSummary := domain.ValidationSummary{
+	PolicyValidationSummary := domain.PolicyValidationSummary{
 		Violations:  violations,
 		Compliances: compliances,
 	}
+	writeToSinks(ctx, v.resultsSinks, PolicyValidationSummary, v.writeCompliance)
 
-	writeToSinks(ctx, v.resultsSinks, validationSummary, v.writeCompliance)
-
-	return &validationSummary, nil
+	return &PolicyValidationSummary, nil
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation"
 	"github.com/MagalixTechnologies/core/logger"
-	"golang.org/x/sync/errgroup"
 	v1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,7 +31,8 @@ type AdmissionHandler struct {
 }
 
 const (
-	SourceAdmission         = "Admission"
+	TypeAdmission           = "Admission"
+	TriggerAdmission        = "admission"
 	DebugLevel              = "debug"
 	invalidRequestBody      = "unexpected error while reading request body"
 	invalidadmissionRequest = "received incorrect admission request"
@@ -124,7 +124,7 @@ func (a *AdmissionHandler) ValidateRequest(ctx context.Context, reviewRequest v1
 	}
 
 	entity := domain.NewEntityFromSpec(entitySpec)
-	result, err := a.validator.Validate(ctx, entity, SourceAdmission)
+	result, err := a.validator.Validate(ctx, entity, TypeAdmission, TriggerAdmission)
 	if err != nil {
 		return nil, err
 	}
@@ -142,15 +142,12 @@ func (a *AdmissionHandler) ValidateRequest(ctx context.Context, reviewRequest v1
 
 // Run start the admission webhook server
 func (a *AdmissionHandler) Run(ctx context.Context) error {
-	eg, _ := errgroup.WithContext(ctx)
-	eg.Go(func() error {
-		mux := http.NewServeMux()
-		mux.Handle("/admission", a.Register(a.ValidateRequest))
-		server := &http.Server{
-			Addr:    a.address,
-			Handler: mux,
-		}
-		return server.ListenAndServeTLS(a.certFile, a.keyFile)
-	})
-	return eg.Wait()
+	mux := http.NewServeMux()
+	mux.Handle("/admission", a.Register(a.ValidateRequest))
+	server := &http.Server{
+		Addr:    a.address,
+		Handler: mux,
+	}
+	return server.ListenAndServeTLS(a.certFile, a.keyFile)
+
 }

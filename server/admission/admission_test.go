@@ -99,8 +99,8 @@ func TestAdmissionHandler_Validate_Request(t *testing.T) {
 			},
 			wantStatusCode: http.StatusOK,
 			loadStubs: func(val *validationmock.MockValidator) {
-				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any()).
-					Times(1).Return(&domain.ValidationSummary{}, nil)
+				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).Return(&domain.PolicyValidationSummary{}, nil)
 			},
 		},
 		{
@@ -115,8 +115,8 @@ func TestAdmissionHandler_Validate_Request(t *testing.T) {
 			wantResponse:   &v1.AdmissionReview{},
 			wantStatusCode: http.StatusInternalServerError,
 			loadStubs: func(val *validationmock.MockValidator) {
-				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any()).
-					Times(0).Return(&domain.ValidationSummary{}, nil)
+				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(0).Return(&domain.PolicyValidationSummary{}, nil)
 			},
 			wantErr: invalidRequestBody,
 		},
@@ -132,8 +132,8 @@ func TestAdmissionHandler_Validate_Request(t *testing.T) {
 			wantResponse:   &v1.AdmissionReview{},
 			wantStatusCode: http.StatusInternalServerError,
 			loadStubs: func(val *validationmock.MockValidator) {
-				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any()).
-					Times(0).Return(&domain.ValidationSummary{}, nil)
+				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(0).Return(&domain.PolicyValidationSummary{}, nil)
 			},
 			wantErr: invalidadmissionRequest,
 		},
@@ -158,8 +158,8 @@ func TestAdmissionHandler_Validate_Request(t *testing.T) {
 			},
 			wantStatusCode: http.StatusOK,
 			loadStubs: func(val *validationmock.MockValidator) {
-				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any()).
-					Times(0).Return(&domain.ValidationSummary{}, nil)
+				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(0).Return(&domain.PolicyValidationSummary{}, nil)
 			},
 		},
 		{
@@ -174,8 +174,8 @@ func TestAdmissionHandler_Validate_Request(t *testing.T) {
 			wantResponse:   &v1.AdmissionReview{},
 			wantStatusCode: http.StatusInternalServerError,
 			loadStubs: func(val *validationmock.MockValidator) {
-				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any()).
-					Times(1).Return(&domain.ValidationSummary{}, fmt.Errorf("validation error"))
+				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).Return(&domain.PolicyValidationSummary{}, fmt.Errorf("validation error"))
 			},
 		},
 		{
@@ -202,9 +202,9 @@ func TestAdmissionHandler_Validate_Request(t *testing.T) {
 			},
 			wantStatusCode: http.StatusOK,
 			loadStubs: func(val *validationmock.MockValidator) {
-				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any()).
-					Times(1).Return(&domain.ValidationSummary{
-					Violations: []domain.ValidationResult{
+				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).Return(&domain.PolicyValidationSummary{
+					Violations: []domain.PolicyValidation{
 						{Message: "violation"},
 					},
 				}, nil)

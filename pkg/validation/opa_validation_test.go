@@ -18,13 +18,13 @@ func TestNewOpaValidator(t *testing.T) {
 	type args struct {
 		policiesSource  domain.PoliciesSource
 		writeCompliance bool
-		resultsSinks    []domain.ValidationResultSink
+		resultsSinks    []domain.PolicyValidationSink
 	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	policiesSource := mockpolicy.NewMockPoliciesSource(ctrl)
-	sink := mocksink.NewMockValidationResultSink(ctrl)
+	sink := mocksink.NewMockPolicyValidationSink(ctrl)
 	tests := []struct {
 		name string
 		args args
@@ -35,12 +35,12 @@ func TestNewOpaValidator(t *testing.T) {
 			args: args{
 				policiesSource:  policiesSource,
 				writeCompliance: true,
-				resultsSinks:    []domain.ValidationResultSink{sink},
+				resultsSinks:    []domain.PolicyValidationSink{sink},
 			},
 			want: &OpaValidator{
 				policiesSource:  policiesSource,
 				writeCompliance: true,
-				resultsSinks:    []domain.ValidationResultSink{sink},
+				resultsSinks:    []domain.PolicyValidationSink{sink},
 			},
 		},
 	}
@@ -53,36 +53,36 @@ func TestNewOpaValidator(t *testing.T) {
 	}
 }
 
-func cmpValidationResult(arg1, arg2 domain.ValidationResult) bool {
+func cmpPolicyValidation(arg1, arg2 domain.PolicyValidation) bool {
 	if arg1.Entity.ID != arg2.Entity.ID {
 		return false
 	}
 
-	return arg1.Source == arg2.Source && arg1.Status == arg2.Status
+	return arg1.Type == arg2.Type && arg1.Trigger == arg2.Trigger && arg1.Status == arg2.Status
 }
 
 func TestOpaValidator_Validate(t *testing.T) {
 	type init struct {
-		loadStubs       func(*mockpolicy.MockPoliciesSource, *mocksink.MockValidationResultSink)
+		loadStubs       func(*mockpolicy.MockPoliciesSource, *mocksink.MockPolicyValidationSink)
 		writeCompliance bool
 	}
 
 	entityText := testdata.Entity
-	source := "unit-test"
+	validationType := "unit-test"
 	entity, _ := domain.NewEntityFromStringSpec(entityText)
 	compliantEntity, _ := domain.NewEntityFromStringSpec(testdata.CompliantEntity)
 	tests := []struct {
 		name    string
 		init    init
 		entity  domain.Entity
-		want    *domain.ValidationSummary
+		want    *domain.PolicyValidationSummary
 		wantErr bool
 	}{
 		{
 			name: "default test",
 			init: init{
 				writeCompliance: false,
-				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockValidationResultSink) {
+				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockPolicyValidationSink) {
 					policiesSource.EXPECT().GetAll(gomock.Any()).
 						Times(1).Return([]domain.Policy{
 						testdata.Policies["imageTag"],
@@ -93,19 +93,19 @@ func TestOpaValidator_Validate(t *testing.T) {
 				},
 			},
 			entity: entity,
-			want: &domain.ValidationSummary{
-				Violations: []domain.ValidationResult{
+			want: &domain.PolicyValidationSummary{
+				Violations: []domain.PolicyValidation{
 					{
 						Policy: testdata.Policies["imageTag"],
 						Entity: entity,
-						Source: source,
-						Status: domain.ValidationResultStatusViolating,
+						Type:   validationType,
+						Status: domain.PolicyValidationStatusViolating,
 					},
 					{
 						Policy: testdata.Policies["missingOwner"],
 						Entity: entity,
-						Source: source,
-						Status: domain.ValidationResultStatusViolating,
+						Type:   validationType,
+						Status: domain.PolicyValidationStatusViolating,
 					},
 				},
 			},
@@ -115,7 +115,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 			name: "error getting policies",
 			init: init{
 				writeCompliance: false,
-				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockValidationResultSink) {
+				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockPolicyValidationSink) {
 					policiesSource.EXPECT().GetAll(gomock.Any()).
 						Times(1).Return(nil, fmt.Errorf(""))
 					// expect 0 calls to sink write
@@ -131,7 +131,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 			name: "entity kind matching",
 			init: init{
 				writeCompliance: false,
-				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockValidationResultSink) {
+				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockPolicyValidationSink) {
 					missingOwner := testdata.Policies["missingOwner"]
 					missingOwner.Targets = domain.PolicyTargets{Kind: []string{"Deployment"}}
 					imageTag := testdata.Policies["imageTag"]
@@ -146,13 +146,13 @@ func TestOpaValidator_Validate(t *testing.T) {
 				},
 			},
 			entity: entity,
-			want: &domain.ValidationSummary{
-				Violations: []domain.ValidationResult{
+			want: &domain.PolicyValidationSummary{
+				Violations: []domain.PolicyValidation{
 					{
 						Policy: testdata.Policies["missingOwner"],
 						Entity: entity,
-						Source: source,
-						Status: domain.ValidationResultStatusViolating,
+						Type:   validationType,
+						Status: domain.PolicyValidationStatusViolating,
 					},
 				},
 			},
@@ -162,7 +162,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 			name: "entity namespace matching",
 			init: init{
 				writeCompliance: false,
-				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockValidationResultSink) {
+				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockPolicyValidationSink) {
 					missingOwner := testdata.Policies["missingOwner"]
 					missingOwner.Targets = domain.PolicyTargets{Namespace: []string{"unit-testing"}}
 					imageTag := testdata.Policies["imageTag"]
@@ -177,13 +177,13 @@ func TestOpaValidator_Validate(t *testing.T) {
 				},
 			},
 			entity: entity,
-			want: &domain.ValidationSummary{
-				Violations: []domain.ValidationResult{
+			want: &domain.PolicyValidationSummary{
+				Violations: []domain.PolicyValidation{
 					{
 						Policy: testdata.Policies["missingOwner"],
 						Entity: entity,
-						Source: source,
-						Status: domain.ValidationResultStatusViolating,
+						Type:   validationType,
+						Status: domain.PolicyValidationStatusViolating,
 					},
 				},
 			},
@@ -193,7 +193,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 			name: "entity labels matching",
 			init: init{
 				writeCompliance: false,
-				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockValidationResultSink) {
+				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockPolicyValidationSink) {
 					missingOwner := testdata.Policies["missingOwner"]
 					missingOwner.Targets = domain.PolicyTargets{Label: []map[string]string{{"app": "nginx"}}}
 					imageTag := testdata.Policies["imageTag"]
@@ -208,13 +208,13 @@ func TestOpaValidator_Validate(t *testing.T) {
 				},
 			},
 			entity: entity,
-			want: &domain.ValidationSummary{
-				Violations: []domain.ValidationResult{
+			want: &domain.PolicyValidationSummary{
+				Violations: []domain.PolicyValidation{
 					{
 						Policy: testdata.Policies["missingOwner"],
 						Entity: entity,
-						Source: source,
-						Status: domain.ValidationResultStatusViolating,
+						Type:   validationType,
+						Status: domain.PolicyValidationStatusViolating,
 					},
 				},
 			},
@@ -224,7 +224,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 			name: "multiple policies only one matching",
 			init: init{
 				writeCompliance: false,
-				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockValidationResultSink) {
+				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockPolicyValidationSink) {
 					missingOwner := testdata.Policies["missingOwner"]
 					missingOwner.Targets = domain.PolicyTargets{
 						Label:     []map[string]string{{"app": "nginx"}},
@@ -247,13 +247,13 @@ func TestOpaValidator_Validate(t *testing.T) {
 				},
 			},
 			entity: entity,
-			want: &domain.ValidationSummary{
-				Violations: []domain.ValidationResult{
+			want: &domain.PolicyValidationSummary{
+				Violations: []domain.PolicyValidation{
 					{
 						Policy: testdata.Policies["missingOwner"],
 						Entity: entity,
-						Source: source,
-						Status: domain.ValidationResultStatusViolating,
+						Type:   validationType,
+						Status: domain.PolicyValidationStatusViolating,
 					},
 				},
 			},
@@ -263,7 +263,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 			name: "no mathching no writes to sink",
 			init: init{
 				writeCompliance: true,
-				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockValidationResultSink) {
+				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockPolicyValidationSink) {
 					imageTag := testdata.Policies["imageTag"]
 					imageTag.Targets = domain.PolicyTargets{Label: []map[string]string{{"app": "notfound"}}}
 					policiesSource.EXPECT().GetAll(gomock.Any()).
@@ -276,14 +276,14 @@ func TestOpaValidator_Validate(t *testing.T) {
 				},
 			},
 			entity:  entity,
-			want:    &domain.ValidationSummary{},
+			want:    &domain.PolicyValidationSummary{},
 			wantErr: false,
 		},
 		{
 			name: "compliant entity",
 			init: init{
 				writeCompliance: true,
-				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockValidationResultSink) {
+				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockPolicyValidationSink) {
 					policiesSource.EXPECT().GetAll(gomock.Any()).
 						Times(1).Return([]domain.Policy{
 						testdata.Policies["imageTag"],
@@ -294,19 +294,19 @@ func TestOpaValidator_Validate(t *testing.T) {
 				},
 			},
 			entity: compliantEntity,
-			want: &domain.ValidationSummary{
-				Compliances: []domain.ValidationResult{
+			want: &domain.PolicyValidationSummary{
+				Compliances: []domain.PolicyValidation{
 					{
 						Policy: testdata.Policies["imageTag"],
 						Entity: compliantEntity,
-						Source: source,
-						Status: domain.ValidationResultStatusCompliant,
+						Type:   validationType,
+						Status: domain.PolicyValidationStatusCompliant,
 					},
 					{
 						Policy: testdata.Policies["missingOwner"],
 						Entity: compliantEntity,
-						Source: source,
-						Status: domain.ValidationResultStatusCompliant,
+						Type:   validationType,
+						Status: domain.PolicyValidationStatusCompliant,
 					},
 				},
 			},
@@ -316,7 +316,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 			name: "error loading policy code",
 			init: init{
 				writeCompliance: false,
-				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockValidationResultSink) {
+				loadStubs: func(policiesSource *mockpolicy.MockPoliciesSource, sink *mocksink.MockPolicyValidationSink) {
 					policiesSource.EXPECT().GetAll(gomock.Any()).
 						Times(1).Return([]domain.Policy{
 						testdata.Policies["badPolicyCode"],
@@ -336,14 +336,14 @@ func TestOpaValidator_Validate(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			policiesSource := mockpolicy.NewMockPoliciesSource(ctrl)
-			sink := mocksink.NewMockValidationResultSink(ctrl)
+			sink := mocksink.NewMockPolicyValidationSink(ctrl)
 			tt.init.loadStubs(policiesSource, sink)
 			v := &OpaValidator{
 				policiesSource:  policiesSource,
-				resultsSinks:    []domain.ValidationResultSink{sink},
+				resultsSinks:    []domain.PolicyValidationSink{sink},
 				writeCompliance: tt.init.writeCompliance,
 			}
-			got, err := v.Validate(context.Background(), tt.entity, source)
+			got, err := v.Validate(context.Background(), tt.entity, validationType, validationType)
 			if tt.wantErr {
 				assert.Error(err)
 				return
@@ -360,7 +360,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 					if gotViolation.Policy.ID == wantViolation.Policy.ID {
 						found = true
 						assert.True(
-							cmpValidationResult(gotViolation, wantViolation),
+							cmpPolicyValidation(gotViolation, wantViolation),
 							"gotten violation not as expected for policy %s",
 							wantViolation.Policy.ID,
 						)
@@ -375,7 +375,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 					if gotCompliance.Policy.ID == wantCompliance.Policy.ID {
 						found = true
 						assert.True(
-							cmpValidationResult(gotCompliance, wantCompliance),
+							cmpPolicyValidation(gotCompliance, wantCompliance),
 							"gotten compliance not as expected for policy %s",
 							wantCompliance.Policy.ID,
 						)
