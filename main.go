@@ -5,7 +5,10 @@ import (
 	"os"
 
 	magalixv1 "github.com/MagalixCorp/magalix-policy-agent/apiextensions/magalix.com/v1"
+	"github.com/MagalixCorp/magalix-policy-agent/auditor"
+	"github.com/MagalixCorp/magalix-policy-agent/clients/kube"
 	policiesClient "github.com/MagalixCorp/magalix-policy-agent/clients/magalix.com/v1"
+	"github.com/MagalixCorp/magalix-policy-agent/entities/k8s"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation"
 	"github.com/MagalixCorp/magalix-policy-agent/policies/crd"
 	"github.com/MagalixCorp/magalix-policy-agent/server/admission"
@@ -13,6 +16,7 @@ import (
 	"github.com/MagalixCorp/magalix-policy-agent/sink/filesystem"
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -139,7 +143,7 @@ func main() {
 			kubeConfig, err = clientcmd.BuildConfigFromFlags("", config.KubeConfigFile)
 		}
 		if err != nil {
-			logger.Fatalw("failed to load Kubernetes config", "error", err)
+			return fmt.Errorf("failed to load Kubernetes config, %w", err)
 		}
 
 		magalixv1.AddToScheme(scheme.Scheme)
@@ -153,23 +157,31 @@ func main() {
 		}()
 
 		kubePoliciesClient := policiesClient.NewKubePoliciesClient(kubeConfig)
+		kubeClient, err := kube.NewKubeClientByConfig(kubeConfig)
+		if err != nil {
+			return fmt.Errorf("init client failed, %w", err)
+		}
+		entitiesSources, err := k8s.GetEntitiesSources(contextCli.Context, kubeClient)
+		if err != nil {
+			return fmt.Errorf("initializing entities sources failed, %w", err)
+		}
 
 		logger.Info("starting policies CRD watcher")
 		policiesSource, err := crd.NewPoliciesCRD(kubePoliciesClient)
 		if err != nil {
-			logger.Fatalw("failed to initialize CRD policies source", "error", err)
+			return fmt.Errorf("failed to initialize CRD policies source, %w", err)
 		}
 		defer policiesSource.Close()
 
 		fileSystemSink, err := filesystem.NewFileSystemSink(config.SinkFilePath, config.AccountID, config.ClusterID)
 		if err != nil {
-			logger.Fatalw("failed to initialize file system sink", "error", err)
+			return fmt.Errorf("failed to initialize file system sink, %w", err)
 		}
 
 		logger.Info("starting file system sink")
 		err = fileSystemSink.Start(contextCli.Context)
 		if err != nil {
-			logger.Fatalw("failed to start file system sink", "error", err)
+			return fmt.Errorf("failed to start file system sink, %w", err)
 		}
 		defer fileSystemSink.Stop()
 
@@ -178,6 +190,8 @@ func main() {
 			config.WriteCompliance,
 			fileSystemSink,
 		)
+
+		auditController := auditor.NewAuditController(validator, entitiesSources...)
 
 		admissionServer := admission.NewAdmissionHandler(
 			config.WebhookListen,
@@ -188,10 +202,23 @@ func main() {
 		)
 
 		probeHandler.MarkReady(true)
-		logger.Info("starting admission server...")
-		err = admissionServer.Run(contextCli.Context)
+		eg, _ := errgroup.WithContext(contextCli.Context)
+		eg.Go(func() error {
+			logger.Info("starting audit controller...")
+			return auditController.Run(contextCli.Context)
+		})
+
+		eg.Go(func() error {
+			logger.Info("starting admission server...")
+			err := admissionServer.Run(contextCli.Context)
+			if err != nil {
+				return fmt.Errorf("failed to start admission server, %w", err)
+			}
+			return nil
+		})
+		err = eg.Wait()
 		if err != nil {
-			logger.Fatalw("failed to start admission server", "error", err)
+			return err
 		}
 		return nil
 	}
