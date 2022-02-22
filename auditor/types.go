@@ -1,5 +1,7 @@
 package auditor
 
+import "context"
+
 type AuditEventType string
 
 const (
@@ -13,3 +15,5 @@ type AuditEvent struct {
 	Type AuditEventType
 	Data interface{}
 }
+
+type AuditEventListener func(ctx context.Context, auditEvent AuditEvent)

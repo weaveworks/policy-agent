@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	magalixv1 "github.com/MagalixCorp/magalix-policy-agent/apiextensions/magalix.com/v1"
 	"github.com/MagalixCorp/magalix-policy-agent/auditor"
@@ -34,6 +35,10 @@ type Config struct {
 	SinkFilePath    string
 	ProbesListen    string
 }
+
+const (
+	auditControllerInterval = 23 * time.Hour
+)
 
 func main() {
 	config := Config{}
@@ -191,7 +196,7 @@ func main() {
 			fileSystemSink,
 		)
 
-		auditController := auditor.NewAuditController(validator, entitiesSources...)
+		auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
 
 		admissionServer := admission.NewAdmissionHandler(
 			config.WebhookListen,

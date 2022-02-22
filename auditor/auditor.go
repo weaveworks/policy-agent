@@ -11,29 +11,36 @@ import (
 
 // AuditorController performs audit on regular interval by uing entitites sources to retrieve resources
 type AuditorController struct {
-	entitiesSources []domain.EntitiesSource
-	auditEvent      chan AuditEvent
-	validator       validation.Validator
+	entitiesSources    []domain.EntitiesSource
+	auditEvent         chan AuditEvent
+	validator          validation.Validator
+	auditEventListener AuditEventListener
+	auditInterval      time.Duration
 }
 
-const (
-	auditInterval = 23 * time.Hour
-)
-
 // NewAuditController returns a new instance of AuditController
-func NewAuditController(validator validation.Validator, entitiesSources ...domain.EntitiesSource) *AuditorController {
-	return &AuditorController{
+func NewAuditController(validator validation.Validator, auditInterval time.Duration, entitiesSources ...domain.EntitiesSource) *AuditorController {
+	auditController := &AuditorController{
 		entitiesSources: entitiesSources,
 		auditEvent:      make(chan AuditEvent, 1),
 		validator:       validator,
+		auditInterval:   auditInterval,
 	}
+	auditController.auditEventListener = auditController.doAudit
+	return auditController
+}
+
+// RegisterAuditEventListener add a listener that reacts to audit events
+func (a *AuditorController) RegisterAuditEventListener(auditEventListener AuditEventListener) {
+	a.auditEventListener = auditEventListener
 }
 
 // Run starts the audit controller
 func (a *AuditorController) Run(ctx context.Context) error {
-	cancelCtx, _ := context.WithCancel(ctx)
-	auditTicker := time.NewTicker(auditInterval)
+	cancelCtx, cancelFunc := context.WithCancel(ctx)
+	auditTicker := time.NewTicker(a.auditInterval)
 	defer auditTicker.Stop()
+	defer cancelFunc()
 
 	a.Audit(AuditEventTypeInitial, nil)
 	for {
@@ -41,25 +48,25 @@ func (a *AuditorController) Run(ctx context.Context) error {
 		case <-cancelCtx.Done():
 			return nil
 		case <-auditTicker.C:
-			a.doAudit(AuditEventTypePeriodical)
+			auditEvent := AuditEvent{Type: AuditEventTypePeriodical}
+			a.auditEventListener(ctx, auditEvent)
 		case event := <-a.auditEvent:
-			a.doAudit(event.Type)
+			a.auditEventListener(ctx, event)
 		}
 	}
 }
 
-func (a *AuditorController) doAudit(auditType AuditEventType) {
-	logger.Infof("starting %s", auditType)
+func (a *AuditorController) doAudit(ctx context.Context, auditEvent AuditEvent) {
+	logger.Infof("starting %s", auditEvent.Type)
 	for i := range a.entitiesSources {
 		hasNext := true
 		keySet := ""
+		entitySource := a.entitiesSources[i]
 		for hasNext {
-			entitySource := a.entitiesSources[i]
 			opts := domain.ListOptions{
 				Limit:  entitiesSizeLimit,
 				KeySet: keySet,
 			}
-			ctx := context.Background()
 			entitiesList, err := entitySource.List(ctx, &opts)
 			if err != nil {
 				logger.Errorw("failed to list entities during audit", "kind", entitySource.Kind(), "error", err)
@@ -70,7 +77,7 @@ func (a *AuditorController) doAudit(auditType AuditEventType) {
 
 			for idx := range entitiesList.Data {
 				entity := entitiesList.Data[idx]
-				_, err := a.validator.Validate(ctx, entity, TypeAudit, string(auditType))
+				_, err := a.validator.Validate(ctx, entity, TypeAudit, string(auditEvent.Type))
 				if err != nil {
 					logger.Errorw(
 						"failed to validate entity during audit",

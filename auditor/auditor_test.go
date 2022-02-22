@@ -1,13 +1,19 @@
 package auditor
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	entitiesmock "github.com/MagalixCorp/magalix-policy-agent/entities/mock"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	validationmock "github.com/MagalixCorp/magalix-policy-agent/pkg/validation/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	auditInterval = 2 * time.Second
 )
 
 func TestNewAuditController(t *testing.T) {
@@ -30,7 +36,7 @@ func TestNewAuditController(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert := require.New(t)
-			got := NewAuditController(validator, entitiesSource)
+			got := NewAuditController(validator, auditInterval, entitiesSource)
 			assert.Equal(test.want.entitiesSources, got.entitiesSources, "unexpected auditor entities source")
 			assert.Equal(test.want.validator, got.validator, "unexpected auditor validator")
 		})
@@ -104,10 +110,22 @@ func TestAuditorController_doAudit(t *testing.T) {
 			validator := validationmock.NewMockValidator(ctrl)
 			entitiesSource := entitiesmock.NewMockEntitiesSource(ctrl)
 			test.loadStubs(validator, entitiesSource)
-			a := NewAuditController(validator, entitiesSource)
-			a.doAudit(test.args.auditType)
+			a := NewAuditController(validator, auditInterval, entitiesSource)
+			auditEvent := AuditEvent{Type: test.args.auditType}
+			a.doAudit(context.Background(), auditEvent)
 		})
 	}
+}
+
+func assertEvent(c chan AuditEvent, assert *require.Assertions, target AuditEventType) {
+	var event *AuditEvent
+	for event == nil {
+		select {
+		case e := <-c:
+			event = &e
+		}
+	}
+	assert.Equal(target, event.Type)
 }
 
 func TestAuditorController_Audit(t *testing.T) {
@@ -133,20 +151,21 @@ func TestAuditorController_Audit(t *testing.T) {
 			defer ctrl.Finish()
 			validator := validationmock.NewMockValidator(ctrl)
 			entitiesSource := entitiesmock.NewMockEntitiesSource(ctrl)
-			auditEvent := make(chan AuditEvent, 1)
-			a := &AuditorController{
-				validator:       validator,
-				entitiesSources: []domain.EntitiesSource{entitiesSource},
-				auditEvent:      auditEvent}
+
+			auditEventChan := make(chan AuditEvent, 1)
+			a := NewAuditController(validator, auditInterval, entitiesSource)
+			a.RegisterAuditEventListener(func(ctx context.Context, auditEvent AuditEvent) {
+				auditEventChan <- auditEvent
+			})
+			ctx, cancelFunc := context.WithCancel(context.Background())
+			go a.Run(ctx)
+			assertEvent(auditEventChan, assert, AuditEventTypeInitial)
 			a.Audit(test.args.auditType, test.args.data)
-			var event AuditEvent
-			select {
-			case e := <-auditEvent:
-				event = e
-			default:
-				assert.Fail("failed to validate audit event")
-			}
-			assert.Equal(test.args.auditType, event.Type)
+			assertEvent(auditEventChan, assert, test.args.auditType)
+
+			assertEvent(auditEventChan, assert, AuditEventTypePeriodical)
+
+			cancelFunc()
 		})
 	}
 }
