@@ -148,6 +148,12 @@ func (a *AdmissionHandler) Run(ctx context.Context) error {
 		Addr:    a.address,
 		Handler: mux,
 	}
+
+	go func() {
+		<-ctx.Done()
+		server.Close()
+	}()
+
 	return server.ListenAndServeTLS(a.certFile, a.keyFile)
 
 }

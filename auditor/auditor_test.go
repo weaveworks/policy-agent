@@ -159,7 +159,6 @@ func TestAuditorController_Audit(t *testing.T) {
 			})
 			ctx, cancelFunc := context.WithCancel(context.Background())
 			go a.Run(ctx)
-			assertEvent(auditEventChan, assert, AuditEventTypeInitial)
 			a.Audit(test.args.auditType, test.args.data)
 			assertEvent(auditEventChan, assert, test.args.auditType)
 

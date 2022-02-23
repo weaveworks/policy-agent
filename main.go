@@ -34,6 +34,8 @@ type Config struct {
 	LogLevel        string
 	SinkFilePath    string
 	ProbesListen    string
+	Admission       bool
+	Audit           bool
 }
 
 const (
@@ -103,6 +105,20 @@ func main() {
 			Value:       false,
 			EnvVars:     []string{"AGENT_WRITE_COMPLIANCE"},
 		},
+		&cli.BoolFlag{
+			Name:        "admission",
+			Usage:       "enables admission control",
+			Destination: &config.Admission,
+			Value:       true,
+			EnvVars:     []string{"AGENT_ADMISSION"},
+		},
+		&cli.BoolFlag{
+			Name:        "audit",
+			Usage:       "enables cluster periodical audit",
+			Destination: &config.Audit,
+			Value:       true,
+			EnvVars:     []string{"AGENT_AUDIT"},
+		},
 		&cli.StringFlag{
 			Name:        "log-level",
 			Usage:       "app log level",
@@ -120,6 +136,10 @@ func main() {
 	}
 
 	app.Before = func(c *cli.Context) error {
+		if !config.Admission && !config.Audit {
+			return fmt.Errorf("agent needs to be run with at least one mode of operation")
+		}
+
 		switch config.LogLevel {
 		case "info":
 			logger.Config(logger.InfoLevel)
@@ -196,31 +216,36 @@ func main() {
 			fileSystemSink,
 		)
 
-		auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
-
-		admissionServer := admission.NewAdmissionHandler(
-			config.WebhookListen,
-			config.WebhookCertFile,
-			config.WebhhokKeyFile,
-			config.LogLevel,
-			validator,
-		)
-
 		probeHandler.MarkReady(true)
-		eg, _ := errgroup.WithContext(contextCli.Context)
-		eg.Go(func() error {
-			logger.Info("starting audit controller...")
-			return auditController.Run(contextCli.Context)
-		})
+		eg, ctx := errgroup.WithContext(contextCli.Context)
 
-		eg.Go(func() error {
-			logger.Info("starting admission server...")
-			err := admissionServer.Run(contextCli.Context)
-			if err != nil {
-				return fmt.Errorf("failed to start admission server, %w", err)
-			}
-			return nil
-		})
+		if config.Audit {
+			auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
+			eg.Go(func() error {
+				logger.Info("starting audit controller...")
+				return auditController.Run(ctx)
+			})
+			auditController.Audit(auditor.AuditEventTypeInitial, nil)
+		}
+
+		if config.Admission {
+			admissionServer := admission.NewAdmissionHandler(
+				config.WebhookListen,
+				config.WebhookCertFile,
+				config.WebhhokKeyFile,
+				config.LogLevel,
+				validator,
+			)
+			eg.Go(func() error {
+				logger.Info("starting admission server...")
+				err := admissionServer.Run(ctx)
+				if err != nil {
+					return fmt.Errorf("failed to start admission server, %w", err)
+				}
+				return nil
+			})
+		}
+
 		err = eg.Wait()
 		if err != nil {
 			return err

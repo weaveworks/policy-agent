@@ -42,7 +42,6 @@ func (a *AuditorController) Run(ctx context.Context) error {
 	defer auditTicker.Stop()
 	defer cancelFunc()
 
-	a.Audit(AuditEventTypeInitial, nil)
 	for {
 		select {
 		case <-cancelCtx.Done():
