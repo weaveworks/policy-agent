@@ -24,18 +24,18 @@ import (
 )
 
 type Config struct {
-	KubeConfigFile  string
-	AccountID       string
-	ClusterID       string
-	WriteCompliance bool
-	WebhookListen   string
-	WebhookCertFile string
-	WebhhokKeyFile  string
-	LogLevel        string
-	SinkFilePath    string
-	ProbesListen    string
-	Admission       bool
-	Audit           bool
+	KubeConfigFile   string
+	AccountID        string
+	ClusterID        string
+	WriteCompliance  bool
+	WebhookListen    string
+	WebhookCertFile  string
+	WebhookKeyFile   string
+	LogLevel         string
+	SinkFilePath     string
+	ProbesListen     string
+	DisableAdmission bool
+	DisableAudit     bool
 }
 
 const (
@@ -87,7 +87,7 @@ func main() {
 		&cli.StringFlag{
 			Name:        "webhook-key-file",
 			Usage:       "key file path for webhook server",
-			Destination: &config.WebhhokKeyFile,
+			Destination: &config.WebhookKeyFile,
 			Value:       "/certs/tls.key",
 			EnvVars:     []string{"AGENT_WEBHOOK_KEY_FILE"},
 		},
@@ -106,18 +106,18 @@ func main() {
 			EnvVars:     []string{"AGENT_WRITE_COMPLIANCE"},
 		},
 		&cli.BoolFlag{
-			Name:        "admission",
-			Usage:       "enables admission control",
-			Destination: &config.Admission,
-			Value:       true,
-			EnvVars:     []string{"AGENT_ADMISSION"},
+			Name:        "disable-admission",
+			Usage:       "disables admission control",
+			Destination: &config.DisableAdmission,
+			Value:       false,
+			EnvVars:     []string{"AGENT_DISABLE_ADMISSION"},
 		},
 		&cli.BoolFlag{
-			Name:        "audit",
-			Usage:       "enables cluster periodical audit",
-			Destination: &config.Audit,
-			Value:       true,
-			EnvVars:     []string{"AGENT_AUDIT"},
+			Name:        "disable-audit",
+			Usage:       "disables cluster periodical audit",
+			Destination: &config.DisableAudit,
+			Value:       false,
+			EnvVars:     []string{"AGENT_DISABLE_AUDIT"},
 		},
 		&cli.StringFlag{
 			Name:        "log-level",
@@ -136,7 +136,7 @@ func main() {
 	}
 
 	app.Before = func(c *cli.Context) error {
-		if !config.Admission && !config.Audit {
+		if config.DisableAdmission && config.DisableAudit {
 			return fmt.Errorf("agent needs to be run with at least one mode of operation")
 		}
 
@@ -171,13 +171,16 @@ func main() {
 			return fmt.Errorf("failed to load Kubernetes config, %w", err)
 		}
 
-		magalixv1.AddToScheme(scheme.Scheme)
+		err = magalixv1.AddToScheme(scheme.Scheme)
+		if err != nil {
+			return fmt.Errorf("failed to add policy crd to schema, %w", err)
+		}
 
 		probeHandler := probes.NewProbesHandler(config.ProbesListen)
 		go func() {
 			err := probeHandler.Run(contextCli.Context)
 			if err != nil {
-				logger.Fatal("Failed to start probes server")
+				logger.Fatal("failed to start probes server", "error", err)
 			}
 		}()
 
@@ -192,7 +195,7 @@ func main() {
 		}
 
 		logger.Info("starting policies CRD watcher")
-		policiesSource, err := crd.NewPoliciesCRD(kubePoliciesClient)
+		policiesSource, err := crd.NewPoliciesWatcher(kubePoliciesClient)
 		if err != nil {
 			return fmt.Errorf("failed to initialize CRD policies source, %w", err)
 		}
@@ -210,16 +213,16 @@ func main() {
 		}
 		defer fileSystemSink.Stop()
 
-		validator := validation.NewOpaValidator(
-			policiesSource,
-			config.WriteCompliance,
-			fileSystemSink,
-		)
-
 		probeHandler.MarkReady(true)
 		eg, ctx := errgroup.WithContext(contextCli.Context)
 
-		if config.Audit {
+		if !config.DisableAudit {
+			validator := validation.NewOPAValidator(
+				policiesSource,
+				config.WriteCompliance,
+				auditor.TypeAudit,
+				fileSystemSink,
+			)
 			auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
 			eg.Go(func() error {
 				logger.Info("starting audit controller...")
@@ -228,11 +231,17 @@ func main() {
 			auditController.Audit(auditor.AuditEventTypeInitial, nil)
 		}
 
-		if config.Admission {
+		if !config.DisableAdmission {
+			validator := validation.NewOPAValidator(
+				policiesSource,
+				config.WriteCompliance,
+				admission.TypeAdmission,
+				fileSystemSink,
+			)
 			admissionServer := admission.NewAdmissionHandler(
 				config.WebhookListen,
 				config.WebhookCertFile,
-				config.WebhhokKeyFile,
+				config.WebhookKeyFile,
 				config.LogLevel,
 				validator,
 			)

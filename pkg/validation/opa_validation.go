@@ -9,39 +9,39 @@ import (
 
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	opa "github.com/MagalixTechnologies/opa-core"
-	uuid "github.com/MagalixTechnologies/uuid-go"
+	"github.com/MagalixTechnologies/uuid-go"
+	multierror "github.com/hashicorp/go-multierror"
 )
 
 const (
 	PolicyQuery = "violation"
-	maxWorkers  = 50
+	maxWorkers  = 25
 )
 
 type OpaValidator struct {
 	policiesSource  domain.PoliciesSource
 	resultsSinks    []domain.PolicyValidationSink
 	writeCompliance bool
+	validationType  string
 }
 
-// NewOpaValidator returns an opa validator to validate entities
-func NewOpaValidator(
+// NewOPAValidator returns an opa validator to validate entities
+func NewOPAValidator(
 	policiesSource domain.PoliciesSource,
 	writeCompliance bool,
+	validationType string,
 	resultsSinks ...domain.PolicyValidationSink,
 ) *OpaValidator {
 	return &OpaValidator{
 		policiesSource:  policiesSource,
 		resultsSinks:    resultsSinks,
 		writeCompliance: writeCompliance,
+		validationType:  validationType,
 	}
 }
 
 // Validate validate policies using opa library, implements validation.Validator
-func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, validationType, trigger string) (*domain.PolicyValidationSummary, error) {
-	violations := make([]domain.PolicyValidation, 0)
-	compliances := make([]domain.PolicyValidation, 0)
-	var err error
-
+func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, trigger string) (*domain.PolicyValidationSummary, error) {
 	policies, err := v.policiesSource.GetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get policies from source, %w", err)
@@ -63,13 +63,12 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, valid
 				enqueueGroup.Done()
 			}()
 			policy := policies[index]
-			match := matchEntity(entity, policy)
-			if !match {
+			if !matchEntity(entity, policy) {
 				return
 			}
 			opaPolicy, err := opa.Parse(policy.Code, PolicyQuery)
 			if err != nil {
-				errsChan <- fmt.Errorf("Failed to parse policy %s, %w", policy.ID, err)
+				errsChan <- fmt.Errorf("failed to parse policy %s, %w", policy.ID, err)
 				return
 			}
 			var opaErr opa.OPAError
@@ -77,7 +76,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, valid
 				ID:        uuid.NewV4().String(),
 				Policy:    policy,
 				Entity:    entity,
-				Type:      validationType,
+				Type:      v.validationType,
 				CreatedAt: time.Now(),
 			}
 
@@ -105,7 +104,10 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, valid
 
 					violationsChan <- res
 				} else {
-					errsChan <- fmt.Errorf("unable to evaluate resource against policy. policy id: %s. %w", policy.ID, err)
+					errsChan <- fmt.Errorf(
+						"unable to evaluate resourceagainst policy. policy id: %s. %w",
+						policy.ID,
+						err)
 				}
 
 			} else {
@@ -116,6 +118,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, valid
 
 		})(i)
 	}
+	violations := make([]domain.PolicyValidation, 0)
 	dequeueGroup.Add(1)
 	go func() {
 		defer dequeueGroup.Done()
@@ -124,6 +127,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, valid
 		}
 	}()
 
+	compliances := make([]domain.PolicyValidation, 0)
 	dequeueGroup.Add(1)
 	go func() {
 		defer dequeueGroup.Done()
@@ -132,11 +136,12 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, valid
 		}
 	}()
 
+	var errs error
 	dequeueGroup.Add(1)
 	go func() {
 		defer dequeueGroup.Done()
 		for chanErr := range errsChan {
-			err = fmt.Errorf("%w;%s", err, chanErr)
+			errs = multierror.Append(errs, chanErr)
 		}
 	}()
 
@@ -146,8 +151,12 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, valid
 	close(errsChan)
 	dequeueGroup.Wait()
 
-	if err != nil {
-		return nil, fmt.Errorf("Encountered errors while validating policies, %w", err)
+	if errs != nil {
+		return nil, fmt.Errorf(
+			"encountered errors while validating policies against resource %s:%s, %w",
+			entity.Kind,
+			entity.Name,
+			errs)
 	}
 
 	PolicyValidationSummary := domain.PolicyValidationSummary{

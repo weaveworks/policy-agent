@@ -1,9 +1,9 @@
 package admission
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -38,6 +38,7 @@ const (
 	invalidadmissionRequest = "received incorrect admission request"
 )
 
+// NewAdmissionHandler returns an admission handler that listens to k8s validating requests
 func NewAdmissionHandler(
 	address string,
 	certFile string,
@@ -54,16 +55,13 @@ func NewAdmissionHandler(
 }
 
 func writeResponse(writer http.ResponseWriter, v interface{}, status int) {
-	buf := &bytes.Buffer{}
-	enc := json.NewEncoder(buf)
-	err := enc.Encode(v)
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		msg := fmt.Sprintf("Error while writing response, error: %s", err)
-		writer.Write([]byte(msg))
-	}
+	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writer.WriteHeader(status)
-	writer.Write(buf.Bytes())
+	enc := json.NewEncoder(writer)
+	if err := enc.Encode(v); err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(writer, "Error while writing response, error: %s", err)
+	}
 }
 
 // Register regsiters a function to handle admission requests
@@ -78,8 +76,12 @@ func (a *AdmissionHandler) Register(admissionFunc AdmissionWatcher) http.Handler
 
 		if a.logLevel == DebugLevel {
 			var payload map[string]interface{}
-			json.Unmarshal(body, &payload)
-			logger.Debugw("admission request", "payload", payload)
+			err := json.Unmarshal(body, &payload)
+			if err != nil {
+				logger.Debugw("failed to get admission request body", "error", err)
+			} else {
+				logger.Debugw("admission request body", "payload", payload)
+			}
 		}
 		var reviewRequest v1.AdmissionReview
 		_, _, err = universalDeserializer.Decode(body, nil, &reviewRequest)
@@ -120,11 +122,11 @@ func (a *AdmissionHandler) ValidateRequest(ctx context.Context, reviewRequest v1
 	var entitySpec map[string]interface{}
 	err := json.Unmarshal(reviewRequest.Request.Object.Raw, &entitySpec)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get entity info from admission request")
+		return nil, errors.New("failed to get entity info from admission request")
 	}
 
 	entity := domain.NewEntityFromSpec(entitySpec)
-	result, err := a.validator.Validate(ctx, entity, TypeAdmission, TriggerAdmission)
+	result, err := a.validator.Validate(ctx, entity, TriggerAdmission)
 	if err != nil {
 		return nil, err
 	}

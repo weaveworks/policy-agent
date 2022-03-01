@@ -36,16 +36,16 @@ func (m *MockValidator) EXPECT() *MockValidatorMockRecorder {
 }
 
 // Validate mocks base method.
-func (m *MockValidator) Validate(arg0 context.Context, arg1 domain.Entity, arg2, arg3 string) (*domain.PolicyValidationSummary, error) {
+func (m *MockValidator) Validate(arg0 context.Context, arg1 domain.Entity, arg2 string) (*domain.PolicyValidationSummary, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Validate", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "Validate", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*domain.PolicyValidationSummary)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Validate indicates an expected call of Validate.
-func (mr *MockValidatorMockRecorder) Validate(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockValidatorMockRecorder) Validate(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockValidator)(nil).Validate), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockValidator)(nil).Validate), arg0, arg1, arg2)
 }

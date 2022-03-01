@@ -58,7 +58,7 @@ func TestAuditorController_doAudit(t *testing.T) {
 				auditType: AuditEventTypeInitial,
 			},
 			loadStubs: func(val *validationmock.MockValidator, ent *entitiesmock.MockEntitiesSource) {
-				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).Return(&domain.PolicyValidationSummary{}, nil)
 				ent.EXPECT().List(gomock.Any(), gomock.Any()).
 					Times(1).Return(&domain.EntitiesList{
@@ -78,7 +78,7 @@ func TestAuditorController_doAudit(t *testing.T) {
 				auditType: AuditEventTypeInitial,
 			},
 			loadStubs: func(val *validationmock.MockValidator, ent *entitiesmock.MockEntitiesSource) {
-				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(2).Return(&domain.PolicyValidationSummary{}, nil)
 				ent.EXPECT().List(gomock.Any(), gomock.Any()).
 					Times(1).Return(&domain.EntitiesList{

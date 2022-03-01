@@ -53,7 +53,7 @@ func (f *FileSystemSink) writeValidationResutl(policyValidation domain.PolicyVal
 }
 
 // WritePolicyValidationWorker worker that listens on results and admits them to a file
-func (f *FileSystemSink) WritePolicyValidationWorker(ctx context.Context) {
+func (f *FileSystemSink) WritePolicyValidationWorker(_ context.Context) {
 	for {
 		select {
 		case result := <-f.PolicyValidationChan:
@@ -73,7 +73,7 @@ func (f *FileSystemSink) WritePolicyValidationWorker(ctx context.Context) {
 }
 
 // Write adds results to buffer, implements github.com/MagalixCorp/magalix-policy-agent/pkg/domain.PolicyValidationSink
-func (f *FileSystemSink) Write(ctx context.Context, policyValidations []domain.PolicyValidation) error {
+func (f *FileSystemSink) Write(_ context.Context, policyValidations []domain.PolicyValidation) error {
 	for i := range policyValidations {
 		PolicyValidation := policyValidations[i]
 		f.PolicyValidationChan <- PolicyValidation

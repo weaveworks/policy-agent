@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -42,7 +43,7 @@ func (in *PoliciesInformer) Start() error {
 	go in.controller.Run(in.stop)
 	err := in.waitForCache()
 	if err != nil {
-		return err
+		return fmt.Errorf("error while waiting for policies cache sync, %w", err)
 	}
 	return nil
 }
@@ -54,7 +55,7 @@ func (in *PoliciesInformer) Stop() {
 
 func (in *PoliciesInformer) waitForCache() error {
 	if !cache.WaitForCacheSync(in.stop, in.controller.HasSynced) {
-		return fmt.Errorf("failed to build policies informer cache")
+		return errors.New("failed to build policies informer cache")
 	}
 	return nil
 }

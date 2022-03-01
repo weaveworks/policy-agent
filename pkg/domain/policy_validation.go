@@ -9,6 +9,7 @@ const (
 	PolicyValidationStatusCompliant = "Compliance"
 )
 
+// PolicyValidation defines the result of a policy validation result against an entity
 type PolicyValidation struct {
 	ID        string    `json:"id"`
 	AccountID string    `json:"account_id"`
@@ -22,6 +23,7 @@ type PolicyValidation struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// PolicyValidationSummary contains violation and compliance result of a validate operation
 type PolicyValidationSummary struct {
 	Violations  []PolicyValidation
 	Compliances []PolicyValidation

@@ -2,12 +2,11 @@ package domain
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
+// Entity represents a kubernetes resource
 type Entity struct {
 	ID              string                 `json:"id"`
 	Name            string                 `json:"name"`
@@ -17,16 +16,6 @@ type Entity struct {
 	ResourceVersion string                 `json:"resource_version"`
 	Labels          map[string]string      `json:"labels"`
 	GitCommit       string                 `json:"git_commit,omitempty,"`
-}
-
-// NewEntityFromStringSpec takes string representing a Kubernetes entity and parses it into Entity struct
-func NewEntityFromStringSpec(entityStringSpec string) (Entity, error) {
-	var entitySpec map[string]interface{}
-	err := json.Unmarshal([]byte(entityStringSpec), &entitySpec)
-	if err != nil {
-		return Entity{}, fmt.Errorf("invalid string format, %w", err)
-	}
-	return NewEntityFromSpec(entitySpec), nil
 }
 
 // NewEntityFromSpec takes map representing a Kubernetes entity and parses it into Entity struct
@@ -43,18 +32,23 @@ func NewEntityFromSpec(entitySpec map[string]interface{}) Entity {
 	}
 }
 
+// EntitiesList a grouping of Entity objects
 type EntitiesList struct {
 	HasNext bool
-	KeySet  string
-	Data    []Entity
+	// KeySet used to fetch next batch of entities
+	KeySet string
+	Data   []Entity
 }
 
+// EntitiesSource gets entities of a spcific K8s kind
 type EntitiesSource interface {
 	// List returns entities
 	List(ctx context.Context, listOptions *ListOptions) (*EntitiesList, error)
 	// Kind returns kind of entities it retireves
 	Kind() string
 }
+
+// ListOptions configures the wanted return of a list operation
 type ListOptions struct {
 	Limit  int
 	KeySet string

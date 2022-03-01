@@ -61,7 +61,7 @@ To configure the agent using argemnts, you need to define a config object in the
 ```yaml
 config:
   AGENT_WRITE_COMPLIANCE: 1 # enables writing compliance results
-  AGENT_AUDIT: 0 # disables audit functionality
+  AGENT_DISABLE_AUDIT: 1 # disables audit functionality
 ```
 
 ### TLS Certificates

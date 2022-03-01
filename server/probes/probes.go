@@ -24,7 +24,7 @@ func NewProbesHandler(address string) *ProbesHandler {
 }
 
 func (p *ProbesHandler) healthHandler(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader((http.StatusOK))
+	w.WriteHeader(http.StatusOK)
 }
 
 func (p *ProbesHandler) isReady() bool {
@@ -36,9 +36,9 @@ func (p *ProbesHandler) isReady() bool {
 
 func (p *ProbesHandler) readinessHandler(w http.ResponseWriter, _ *http.Request) {
 	if p.isReady() {
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 	} else {
-		w.WriteHeader(503)
+		w.WriteHeader(http.StatusServiceUnavailable)
 	}
 }
 
@@ -48,12 +48,12 @@ func (p *ProbesHandler) MarkReady(ready bool) {
 }
 
 // Run starts the probe server
-func (p *ProbesHandler) Run(ctx context.Context) error {
-	eg, _ := errgroup.WithContext(ctx)
+func (p *ProbesHandler) Run(_ context.Context) error {
+	eg := &errgroup.Group{}
 	eg.Go(func() error {
 		mux := http.NewServeMux()
-		mux.Handle("/health", http.HandlerFunc(p.healthHandler))
-		mux.Handle("/ready", http.HandlerFunc(p.readinessHandler))
+		mux.HandleFunc("/health", p.healthHandler)
+		mux.HandleFunc("/ready", p.readinessHandler)
 		server := &http.Server{
 			Addr:    p.address,
 			Handler: mux,

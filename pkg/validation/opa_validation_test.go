@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
@@ -14,11 +15,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewOpaValidator(t *testing.T) {
+func TestNewOPAValidator(t *testing.T) {
 	type args struct {
 		policiesSource  domain.PoliciesSource
 		writeCompliance bool
 		resultsSinks    []domain.PolicyValidationSink
+		validationType  string
 	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -36,18 +38,20 @@ func TestNewOpaValidator(t *testing.T) {
 				policiesSource:  policiesSource,
 				writeCompliance: true,
 				resultsSinks:    []domain.PolicyValidationSink{sink},
+				validationType:  "TestValidate",
 			},
 			want: &OpaValidator{
 				policiesSource:  policiesSource,
 				writeCompliance: true,
 				resultsSinks:    []domain.PolicyValidationSink{sink},
+				validationType:  "TestValidate",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewOpaValidator(tt.args.policiesSource, tt.args.writeCompliance, tt.args.resultsSinks...); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewOpaValidator() = %v, want %v", got, tt.want)
+			if got := NewOPAValidator(tt.args.policiesSource, tt.args.writeCompliance, tt.args.validationType, tt.args.resultsSinks...); !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("NewOPAValidator() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -61,16 +65,27 @@ func cmpPolicyValidation(arg1, arg2 domain.PolicyValidation) bool {
 	return arg1.Type == arg2.Type && arg1.Trigger == arg2.Trigger && arg1.Status == arg2.Status
 }
 
+func getntityFromStringSpec(entityStringSpec string) (domain.Entity, error) {
+	var entitySpec map[string]interface{}
+	err := json.Unmarshal([]byte(entityStringSpec), &entitySpec)
+	if err != nil {
+		return domain.Entity{}, fmt.Errorf("invalid string format, %w", err)
+	}
+	return domain.NewEntityFromSpec(entitySpec), nil
+}
+
 func TestOpaValidator_Validate(t *testing.T) {
 	type init struct {
 		loadStubs       func(*mockpolicy.MockPoliciesSource, *mocksink.MockPolicyValidationSink)
 		writeCompliance bool
 	}
+	assert := require.New(t)
 
 	entityText := testdata.Entity
 	validationType := "unit-test"
-	entity, _ := domain.NewEntityFromStringSpec(entityText)
-	compliantEntity, _ := domain.NewEntityFromStringSpec(testdata.CompliantEntity)
+	entity, err := getntityFromStringSpec(entityText)
+	compliantEntity, err := getntityFromStringSpec(testdata.CompliantEntity)
+	assert.Nil(err)
 	tests := []struct {
 		name    string
 		init    init
@@ -332,7 +347,6 @@ func TestOpaValidator_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert := require.New(t)
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			policiesSource := mockpolicy.NewMockPoliciesSource(ctrl)
@@ -342,8 +356,9 @@ func TestOpaValidator_Validate(t *testing.T) {
 				policiesSource:  policiesSource,
 				resultsSinks:    []domain.PolicyValidationSink{sink},
 				writeCompliance: tt.init.writeCompliance,
+				validationType:  validationType,
 			}
-			got, err := v.Validate(context.Background(), tt.entity, validationType, validationType)
+			got, err := v.Validate(context.Background(), tt.entity, validationType)
 			if tt.wantErr {
 				assert.Error(err)
 				return
