@@ -53,7 +53,7 @@ var (
 	"metadata": {
 	  "name": "nginx-deployment",
 	  "labels": {
-		"app": "nginx"
+		"app": "nginx",
 		"owner": "unit.test"
 	  }
 	},

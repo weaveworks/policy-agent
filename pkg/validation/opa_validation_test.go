@@ -84,6 +84,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 	entityText := testdata.Entity
 	validationType := "unit-test"
 	entity, err := getntityFromStringSpec(entityText)
+	assert.Nil(err)
 	compliantEntity, err := getntityFromStringSpec(testdata.CompliantEntity)
 	assert.Nil(err)
 	tests := []struct {
