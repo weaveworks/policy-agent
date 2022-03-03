@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -137,7 +138,7 @@ func main() {
 
 	app.Before = func(c *cli.Context) error {
 		if config.DisableAdmission && config.DisableAudit {
-			return fmt.Errorf("agent needs to be run with at least one mode of operation")
+			return errors.New("agent needs to be run with at least one mode of operation")
 		}
 
 		switch config.LogLevel {
@@ -168,12 +169,12 @@ func main() {
 			kubeConfig, err = clientcmd.BuildConfigFromFlags("", config.KubeConfigFile)
 		}
 		if err != nil {
-			return fmt.Errorf("failed to load Kubernetes config, %w", err)
+			return fmt.Errorf("failed to load Kubernetes config: %w", err)
 		}
 
 		err = magalixv1.AddToScheme(scheme.Scheme)
 		if err != nil {
-			return fmt.Errorf("failed to add policy crd to schema, %w", err)
+			return fmt.Errorf("failed to add policy crd to schema: %w", err)
 		}
 
 		probeHandler := probes.NewProbesHandler(config.ProbesListen)
@@ -185,31 +186,31 @@ func main() {
 		}()
 
 		kubePoliciesClient := policiesClient.NewKubePoliciesClient(kubeConfig)
-		kubeClient, err := kube.NewKubeClientByConfig(kubeConfig)
+		kubeClient, err := kube.NewKubeClient(kubeConfig)
 		if err != nil {
-			return fmt.Errorf("init client failed, %w", err)
+			return fmt.Errorf("init client failed: %w", err)
 		}
 		entitiesSources, err := k8s.GetEntitiesSources(contextCli.Context, kubeClient)
 		if err != nil {
-			return fmt.Errorf("initializing entities sources failed, %w", err)
+			return fmt.Errorf("initializing entities sources failed: %w", err)
 		}
 
 		logger.Info("starting policies CRD watcher")
 		policiesSource, err := crd.NewPoliciesWatcher(kubePoliciesClient)
 		if err != nil {
-			return fmt.Errorf("failed to initialize CRD policies source, %w", err)
+			return fmt.Errorf("failed to initialize CRD policies source: %w", err)
 		}
 		defer policiesSource.Close()
 
 		fileSystemSink, err := filesystem.NewFileSystemSink(config.SinkFilePath, config.AccountID, config.ClusterID)
 		if err != nil {
-			return fmt.Errorf("failed to initialize file system sink, %w", err)
+			return fmt.Errorf("failed to initialize file system sink: %w", err)
 		}
 
 		logger.Info("starting file system sink")
 		err = fileSystemSink.Start(contextCli.Context)
 		if err != nil {
-			return fmt.Errorf("failed to start file system sink, %w", err)
+			return fmt.Errorf("failed to start file system sink: %w", err)
 		}
 		defer fileSystemSink.Stop()
 
@@ -249,7 +250,7 @@ func main() {
 				logger.Info("starting admission server...")
 				err := admissionServer.Run(ctx)
 				if err != nil {
-					return fmt.Errorf("failed to start admission server, %w", err)
+					return fmt.Errorf("failed to start admission server: %w", err)
 				}
 				return nil
 			})

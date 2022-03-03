@@ -43,7 +43,7 @@ func (in *PoliciesInformer) Start() error {
 	go in.controller.Run(in.stop)
 	err := in.waitForCache()
 	if err != nil {
-		return fmt.Errorf("error while waiting for policies cache sync, %w", err)
+		return fmt.Errorf("error while waiting for policies cache sync: %w", err)
 	}
 	return nil
 }

@@ -26,7 +26,7 @@ type FileSystemSink struct {
 func NewFileSystemSink(filePath string, accountID, clusterID string) (*FileSystemSink, error) {
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open file %s to write validation results, %w", filePath, err)
+		return nil, fmt.Errorf("failed to open file %s to write validation results: %w", filePath, err)
 	}
 	return &FileSystemSink{
 		File:                 file,
@@ -47,7 +47,7 @@ func (f *FileSystemSink) Start(ctx context.Context) error {
 func (f *FileSystemSink) writeValidationResutl(policyValidation domain.PolicyValidation) error {
 	err := json.NewEncoder(f.File).Encode(policyValidation)
 	if err != nil {
-		return fmt.Errorf("failed to write result to file, %w", err)
+		return fmt.Errorf("failed to write result to file: %w", err)
 	}
 	return nil
 }

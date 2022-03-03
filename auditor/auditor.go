@@ -9,7 +9,7 @@ import (
 	"github.com/MagalixTechnologies/core/logger"
 )
 
-// AuditorController performs audit on regular interval by uing entitites sources to retrieve resources
+// AuditorController performs audit on a regular interval by using entitites sources to retrieve resources
 type AuditorController struct {
 	entitiesSources    []domain.EntitiesSource
 	auditEvent         chan AuditEvent
@@ -18,7 +18,7 @@ type AuditorController struct {
 	auditInterval      time.Duration
 }
 
-// NewAuditController returns a new instance of AuditController
+// NewAuditController returns a new instance of AuditController with an audit event listener
 func NewAuditController(validator validation.Validator, auditInterval time.Duration, entitiesSources ...domain.EntitiesSource) *AuditorController {
 	auditController := &AuditorController{
 		entitiesSources: entitiesSources,
@@ -30,21 +30,19 @@ func NewAuditController(validator validation.Validator, auditInterval time.Durat
 	return auditController
 }
 
-// RegisterAuditEventListener add a listener that reacts to audit events
+// RegisterAuditEventListener adds a listener that reacts to audit events, replaces existing listener
 func (a *AuditorController) RegisterAuditEventListener(auditEventListener AuditEventListener) {
 	a.auditEventListener = auditEventListener
 }
 
 // Run starts the audit controller
 func (a *AuditorController) Run(ctx context.Context) error {
-	cancelCtx, cancelFunc := context.WithCancel(ctx)
 	auditTicker := time.NewTicker(a.auditInterval)
 	defer auditTicker.Stop()
-	defer cancelFunc()
 
 	for {
 		select {
-		case <-cancelCtx.Done():
+		case <-ctx.Done():
 			return nil
 		case <-auditTicker.C:
 			auditEvent := AuditEvent{Type: AuditEventTypePeriodical}
@@ -55,6 +53,7 @@ func (a *AuditorController) Run(ctx context.Context) error {
 	}
 }
 
+// doAudit lists available entities and performs validation on each entity
 func (a *AuditorController) doAudit(ctx context.Context, auditEvent AuditEvent) {
 	logger.Infof("starting %s", auditEvent.Type)
 	for i := range a.entitiesSources {

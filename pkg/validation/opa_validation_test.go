@@ -65,11 +65,11 @@ func cmpPolicyValidation(arg1, arg2 domain.PolicyValidation) bool {
 	return arg1.Type == arg2.Type && arg1.Trigger == arg2.Trigger && arg1.Status == arg2.Status
 }
 
-func getntityFromStringSpec(entityStringSpec string) (domain.Entity, error) {
+func getEntityFromStringSpec(entityStringSpec string) (domain.Entity, error) {
 	var entitySpec map[string]interface{}
 	err := json.Unmarshal([]byte(entityStringSpec), &entitySpec)
 	if err != nil {
-		return domain.Entity{}, fmt.Errorf("invalid string format, %w", err)
+		return domain.Entity{}, fmt.Errorf("invalid string format: %w", err)
 	}
 	return domain.NewEntityFromSpec(entitySpec), nil
 }
@@ -83,9 +83,9 @@ func TestOpaValidator_Validate(t *testing.T) {
 
 	entityText := testdata.Entity
 	validationType := "unit-test"
-	entity, err := getntityFromStringSpec(entityText)
+	entity, err := getEntityFromStringSpec(entityText)
 	assert.Nil(err)
-	compliantEntity, err := getntityFromStringSpec(testdata.CompliantEntity)
+	compliantEntity, err := getEntityFromStringSpec(testdata.CompliantEntity)
 	assert.Nil(err)
 	tests := []struct {
 		name    string

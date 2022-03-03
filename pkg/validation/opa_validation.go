@@ -44,7 +44,7 @@ func NewOPAValidator(
 func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, trigger string) (*domain.PolicyValidationSummary, error) {
 	policies, err := v.policiesSource.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get policies from source, %w", err)
+		return nil, fmt.Errorf("Failed to get policies from source: %w", err)
 	}
 
 	var enqueueGroup sync.WaitGroup
@@ -68,7 +68,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, trigg
 			}
 			opaPolicy, err := opa.Parse(policy.Code, PolicyQuery)
 			if err != nil {
-				errsChan <- fmt.Errorf("failed to parse policy %s, %w", policy.ID, err)
+				errsChan <- fmt.Errorf("failed to parse policy %s: %w", policy.ID, err)
 				return
 			}
 			var opaErr opa.OPAError
@@ -153,7 +153,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, trigg
 
 	if errs != nil {
 		return nil, fmt.Errorf(
-			"encountered errors while validating policies against resource %s:%s, %w",
+			"encountered errors while validating policies against resource %s/%s: %w",
 			entity.Kind,
 			entity.Name,
 			errs)

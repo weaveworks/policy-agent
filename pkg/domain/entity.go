@@ -12,7 +12,7 @@ type Entity struct {
 	Name            string                 `json:"name"`
 	Kind            string                 `json:"kind"`
 	Namespace       string                 `json:"namespace"`
-	Manifest        map[string]interface{} `json:"spec"`
+	Manifest        map[string]interface{} `json:"manifest"`
 	ResourceVersion string                 `json:"resource_version"`
 	Labels          map[string]string      `json:"labels"`
 	GitCommit       string                 `json:"git_commit,omitempty,"`
@@ -40,11 +40,11 @@ type EntitiesList struct {
 	Data   []Entity
 }
 
-// EntitiesSource gets entities of a spcific K8s kind
+// EntitiesSource responsible for fetching entities of a spcific K8s kind
 type EntitiesSource interface {
 	// List returns entities
 	List(ctx context.Context, listOptions *ListOptions) (*EntitiesList, error)
-	// Kind returns kind of entities it retireves
+	// Kind returns kind of entities it retrieves
 	Kind() string
 }
 

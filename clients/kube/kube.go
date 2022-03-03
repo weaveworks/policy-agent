@@ -17,25 +17,13 @@ import (
 
 // KubeClient provides interface to various k8s api calls
 type KubeClient struct {
-	clientSet       kubernetes.Interface
-	dynamicClient   dynamic.Interface
-	discoveryClient discovery.DiscoveryInterface
+	ClientSet       kubernetes.Interface
+	DynamicClient   dynamic.Interface
+	DiscoveryClient discovery.DiscoveryInterface
 }
 
-// NewKubeClientByArgs return KubeClient by providing the needed interfaces
-func NewKubeClientByArgs(
-	clientSet kubernetes.Interface,
-	dynamicClient dynamic.Interface,
-	discoveryClient discovery.DiscoveryInterface,
-) *KubeClient {
-	return &KubeClient{
-		clientSet:       clientSet,
-		dynamicClient:   dynamicClient,
-		discoveryClient: discoveryClient}
-}
-
-// NewKubeClientByConfig returns a new instance of KubeClient
-func NewKubeClientByConfig(config *rest.Config) (*KubeClient, error) {
+// NewKubeClient returns a new instance of KubeClient
+func NewKubeClient(config *rest.Config) (*KubeClient, error) {
 	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create clientset for kube client, error: %w", err)
@@ -44,7 +32,10 @@ func NewKubeClientByConfig(config *rest.Config) (*KubeClient, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to create dynamic client for kube client, error: %w", err)
 	}
-	return NewKubeClientByArgs(clientSet, dynamicClient, clientSet.DiscoveryClient), nil
+	return &KubeClient{
+		ClientSet:       clientSet,
+		DynamicClient:   dynamicClient,
+		DiscoveryClient: clientSet.DiscoveryClient}, nil
 
 }
 
@@ -60,7 +51,7 @@ func (k *KubeClient) GetAgentPermissions(ctx context.Context) (*authv1.SelfSubje
 		},
 	}
 
-	subjectRules, err := k.clientSet.AuthorizationV1().SelfSubjectRulesReviews().Create(ctx, &rulesSpec, meta.CreateOptions{})
+	subjectRules, err := k.ClientSet.AuthorizationV1().SelfSubjectRulesReviews().Create(ctx, &rulesSpec, meta.CreateOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("unable to get agent permissions, error: %w", err)
 	}
@@ -68,25 +59,25 @@ func (k *KubeClient) GetAgentPermissions(ctx context.Context) (*authv1.SelfSubje
 	return subjectRules, nil
 }
 
-// List returns data from a specific reource group version
-func (k *KubeClient) List(
+// ListResourceItems returns items from a specific reource group version
+func (k *KubeClient) ListResourceItems(
 	ctx context.Context,
 	resource schema.GroupVersionResource,
 	namespace string,
 	listOptions meta.ListOptions) (*unstructured.UnstructuredList, error) {
 
-	list, err := k.dynamicClient.Resource(resource).Namespace(namespace).List(ctx, listOptions)
+	list, err := k.DynamicClient.Resource(resource).Namespace(namespace).List(ctx, listOptions)
 	if err != nil {
-		return nil, fmt.Errorf("unable to list resource %s, %w", resource.Resource, err)
+		return nil, fmt.Errorf("unable to list resource %s in namespace %s: %w", resource.Resource, namespace, err)
 	}
 	return list, nil
 }
 
 // GetAPIResources returns all available api resources in the cluster
 func (k *KubeClient) GetAPIResources(ctx context.Context) ([]*meta.APIResourceList, error) {
-	apiResourcesList, err := k.discoveryClient.ServerPreferredResources()
+	apiResourcesList, err := k.DiscoveryClient.ServerPreferredResources()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get server api resources, %w", err)
+		return nil, fmt.Errorf("failed to get server api resources: %w", err)
 	}
 	return apiResourcesList, nil
 }

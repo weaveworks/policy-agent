@@ -22,7 +22,7 @@ func NewPoliciesWatcher(client *policiesCRDclient.KubePoliciesClient) (*Policies
 	informer := policiesCRDclient.NewPoliciesInformer(client, cache.ResourceEventHandlerFuncs{}, syncPeriod)
 	err := informer.Start()
 	if err != nil {
-		return nil, fmt.Errorf("failed to start policies watcher informer, %w", err)
+		return nil, fmt.Errorf("failed to start policies watcher informer: %w", err)
 	}
 	return &PoliciesWatcher{informer: informer}, nil
 }

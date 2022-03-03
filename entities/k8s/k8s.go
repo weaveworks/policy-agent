@@ -178,7 +178,7 @@ func (k *K8SEntitySource) List(ctx context.Context, listOptions *domain.ListOpti
 			opts := meta.ListOptions{FieldSelector: selector.String()}
 			entitiesList, err = k.kubeClient.ListResourceItems(ctx, k.resource, corev1.NamespaceAll, opts)
 			if err != nil {
-				return nil, fmt.Errorf("error while getting resource with name: %s, %w", k.resourceNames[i], err)
+				return nil, fmt.Errorf("error while getting resource with name %s: %w", k.resourceNames[i], err)
 			}
 			items = append(items, entitiesList.Items...)
 		}

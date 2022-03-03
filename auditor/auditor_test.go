@@ -118,14 +118,10 @@ func TestAuditorController_doAudit(t *testing.T) {
 }
 
 func assertEvent(c chan AuditEvent, assert *require.Assertions, target AuditEventType) {
-	var event *AuditEvent
-	for event == nil {
-		select {
-		case e := <-c:
-			event = &e
-		}
+	for e := range c {
+		assert.Equal(target, e.Type)
+		break
 	}
-	assert.Equal(target, event.Type)
 }
 
 func TestAuditorController_Audit(t *testing.T) {
