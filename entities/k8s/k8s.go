@@ -2,40 +2,97 @@ package k8s
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
+	magalixv1 "github.com/MagalixCorp/magalix-policy-agent/apiextensions/magalix.com/v1"
 	"github.com/MagalixCorp/magalix-policy-agent/clients/kube"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	"github.com/MagalixTechnologies/core/logger"
 	corev1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	fieldSelectors "k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-var IgnoredPoliciesResource = schema.GroupVersionResource{Resource: "policies", Version: "v1", Group: "magalix.com"}
+const (
+	allAllowed         = "*"
+	listVerb           = "list"
+	entityMetadataName = "metadata.name"
+)
 
-// GetEntitiesSources returns entities sources based on allowed list permissions
-func GetEntitiesSources(ctx context.Context, kubeClient *kube.KubeClient) ([]domain.EntitiesSource, error) {
-	var sources []domain.EntitiesSource
+type rulesCache struct {
+	apiGroups     map[string]struct{}
+	resources     map[string]struct{}
+	resourceNames []string
+}
+
+func newRulesCache(resourceNames []string) rulesCache {
+	cache := rulesCache{
+		apiGroups:     make(map[string]struct{}),
+		resources:     make(map[string]struct{}),
+		resourceNames: resourceNames,
+	}
+	for i := range resourceNames {
+		if resourceNames[i] == allAllowed {
+			cache.resourceNames = []string{}
+			break
+		}
+	}
+	return cache
+}
+
+func checkAllowed(subject string, rules map[string]struct{}) bool {
+	_, checkAll := rules[allAllowed]
+	_, checkExplicit := rules[subject]
+	return checkExplicit || checkAll
+}
+
+func getValidateRules(ctx context.Context, kubeClient *kube.KubeClient) ([]rulesCache, error) {
 	permissions, err := kubeClient.GetAgentPermissions(ctx)
 	if err != nil {
 		return nil, err
 	}
+	var rulesCaches []rulesCache
 	rules := permissions.Status.ResourceRules
-	allowedResources := make(map[string]struct{})
+	foundPolicicesRule := false
 	for i := range rules {
 		rule := rules[i]
+		cache := newRulesCache(rule.ResourceNames)
 		allowList := false
 		for k := range rule.Verbs {
-			if rule.Verbs[k] == "list" || rule.Verbs[k] == "*" {
+			if rule.Verbs[k] == listVerb || rule.Verbs[k] == allAllowed {
 				allowList = true
 				break
 			}
 		}
 		if allowList {
 			for k := range rule.Resources {
-				allowedResources[rule.Resources[k]] = struct{}{}
+				cache.resources[rule.Resources[k]] = struct{}{}
+			}
+			for k := range rule.APIGroups {
+				cache.apiGroups[rule.APIGroups[k]] = struct{}{}
+			}
+			rulesCaches = append(rulesCaches, cache)
+			checkPoliciesResource := checkAllowed(magalixv1.SchemeGroupVersionResource.Resource, cache.resources)
+			checkPoliciesGroup := checkAllowed(magalixv1.SchemeGroupVersionResource.Group, cache.apiGroups)
+			if checkPoliciesResource && checkPoliciesGroup {
+				foundPolicicesRule = true
 			}
 		}
+	}
+	if !foundPolicicesRule {
+		return nil, errors.New("missing magalix policices resource permissions")
+	}
+	return rulesCaches, nil
+}
+
+// GetEntitiesSources returns entities sources based on allowed list permissions
+func GetEntitiesSources(ctx context.Context, kubeClient *kube.KubeClient) ([]domain.EntitiesSource, error) {
+	rulesCaches, err := getValidateRules(ctx, kubeClient)
+	if err != nil {
+		return nil, err
 	}
 
 	apiResourceList, err := kubeClient.GetAPIResources(ctx)
@@ -43,7 +100,7 @@ func GetEntitiesSources(ctx context.Context, kubeClient *kube.KubeClient) ([]dom
 		return nil, err
 	}
 
-	_, checkAll := allowedResources["*"]
+	var sources []domain.EntitiesSource
 	for i := range apiResourceList {
 		list := apiResourceList[i]
 		groupVersion, err := schema.ParseGroupVersion(list.GroupVersion)
@@ -59,7 +116,7 @@ func GetEntitiesSources(ctx context.Context, kubeClient *kube.KubeClient) ([]dom
 			apiResource := list.APIResources[k]
 			foundList := false
 			for j := range apiResource.Verbs {
-				if apiResource.Verbs[j] == "list" {
+				if apiResource.Verbs[j] == listVerb {
 					foundList = true
 					break
 				}
@@ -67,44 +124,70 @@ func GetEntitiesSources(ctx context.Context, kubeClient *kube.KubeClient) ([]dom
 			if !foundList {
 				continue
 			}
-			_, checkexplicit := allowedResources[apiResource.Name]
-			if checkexplicit || checkAll {
-				resource := schema.GroupVersionResource{
-					Group:    groupVersion.Group,
-					Version:  groupVersion.Version,
-					Resource: apiResource.Name}
-				if resource.String() == IgnoredPoliciesResource.String() {
-					continue
+
+			for j := range rulesCaches {
+				cache := rulesCaches[j]
+				groupAllowed := checkAllowed(groupVersion.Group, cache.apiGroups)
+				resourceAllowed := checkAllowed(apiResource.Name, cache.resources)
+				if groupAllowed && resourceAllowed {
+					resource := schema.GroupVersionResource{
+						Group:    groupVersion.Group,
+						Version:  groupVersion.Version,
+						Resource: apiResource.Name}
+					if resource.String() == magalixv1.SchemeGroupVersionResource.String() {
+						continue
+					}
+
+					sources = append(sources, &K8SEntitySource{
+						resource:      resource,
+						kubeClient:    kubeClient,
+						kind:          apiResource.Kind,
+						resourceNames: cache.resourceNames,
+					})
+					break
 				}
 
-				sources = append(sources, &K8SEntitySource{
-					resource:   resource,
-					kubeClient: kubeClient,
-					kind:       apiResource.Kind,
-				})
 			}
+
 		}
 
 	}
 	return sources, nil
 }
 
-// K8SEntitySource retrieves specific kind of kubernetes resources
+// K8SEntitySource allows retrieving of items of a specific group version resource
 type K8SEntitySource struct {
-	resource   schema.GroupVersionResource
-	kubeClient *kube.KubeClient
-	kind       string
+	resource      schema.GroupVersionResource
+	kubeClient    *kube.KubeClient
+	kind          string
+	resourceNames []string
 }
 
-// List returns list of resources from the entities srouce
+// List returns list of resources from the entities source
 func (k *K8SEntitySource) List(ctx context.Context, listOptions *domain.ListOptions) (*domain.EntitiesList, error) {
 	metaListOptions := meta.ListOptions{
 		Limit:    int64(listOptions.Limit),
 		Continue: listOptions.KeySet,
 	}
-	entitiesList, err := k.kubeClient.List(ctx, k.resource, corev1.NamespaceAll, metaListOptions)
-	if err != nil {
-		return nil, err
+	var entitiesList *unstructured.UnstructuredList
+	var err error
+	if len(k.resourceNames) != 0 {
+		var items []unstructured.Unstructured
+		for i := range k.resourceNames {
+			selector := fieldSelectors.OneTermEqualSelector(entityMetadataName, k.resourceNames[i])
+			opts := meta.ListOptions{FieldSelector: selector.String()}
+			entitiesList, err = k.kubeClient.ListResourceItems(ctx, k.resource, corev1.NamespaceAll, opts)
+			if err != nil {
+				return nil, fmt.Errorf("error while getting resource with name: %s, %w", k.resourceNames[i], err)
+			}
+			items = append(items, entitiesList.Items...)
+		}
+		entitiesList.Items = items
+	} else {
+		entitiesList, err = k.kubeClient.ListResourceItems(ctx, k.resource, corev1.NamespaceAll, metaListOptions)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	keySet := entitiesList.GetContinue()
