@@ -105,7 +105,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, trigg
 					violationsChan <- res
 				} else {
 					errsChan <- fmt.Errorf(
-						"unable to evaluate resourceagainst policy. policy id: %s. %w",
+						"unable to evaluate resource against policy. policy id: %s. %w",
 						policy.ID,
 						err)
 				}
