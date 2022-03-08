@@ -1,5 +1,7 @@
 package domain
 
+import v1 "k8s.io/api/core/v1"
+
 // PolicyTargets is used to match entities with the required fields specified by the policy
 type PolicyTargets struct {
 	Kind      []string            `json:"kind"`
@@ -29,6 +31,14 @@ type Policy struct {
 	Severity    string             `json:"severity"`
 	GitCommit   string             `json:"git_commit,omitempty"`
 	Controls    []string           `json:"controls"`
+	Reference   interface{}
+}
+
+func (p *Policy) GetK8sObjectRef() *v1.ObjectReference {
+	if obj, ok := p.Reference.(v1.ObjectReference); ok {
+		return &obj
+	}
+	return nil
 }
 
 // GetParametersMap returns policy parameters as a map
