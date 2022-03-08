@@ -56,6 +56,13 @@ The configmap needs to be configured to configure the agent with the available c
 accountId: account-id # unique identifier for the agent owner
 clusterId: cluster-id # unique identifier for the cluster that the agent is running on
 ```
+To configure the agent using argemnts, you need to define a config object in the values file that will be added to the configmap, for example:
+
+```yaml
+config:
+  AGENT_WRITE_COMPLIANCE: 1 # enables writing compliance results
+  AGENT_DISABLE_AUDIT: 1 # disables audit functionality
+```
 
 ### TLS Certificates
 

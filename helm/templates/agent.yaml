@@ -78,7 +78,10 @@ metadata:
 data:
   AGENT_ACCOUNT_ID: {{ .Values.accountId }}
   AGENT_CLUSTER_ID: {{ .Values.clusterId }}
-  AGENT_SINK_FILE_PATH: {{.Values.sinkDir}}/results.json
+
+  {{- range $key, $val := .Values.config }}
+  {{ $key }}: {{ $val }}
+  {{- end }}
 ---
 apiVersion: v1
 kind: Secret
@@ -133,7 +136,7 @@ spec:
           resources:
             limits:
               memory: 750Mi
-              cpu: 1
+              cpu: 2
             requests:
               memory: 200Mi
               cpu: 100m

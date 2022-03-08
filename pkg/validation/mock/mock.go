@@ -36,10 +36,10 @@ func (m *MockValidator) EXPECT() *MockValidatorMockRecorder {
 }
 
 // Validate mocks base method.
-func (m *MockValidator) Validate(arg0 context.Context, arg1 domain.Entity, arg2 string) (*domain.ValidationSummary, error) {
+func (m *MockValidator) Validate(arg0 context.Context, arg1 domain.Entity, arg2 string) (*domain.PolicyValidationSummary, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Validate", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*domain.ValidationSummary)
+	ret0, _ := ret[0].(*domain.PolicyValidationSummary)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

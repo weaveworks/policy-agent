@@ -1,11 +1,13 @@
 package domain
 
+// PolicyTargets is used to match entities with the required fields specified by the policy
 type PolicyTargets struct {
 	Kind      []string            `json:"kind"`
 	Label     []map[string]string `json:"label"`
 	Namespace []string            `json:"namespace"`
 }
 
+// PolicyParameters defines a needed input in a policy
 type PolicyParameters struct {
 	Name     string      `json:"name"`
 	Type     string      `json:"type"`
@@ -13,6 +15,7 @@ type PolicyParameters struct {
 	Required bool        `json:"required"`
 }
 
+// Policy represents a policy
 type Policy struct {
 	Name        string             `json:"name"`
 	ID          string             `json:"id"`
@@ -24,6 +27,8 @@ type Policy struct {
 	Category    string             `json:"category"`
 	Tags        []string           `json:"tags"`
 	Severity    string             `json:"severity"`
+	GitCommit   string             `json:"git_commit,omitempty"`
+	Controls    []string           `json:"controls"`
 }
 
 // GetParametersMap returns policy parameters as a map

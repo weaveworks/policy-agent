@@ -24,4 +24,12 @@ The server package houses both the probes server, used for readiness and livenes
 
 ## sink
 
-Contains the implementations of `ValidationResultSink`, responsible of writing the validation results to a specified source.
+Contains the implementations of `PolicyValidationSink`, responsible of writing the validation results to a specified source.
+
+## entities
+
+The packages has the different entities sources that will be validated against.
+
+## auditor
+
+Contains the logic for the audit functionality.

@@ -1,11 +1,16 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	magalixv1 "github.com/MagalixCorp/magalix-policy-agent/apiextensions/magalix.com/v1"
+	"github.com/MagalixCorp/magalix-policy-agent/auditor"
+	"github.com/MagalixCorp/magalix-policy-agent/clients/kube"
 	policiesClient "github.com/MagalixCorp/magalix-policy-agent/clients/magalix.com/v1"
+	"github.com/MagalixCorp/magalix-policy-agent/entities/k8s"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation"
 	"github.com/MagalixCorp/magalix-policy-agent/policies/crd"
 	"github.com/MagalixCorp/magalix-policy-agent/server/admission"
@@ -13,23 +18,30 @@ import (
 	"github.com/MagalixCorp/magalix-policy-agent/sink/filesystem"
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 type Config struct {
-	KubeConfigFile  string
-	AccountID       string
-	ClusterID       string
-	WriteCompliance bool
-	WebhookListen   string
-	WebhookCertFile string
-	WebhhokKeyFile  string
-	LogLevel        string
-	SinkFilePath    string
-	ProbesListen    string
+	KubeConfigFile   string
+	AccountID        string
+	ClusterID        string
+	WriteCompliance  bool
+	WebhookListen    string
+	WebhookCertFile  string
+	WebhookKeyFile   string
+	LogLevel         string
+	SinkFilePath     string
+	ProbesListen     string
+	DisableAdmission bool
+	DisableAudit     bool
 }
+
+const (
+	auditControllerInterval = 23 * time.Hour
+)
 
 func main() {
 	config := Config{}
@@ -76,7 +88,7 @@ func main() {
 		&cli.StringFlag{
 			Name:        "webhook-key-file",
 			Usage:       "key file path for webhook server",
-			Destination: &config.WebhhokKeyFile,
+			Destination: &config.WebhookKeyFile,
 			Value:       "/certs/tls.key",
 			EnvVars:     []string{"AGENT_WEBHOOK_KEY_FILE"},
 		},
@@ -93,6 +105,20 @@ func main() {
 			Destination: &config.WriteCompliance,
 			Value:       false,
 			EnvVars:     []string{"AGENT_WRITE_COMPLIANCE"},
+		},
+		&cli.BoolFlag{
+			Name:        "disable-admission",
+			Usage:       "disables admission control",
+			Destination: &config.DisableAdmission,
+			Value:       false,
+			EnvVars:     []string{"AGENT_DISABLE_ADMISSION"},
+		},
+		&cli.BoolFlag{
+			Name:        "disable-audit",
+			Usage:       "disables cluster periodical audit",
+			Destination: &config.DisableAudit,
+			Value:       false,
+			EnvVars:     []string{"AGENT_DISABLE_AUDIT"},
 		},
 		&cli.StringFlag{
 			Name:        "log-level",
@@ -111,6 +137,10 @@ func main() {
 	}
 
 	app.Before = func(c *cli.Context) error {
+		if config.DisableAdmission && config.DisableAudit {
+			return errors.New("agent needs to be run with at least one mode of operation")
+		}
+
 		switch config.LogLevel {
 		case "info":
 			logger.Config(logger.InfoLevel)
@@ -139,59 +169,96 @@ func main() {
 			kubeConfig, err = clientcmd.BuildConfigFromFlags("", config.KubeConfigFile)
 		}
 		if err != nil {
-			logger.Fatalw("failed to load Kubernetes config", "error", err)
+			return fmt.Errorf("failed to load Kubernetes config: %w", err)
 		}
 
-		magalixv1.AddToScheme(scheme.Scheme)
+		err = magalixv1.AddToScheme(scheme.Scheme)
+		if err != nil {
+			return fmt.Errorf("failed to add policy crd to schema: %w", err)
+		}
 
 		probeHandler := probes.NewProbesHandler(config.ProbesListen)
 		go func() {
 			err := probeHandler.Run(contextCli.Context)
 			if err != nil {
-				logger.Fatal("Failed to start probes server")
+				logger.Fatal("failed to start probes server", "error", err)
 			}
 		}()
 
 		kubePoliciesClient := policiesClient.NewKubePoliciesClient(kubeConfig)
+		kubeClient, err := kube.NewKubeClient(kubeConfig)
+		if err != nil {
+			return fmt.Errorf("init client failed: %w", err)
+		}
+		entitiesSources, err := k8s.GetEntitiesSources(contextCli.Context, kubeClient)
+		if err != nil {
+			return fmt.Errorf("initializing entities sources failed: %w", err)
+		}
 
 		logger.Info("starting policies CRD watcher")
-		policiesSource, err := crd.NewPoliciesCRD(kubePoliciesClient)
+		policiesSource, err := crd.NewPoliciesWatcher(kubePoliciesClient)
 		if err != nil {
-			logger.Fatalw("failed to initialize CRD policies source", "error", err)
+			return fmt.Errorf("failed to initialize CRD policies source: %w", err)
 		}
 		defer policiesSource.Close()
 
 		fileSystemSink, err := filesystem.NewFileSystemSink(config.SinkFilePath, config.AccountID, config.ClusterID)
 		if err != nil {
-			logger.Fatalw("failed to initialize file system sink", "error", err)
+			return fmt.Errorf("failed to initialize file system sink: %w", err)
 		}
 
 		logger.Info("starting file system sink")
 		err = fileSystemSink.Start(contextCli.Context)
 		if err != nil {
-			logger.Fatalw("failed to start file system sink", "error", err)
+			return fmt.Errorf("failed to start file system sink: %w", err)
 		}
 		defer fileSystemSink.Stop()
 
-		validator := validation.NewOpaValidator(
-			policiesSource,
-			config.WriteCompliance,
-			fileSystemSink,
-		)
-
-		admissionServer := admission.NewAdmissionHandler(
-			config.WebhookListen,
-			config.WebhookCertFile,
-			config.WebhhokKeyFile,
-			config.LogLevel,
-			validator,
-		)
-
 		probeHandler.MarkReady(true)
-		logger.Info("starting admission server...")
-		err = admissionServer.Run(contextCli.Context)
+		eg, ctx := errgroup.WithContext(contextCli.Context)
+
+		if !config.DisableAudit {
+			validator := validation.NewOPAValidator(
+				policiesSource,
+				config.WriteCompliance,
+				auditor.TypeAudit,
+				fileSystemSink,
+			)
+			auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
+			eg.Go(func() error {
+				logger.Info("starting audit controller...")
+				return auditController.Run(ctx)
+			})
+			auditController.Audit(auditor.AuditEventTypeInitial, nil)
+		}
+
+		if !config.DisableAdmission {
+			validator := validation.NewOPAValidator(
+				policiesSource,
+				config.WriteCompliance,
+				admission.TypeAdmission,
+				fileSystemSink,
+			)
+			admissionServer := admission.NewAdmissionHandler(
+				config.WebhookListen,
+				config.WebhookCertFile,
+				config.WebhookKeyFile,
+				config.LogLevel,
+				validator,
+			)
+			eg.Go(func() error {
+				logger.Info("starting admission server...")
+				err := admissionServer.Run(ctx)
+				if err != nil {
+					return fmt.Errorf("failed to start admission server: %w", err)
+				}
+				return nil
+			})
+		}
+
+		err = eg.Wait()
 		if err != nil {
-			logger.Fatalw("failed to start admission server", "error", err)
+			return err
 		}
 		return nil
 	}

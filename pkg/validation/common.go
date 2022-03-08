@@ -58,15 +58,15 @@ func matchEntity(entity domain.Entity, policy domain.Policy) bool {
 
 func writeToSinks(
 	ctx context.Context,
-	resultsSinks []domain.ValidationResultSink,
-	validationSummary domain.ValidationSummary,
+	resultsSinks []domain.PolicyValidationSink,
+	PolicyValidationSummary domain.PolicyValidationSummary,
 	writeCompliance bool) {
 	for _, resutsSink := range resultsSinks {
-		if len(validationSummary.Violations) > 0 {
-			resutsSink.Write(ctx, validationSummary.Violations)
+		if len(PolicyValidationSummary.Violations) > 0 {
+			resutsSink.Write(ctx, PolicyValidationSummary.Violations)
 		}
-		if writeCompliance && len(validationSummary.Compliances) > 0 {
-			resutsSink.Write(ctx, validationSummary.Compliances)
+		if writeCompliance && len(PolicyValidationSummary.Compliances) > 0 {
+			resutsSink.Write(ctx, PolicyValidationSummary.Compliances)
 		}
 	}
 }

@@ -12,7 +12,7 @@ version:
 
 build: build@go
 
-test: @TODO add correct paths
+test:
 	go test -v ./...
 
 checkout:
@@ -47,6 +47,7 @@ push@%:
 	@if [[ "$(version-file)" ]]; then echo "$(VERSION)" > "$(version-file)"; fi
 
 mock:
-	mockgen -package mock -destination sink/mock/mock.go github.com/MagalixCorp/magalix-policy-agent/pkg/domain ValidationResultSink
+	mockgen -package mock -destination sink/mock/mock.go github.com/MagalixCorp/magalix-policy-agent/pkg/domain PolicyValidationSink
 	mockgen -package mock -destination policies/mock/mock.go github.com/MagalixCorp/magalix-policy-agent/pkg/domain PoliciesSource
 	mockgen -package mock -destination pkg/validation/mock/mock.go github.com/MagalixCorp/magalix-policy-agent/pkg/validation Validator
+	mockgen -package mock -destination entities/mock/mock.go github.com/MagalixCorp/magalix-policy-agent/pkg/domain EntitiesSource
