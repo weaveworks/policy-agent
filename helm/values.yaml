@@ -3,3 +3,6 @@ sinkDir: /tmp
 usePersistence: true
 image: magalixcorp/magalix-policy-agent:master
 failurePolicy: Ignore
+config:
+  AGENT_ENABLE_FILESYSTEM_SINK: "true"
+  AGENT_ENABLE_K8S_EVENTS_SINK: "true"
