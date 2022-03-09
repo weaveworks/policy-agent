@@ -19,20 +19,10 @@ type PolicyList struct {
 	Items []Policy `json:"items"`
 }
 
-func (p *Policy) GetSpec() domain.Policy {
-	return domain.Policy{
-		ID:         p.Spec.ID,
-		Name:       p.Spec.Name,
-		Code:       p.Spec.Code,
-		Parameters: p.Spec.Parameters,
-		Targets:    p.Spec.Targets,
-	}
-}
-
 func (p *Policy) deepCopy(out *Policy) {
 	out.TypeMeta = p.TypeMeta
 	out.ObjectMeta = p.ObjectMeta
-	out.Spec = p.GetSpec()
+	out.Spec = p.Spec
 }
 
 // DeepCopyObject returns a copy of policy crd data. Implements the Kuberntes object interface

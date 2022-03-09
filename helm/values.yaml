@@ -1,0 +1,5 @@
+claimStorage: 1Gi
+sinkDir: /tmp
+usePersistence: true
+image: magalixcorp/magalix-policy-agent:master
+failurePolicy: Ignore

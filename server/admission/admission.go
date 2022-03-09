@@ -1,9 +1,9 @@
 package admission
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,7 +12,6 @@ import (
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation"
 	"github.com/MagalixTechnologies/core/logger"
-	"golang.org/x/sync/errgroup"
 	v1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,10 +31,14 @@ type AdmissionHandler struct {
 }
 
 const (
-	SourceAdmission = "Admission"
-	DebugLevel      = "debug"
+	TypeAdmission           = "Admission"
+	TriggerAdmission        = "admission"
+	DebugLevel              = "debug"
+	invalidRequestBody      = "unexpected error while reading request body"
+	invalidadmissionRequest = "received incorrect admission request"
 )
 
+// NewAdmissionHandler returns an admission handler that listens to k8s validating requests
 func NewAdmissionHandler(
 	address string,
 	certFile string,
@@ -52,16 +55,13 @@ func NewAdmissionHandler(
 }
 
 func writeResponse(writer http.ResponseWriter, v interface{}, status int) {
-	buf := &bytes.Buffer{}
-	enc := json.NewEncoder(buf)
-	err := enc.Encode(v)
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		msg := fmt.Sprintf("Error while writing response, error: %s", err)
-		writer.Write([]byte(msg))
-	}
+	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writer.WriteHeader(status)
-	writer.Write(buf.Bytes())
+	enc := json.NewEncoder(writer)
+	if err := enc.Encode(v); err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(writer, "Error while writing response, error: %s", err)
+	}
 }
 
 // Register regsiters a function to handle admission requests
@@ -69,30 +69,32 @@ func (a *AdmissionHandler) Register(admissionFunc AdmissionWatcher) http.Handler
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		body, err := ioutil.ReadAll(request.Body)
 		if err != nil {
-			msg := "unexpected error while reading request body"
-			logger.Warn(msg)
-			writeResponse(writer, msg, http.StatusInternalServerError)
+			logger.Warn(invalidRequestBody)
+			writeResponse(writer, invalidRequestBody, http.StatusInternalServerError)
 			return
 		}
 
 		if a.logLevel == DebugLevel {
 			var payload map[string]interface{}
-			json.Unmarshal(body, &payload)
-			logger.Debugw("admission request", "payload", payload)
+			err := json.Unmarshal(body, &payload)
+			if err != nil {
+				logger.Debugw("failed to get admission request body", "error", err)
+			} else {
+				logger.Debugw("admission request body", "payload", payload)
+			}
 		}
 		var reviewRequest v1.AdmissionReview
 		_, _, err = universalDeserializer.Decode(body, nil, &reviewRequest)
 
 		if err != nil || reviewRequest.Request == nil {
-			msg := "received incorrect admission request"
-			logger.Warn(msg)
-			writeResponse(writer, msg, http.StatusInternalServerError)
+			logger.Warn(invalidadmissionRequest)
+			writeResponse(writer, invalidadmissionRequest, http.StatusInternalServerError)
 			return
 		}
 
 		reviewResponse, err := admissionFunc(request.Context(), reviewRequest)
 		if err != nil {
-			logger.Errorf("validating admission request error", "error", err)
+			logger.Errorw("validating admission request error", "error", err)
 			writeResponse(writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -120,11 +122,11 @@ func (a *AdmissionHandler) ValidateRequest(ctx context.Context, reviewRequest v1
 	var entitySpec map[string]interface{}
 	err := json.Unmarshal(reviewRequest.Request.Object.Raw, &entitySpec)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get entity info from admission request")
+		return nil, errors.New("failed to get entity info from admission request")
 	}
 
-	entity := domain.NewEntityBySpec(entitySpec)
-	result, err := a.validator.Validate(ctx, entity, SourceAdmission)
+	entity := domain.NewEntityFromSpec(entitySpec)
+	result, err := a.validator.Validate(ctx, entity, TriggerAdmission)
 	if err != nil {
 		return nil, err
 	}
@@ -142,15 +144,18 @@ func (a *AdmissionHandler) ValidateRequest(ctx context.Context, reviewRequest v1
 
 // Run start the admission webhook server
 func (a *AdmissionHandler) Run(ctx context.Context) error {
-	eg, _ := errgroup.WithContext(ctx)
-	eg.Go(func() error {
-		mux := http.NewServeMux()
-		mux.Handle("/admission", a.Register(a.ValidateRequest))
-		server := &http.Server{
-			Addr:    a.address,
-			Handler: mux,
-		}
-		return server.ListenAndServeTLS(a.certFile, a.keyFile)
-	})
-	return eg.Wait()
+	mux := http.NewServeMux()
+	mux.Handle("/admission", a.Register(a.ValidateRequest))
+	server := &http.Server{
+		Addr:    a.address,
+		Handler: mux,
+	}
+
+	go func() {
+		<-ctx.Done()
+		server.Close()
+	}()
+
+	return server.ListenAndServeTLS(a.certFile, a.keyFile)
+
 }

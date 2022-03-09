@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -18,6 +19,7 @@ type PoliciesInformer struct {
 	stop       chan struct{}
 }
 
+// NewPoliciesInformer returns PoliciesInformer to watch policies CRD
 func NewPoliciesInformer(client *KubePoliciesClient, resoureceHandler cache.ResourceEventHandler, period time.Duration) *PoliciesInformer {
 	listWatcher := cache.ListWatch{
 		ListFunc: func(lo metav1.ListOptions) (result runtime.Object, err error) {
@@ -36,26 +38,29 @@ func NewPoliciesInformer(client *KubePoliciesClient, resoureceHandler cache.Reso
 	}
 }
 
+// Start starts watching policies CRD and waits until a cache is built with current CRDs in the cluster
 func (in *PoliciesInformer) Start() error {
 	go in.controller.Run(in.stop)
 	err := in.waitForCache()
 	if err != nil {
-		return err
+		return fmt.Errorf("error while waiting for policies cache sync: %w", err)
 	}
 	return nil
 }
 
+// Stop stops the watcher
 func (in *PoliciesInformer) Stop() {
 	in.stop <- struct{}{}
 }
 
 func (in *PoliciesInformer) waitForCache() error {
 	if !cache.WaitForCacheSync(in.stop, in.controller.HasSynced) {
-		return fmt.Errorf("failed to build policies informer cache")
+		return errors.New("failed to build policies informer cache")
 	}
 	return nil
 }
 
+// List returns all the policies from the informer cache
 func (in *PoliciesInformer) List() []*magalixv1.Policy {
 	var policies []*magalixv1.Policy
 	listResponse := in.store.List()
