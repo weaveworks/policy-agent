@@ -14,32 +14,32 @@ import (
 )
 
 const (
-	reportingController     = "magalix-policy-agent"
-	resultChanSize      int = 50
+	resultChanSize int = 50
 )
 
 type K8sEventSink struct {
-	kubeClient        kubernetes.Interface
-	resultChan        chan domain.PolicyValidation
-	cancelWorker      context.CancelFunc
-	accountID         string
-	clusterID         string
-	reportingInstance string
+	kubeClient          kubernetes.Interface
+	resultChan          chan domain.PolicyValidation
+	cancelWorker        context.CancelFunc
+	accountID           string
+	clusterID           string
+	reportingController string
+	reportingInstance   string
 }
 
-func NewK8sEventSink(kubeClient kubernetes.Interface, accountID, clusterID string) (*K8sEventSink, error) {
+func NewK8sEventSink(kubeClient kubernetes.Interface, accountID, clusterID, reportingController string) (*K8sEventSink, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
-		logger.Error(err, "failed to get hostname")
 		return nil, err
 	}
 
 	return &K8sEventSink{
-		kubeClient:        kubeClient,
-		resultChan:        make(chan domain.PolicyValidation, resultChanSize),
-		accountID:         accountID,
-		clusterID:         clusterID,
-		reportingInstance: hostname,
+		kubeClient:          kubeClient,
+		resultChan:          make(chan domain.PolicyValidation, resultChanSize),
+		accountID:           accountID,
+		clusterID:           clusterID,
+		reportingController: reportingController,
+		reportingInstance:   hostname,
 	}, nil
 }
 
@@ -57,6 +57,7 @@ func (k *K8sEventSink) Stop() {
 
 // Write adds results to buffer, implements github.com/MagalixCorp/magalix-policy-agent/pkg/domain.PolicyValidationSink
 func (k *K8sEventSink) Write(_ context.Context, results []domain.PolicyValidation) error {
+	logger.Info("received validation results", "count", len(results))
 	for _, result := range results {
 		result.AccountID = k.accountID
 		result.ClusterID = k.clusterID
@@ -71,6 +72,7 @@ func (f *K8sEventSink) writeWorker(ctx context.Context) {
 		case result := <-f.resultChan:
 			f.write(ctx, result)
 		case <-ctx.Done():
+			logger.Info("stopping write worker ...")
 			break
 		}
 	}
@@ -78,12 +80,20 @@ func (f *K8sEventSink) writeWorker(ctx context.Context) {
 
 func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation) {
 	event := mglx_events.FromPolicyValidationResult(result)
-	event.ReportingController = reportingController
+	event.ReportingController = k.reportingController
 	event.ReportingInstance = k.reportingInstance
-	event.Source = v1.EventSource{Component: reportingController}
+	event.Source = v1.EventSource{Component: k.reportingController}
+
+	logger.Info(
+		"sending event ...",
+		"type", event.Type,
+		"entity_name", result.Entity.Name,
+		"entity_namespace", result.Entity.Namespace,
+		"policy", result.Policy.ID,
+	)
 
 	_, err := k.kubeClient.CoreV1().Events(event.Namespace).Create(ctx, &event, metav1.CreateOptions{})
 	if err != nil {
-		logger.Error(err)
+		logger.Errorw("failed to send event", "error", err)
 	}
 }

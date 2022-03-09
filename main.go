@@ -21,6 +21,7 @@ import (
 	flux_notification "github.com/MagalixCorp/magalix-policy-agent/sink/flux-notification"
 	k8s_event "github.com/MagalixCorp/magalix-policy-agent/sink/k8s-event"
 	"github.com/MagalixTechnologies/core/logger"
+	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/kubernetes"
@@ -56,7 +57,8 @@ type Config struct {
 }
 
 const (
-	auditControllerInterval = 23 * time.Hour
+	auditControllerInterval         = 23 * time.Hour
+	eventReportingController string = "magalix-policy-agent"
 )
 
 func main() {
@@ -354,7 +356,12 @@ func initFileSystemSink(ctx context.Context, config Config) (*filesystem.FileSys
 }
 
 func initFluxNotificationSink(ctx context.Context, config Config, mgr ctrl.Manager) (*flux_notification.FluxNotificationSink, error) {
-	sink, err := flux_notification.NewFluxNotificationSink(mgr, config.FluxNotificationSinkAddr, config.AccountID, config.ClusterID)
+	recorder, err := events.NewRecorder(mgr, mgr.GetLogger(), config.FluxNotificationSinkAddr, eventReportingController)
+	if err != nil {
+		return nil, err
+	}
+
+	sink, err := flux_notification.NewFluxNotificationSink(recorder, config.FluxNotificationSinkAddr, config.AccountID, config.ClusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +378,7 @@ func initK8sEventSink(ctx context.Context, config Config, kubeConfig *rest.Confi
 		return nil, err
 	}
 
-	sink, err := k8s_event.NewK8sEventSink(clientset, config.AccountID, config.ClusterID)
+	sink, err := k8s_event.NewK8sEventSink(clientset, config.AccountID, config.ClusterID, eventReportingController)
 	if err != nil {
 		return nil, err
 	}

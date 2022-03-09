@@ -6,14 +6,11 @@ import (
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	mglx_events "github.com/MagalixCorp/magalix-policy-agent/pkg/events"
 	"github.com/MagalixTechnologies/core/logger"
-	"github.com/fluxcd/pkg/runtime/events"
 	"k8s.io/client-go/tools/record"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 const (
-	reportingController string = "magalix-policy-agent"
-	resultChanSize      int    = 50
+	resultChanSize int = 50
 )
 
 type FluxNotificationSink struct {
@@ -25,12 +22,7 @@ type FluxNotificationSink struct {
 }
 
 // NewFluxNotificationSink returns a sink that sends results to k8s events queue and flux notification controller
-func NewFluxNotificationSink(mgr ctrl.Manager, webhook, accountID, clusterID string) (*FluxNotificationSink, error) {
-	recorder, err := events.NewRecorder(mgr, mgr.GetLogger(), webhook, reportingController)
-	if err != nil {
-		return nil, err
-	}
-
+func NewFluxNotificationSink(recorder record.EventRecorder, webhook, accountID, clusterID string) (*FluxNotificationSink, error) {
 	return &FluxNotificationSink{
 		recorder:   recorder,
 		resultChan: make(chan domain.PolicyValidation, resultChanSize),
@@ -53,6 +45,7 @@ func (f *FluxNotificationSink) Stop() {
 
 // Write adds results to buffer, implements github.com/MagalixCorp/magalix-policy-agent/pkg/domain.PolicyValidationSink
 func (f *FluxNotificationSink) Write(_ context.Context, results []domain.PolicyValidation) error {
+	logger.Info("received validation results", "count", len(results))
 	for _, result := range results {
 		result.AccountID = f.accountID
 		result.ClusterID = f.clusterID
@@ -65,9 +58,9 @@ func (f *FluxNotificationSink) writeWorker(ctx context.Context) {
 	for {
 		select {
 		case result := <-f.resultChan:
-			logger.Info("received validation result")
 			f.write(result)
 		case <-ctx.Done():
+			logger.Info("stopping write worker ...")
 			break
 		}
 	}
@@ -76,11 +69,24 @@ func (f *FluxNotificationSink) writeWorker(ctx context.Context) {
 func (f *FluxNotificationSink) write(result domain.PolicyValidation) {
 	fluxObject := getFluxObject(result.Entity.Labels)
 	if fluxObject == nil {
-		logger.Infow("ignoring result for resource")
+		logger.Infow(
+			"discarding result for orphan entity",
+			"name", result.Entity.Name,
+			"namespace", result.Entity.Namespace,
+		)
 		return
 	}
 
 	event := mglx_events.FromPolicyValidationResult(result)
+
+	logger.Info(
+		"sending event ...",
+		"type", event.Type,
+		"resource_name", result.Entity.Name,
+		"resource_namespace", result.Entity.Namespace,
+		"policy", result.Policy.ID,
+	)
+
 	f.recorder.AnnotatedEventf(
 		fluxObject,
 		event.Annotations,

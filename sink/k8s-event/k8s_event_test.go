@@ -61,8 +61,6 @@ func TestK8sEventSink(t *testing.T) {
 	results := []domain.PolicyValidation{
 		{
 			ID:        uuid.NewV4().String(),
-			AccountID: "",
-			ClusterID: "",
 			Policy:    policy,
 			Entity:    violatingEntity,
 			Status:    domain.PolicyValidationStatusViolating,
@@ -73,8 +71,6 @@ func TestK8sEventSink(t *testing.T) {
 		},
 		{
 			ID:        uuid.NewV4().String(),
-			AccountID: "",
-			ClusterID: "",
 			Policy:    policy,
 			Entity:    compliantEntity,
 			Status:    domain.PolicyValidationStatusCompliant,
@@ -85,7 +81,7 @@ func TestK8sEventSink(t *testing.T) {
 		},
 	}
 
-	sink, err := NewK8sEventSink(fake.NewSimpleClientset(), "", "")
+	sink, err := NewK8sEventSink(fake.NewSimpleClientset(), "", "", "magalix-policy-agent")
 	if err != nil {
 		t.Error(err)
 	}
