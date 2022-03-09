@@ -2,6 +2,10 @@ module github.com/MagalixCorp/magalix-policy-agent
 
 go 1.17
 
+replace (
+	github.com/dgrijalva/jwt-go v3.2.2+incompatible => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
+)
+
 require (
 	github.com/MagalixTechnologies/core/logger v1.0.3
 	github.com/MagalixTechnologies/opa-core v1.0.11
