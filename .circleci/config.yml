@@ -11,23 +11,7 @@ jobs:
             echo 'export SOURCE_PATH=/home/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME' >> $BASH_ENV
             echo 'export GO111MODULE=on' >> $BASH_ENV
             echo 'export GOPRIVATE=github.com/MagalixTechnologies' >> $BASH_ENV
-            echo 'export PATH=/usr/local/bin/upx:$PATH' >> $BASH_ENV
-            echo 'export PATH=/usr/bin/gcloud:$PATH' >> $BASH_ENV
-            echo 'export PATH=/root/google-cloud-sdk/bin:$PATH' >> $BASH_ENV
 
-      - run:
-          name: Install Google Cloud SDK
-          command: |
-            apk update
-            apk add python3
-
-            # Update the package list and install the Cloud SDK
-            curl https://sdk.cloud.google.com | bash -s -- --disable-prompts
-
-            # The next line updates PATH for the Google Cloud SDK.
-            source /root/google-cloud-sdk/completion.bash.inc
-
-            source $BASH_ENV
       - run:
           name: Checkout code
           command: |
