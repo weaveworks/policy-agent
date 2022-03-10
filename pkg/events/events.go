@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	EventActionAllowed         = "Allowed"
-	EventActionRejected        = "Rejected"
-	EventReasonPolicyViolation = "PolicyViolation"
-	EventReasonPolicyComplaint = "PolicyComplaint"
+	EventActionAllowed          = "Allowed"
+	EventActionRejected         = "Rejected"
+	EventReasonPolicyViolation  = "PolicyViolation"
+	EventReasonPolicyCompliance = "PolicyCompliance"
 )
 
-func FromPolicyValidationResult(result domain.PolicyValidation) v1.Event {
+func EventFromPolicyValidationResult(result domain.PolicyValidation) v1.Event {
 	var reason, action, etype string
 
 	if result.Status == domain.PolicyValidationStatusViolating {
@@ -24,7 +24,7 @@ func FromPolicyValidationResult(result domain.PolicyValidation) v1.Event {
 		action = EventActionRejected
 	} else {
 		etype = v1.EventTypeNormal
-		reason = EventReasonPolicyComplaint
+		reason = EventReasonPolicyCompliance
 		action = EventActionAllowed
 	}
 

@@ -21,7 +21,7 @@ type FluxNotificationSink struct {
 	clusterID    string
 }
 
-// NewFluxNotificationSink returns a sink that sends results to k8s events queue and flux notification controller
+// NewFluxNotificationSink returns a sink that sends results to flux notification controller
 func NewFluxNotificationSink(recorder record.EventRecorder, webhook, accountID, clusterID string) (*FluxNotificationSink, error) {
 	return &FluxNotificationSink{
 		recorder:   recorder,
@@ -77,7 +77,7 @@ func (f *FluxNotificationSink) write(result domain.PolicyValidation) {
 		return
 	}
 
-	event := mglx_events.FromPolicyValidationResult(result)
+	event := mglx_events.EventFromPolicyValidationResult(result)
 
 	logger.Infow(
 		"sending event ...",

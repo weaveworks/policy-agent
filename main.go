@@ -25,7 +25,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/kubernetes"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	scheme_client "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -218,7 +218,7 @@ func main() {
 			return fmt.Errorf("failed to load Kubernetes config: %w", err)
 		}
 
-		scheme := clientgoscheme.Scheme
+		scheme := scheme_client.Scheme
 		err = magalixv1.AddToScheme(scheme)
 		if err != nil {
 			return fmt.Errorf("failed to add policy crd to schema: %w", err)
@@ -258,32 +258,32 @@ func main() {
 
 		if config.EnableFileSystemSink {
 			logger.Info("initializing filesystem sink ...")
-			sink, err := initFileSystemSink(cli.Context, config)
+			fileSystemSink, err := initFileSystemSink(cli.Context, config)
 			if err != nil {
 				return err
 			}
-			defer sink.Stop()
-			sinks = append(sinks, sink)
+			defer fileSystemSink.Stop()
+			sinks = append(sinks, fileSystemSink)
 		}
 
 		if config.EnableFluxNotificationSink {
 			logger.Info("initializing flux notification sink ...")
-			sink, err := initFluxNotificationSink(cli.Context, config, mgr)
+			fkuxNotificationSink, err := initFluxNotificationSink(cli.Context, config, mgr)
 			if err != nil {
 				return err
 			}
-			defer sink.Stop()
-			sinks = append(sinks, sink)
+			defer fkuxNotificationSink.Stop()
+			sinks = append(sinks, fkuxNotificationSink)
 		}
 
 		if config.EnableK8sEventSink {
 			logger.Info("initializing kubernetes events sink ...")
-			sink, err := initK8sEventSink(cli.Context, config, kubeConfig)
+			k8sEventSink, err := initK8sEventSink(cli.Context, config, kubeConfig)
 			if err != nil {
 				return err
 			}
-			defer sink.Stop()
-			sinks = append(sinks, sink)
+			defer k8sEventSink.Stop()
+			sinks = append(sinks, k8sEventSink)
 		}
 
 		probeHandler.MarkReady(true)
@@ -343,13 +343,13 @@ func main() {
 func initFileSystemSink(ctx context.Context, config Config) (*filesystem.FileSystemSink, error) {
 	sink, err := filesystem.NewFileSystemSink(config.FileSystemSinkFilePath, config.AccountID, config.ClusterID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize file system sink, %w", err)
+		return nil, fmt.Errorf("failed to initialize filesystem sink: %w", err)
 	}
 
 	logger.Info("starting file system sink ...")
 	err = sink.Start(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start file system sink, %w", err)
+		return nil, fmt.Errorf("failed to start filesystem sink: %w", err)
 	}
 
 	return sink, nil
@@ -358,12 +358,12 @@ func initFileSystemSink(ctx context.Context, config Config) (*filesystem.FileSys
 func initFluxNotificationSink(ctx context.Context, config Config, mgr ctrl.Manager) (*flux_notification.FluxNotificationSink, error) {
 	recorder, err := events.NewRecorder(mgr, mgr.GetLogger(), config.FluxNotificationSinkAddr, eventReportingController)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initialize event recorder: %w", err)
 	}
 
 	sink, err := flux_notification.NewFluxNotificationSink(recorder, config.FluxNotificationSinkAddr, config.AccountID, config.ClusterID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initialize flux notification sink: %w", err)
 	}
 
 	logger.Info("starting flux notification sink ...")
@@ -375,12 +375,12 @@ func initFluxNotificationSink(ctx context.Context, config Config, mgr ctrl.Manag
 func initK8sEventSink(ctx context.Context, config Config, kubeConfig *rest.Config) (*k8s_event.K8sEventSink, error) {
 	clientset, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initialize kubernetes clientset: %w", err)
 	}
 
 	sink, err := k8s_event.NewK8sEventSink(clientset, config.AccountID, config.ClusterID, eventReportingController)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initialize kubernetes event sink: %w", err)
 	}
 
 	logger.Info("starting kubernetes event sink ...")

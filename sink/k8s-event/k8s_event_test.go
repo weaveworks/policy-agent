@@ -115,7 +115,7 @@ func TestK8sEventSink(t *testing.T) {
 			assert.Equal(t, event.InvolvedObject.Namespace, violatingEntity.Namespace)
 
 		} else if event.Type == v1.EventTypeNormal {
-			assert.Equal(t, event.Reason, mglx_events.EventReasonPolicyComplaint)
+			assert.Equal(t, event.Reason, mglx_events.EventReasonPolicyCompliance)
 			assert.Equal(t, event.Action, mglx_events.EventActionAllowed)
 
 			// verify involved object holds entity info

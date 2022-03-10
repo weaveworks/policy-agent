@@ -58,7 +58,7 @@ func TestEvents(t *testing.T) {
 	}
 
 	for _, result := range results {
-		event := FromPolicyValidationResult(result)
+		event := EventFromPolicyValidationResult(result)
 
 		if result.Status == domain.PolicyValidationStatusViolating {
 			assert.Equal(t, event.Type, v1.EventTypeWarning)
@@ -67,7 +67,7 @@ func TestEvents(t *testing.T) {
 
 		} else if result.Status == domain.PolicyValidationStatusCompliant {
 			assert.Equal(t, event.Type, v1.EventTypeNormal)
-			assert.Equal(t, event.Reason, EventReasonPolicyComplaint)
+			assert.Equal(t, event.Reason, EventReasonPolicyCompliance)
 			assert.Equal(t, event.Action, EventActionAllowed)
 		}
 

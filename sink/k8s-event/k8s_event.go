@@ -27,6 +27,7 @@ type K8sEventSink struct {
 	reportingInstance   string
 }
 
+// NewK8sEventSink returns a sink that sends results to kubernetes events queue
 func NewK8sEventSink(kubeClient kubernetes.Interface, accountID, clusterID, reportingController string) (*K8sEventSink, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -79,7 +80,7 @@ func (f *K8sEventSink) writeWorker(ctx context.Context) {
 }
 
 func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation) {
-	event := mglx_events.FromPolicyValidationResult(result)
+	event := mglx_events.EventFromPolicyValidationResult(result)
 	event.ReportingController = k.reportingController
 	event.ReportingInstance = k.reportingInstance
 	event.Source = v1.EventSource{Component: k.reportingController}
