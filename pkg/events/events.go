@@ -2,6 +2,7 @@ package events
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	v1 "k8s.io/api/core/v1"
@@ -48,7 +49,7 @@ func EventFromPolicyValidationResult(result domain.PolicyValidation) v1.Event {
 	involvedObject := result.Entity.ObjectRef()
 	relatedObject := result.Policy.ObjectRef()
 
-	timestamp := metav1.Time{}
+	timestamp := metav1.NewTime(time.Now())
 
 	event := v1.Event{
 		ObjectMeta: metav1.ObjectMeta{
