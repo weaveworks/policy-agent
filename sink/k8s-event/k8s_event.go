@@ -85,9 +85,10 @@ func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation
 	event.ReportingInstance = k.reportingInstance
 	event.Source = v1.EventSource{Component: k.reportingController}
 
-	logger.Infow(
+	logger.Debugw(
 		"sending event ...",
 		"type", event.Type,
+		"entity_kind", result.Entity.Kind,
 		"entity_name", result.Entity.Name,
 		"entity_namespace", result.Entity.Namespace,
 		"policy", result.Policy.ID,

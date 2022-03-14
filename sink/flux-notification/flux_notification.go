@@ -69,7 +69,7 @@ func (f *FluxNotificationSink) writeWorker(ctx context.Context) {
 func (f *FluxNotificationSink) write(result domain.PolicyValidation) {
 	fluxObject := getFluxObject(result.Entity.Labels)
 	if fluxObject == nil {
-		logger.Infow(
+		logger.Debugw(
 			"discarding result for orphan entity",
 			"kind", result.Entity.Kind,
 			"name", result.Entity.Name,
@@ -80,7 +80,7 @@ func (f *FluxNotificationSink) write(result domain.PolicyValidation) {
 
 	event := mglx_events.EventFromPolicyValidationResult(result)
 
-	logger.Infow(
+	logger.Debugw(
 		"sending event ...",
 		"type", event.Type,
 		"entity_kind", result.Entity.Kind,
