@@ -45,7 +45,7 @@ func (f *FluxNotificationSink) Stop() {
 
 // Write adds results to buffer, implements github.com/MagalixCorp/magalix-policy-agent/pkg/domain.PolicyValidationSink
 func (f *FluxNotificationSink) Write(_ context.Context, results []domain.PolicyValidation) error {
-	logger.Infow("received validation results", "count", len(results))
+	logger.Infow("writing validation results", "sink", "flux_notification", "count", len(results))
 	for _, result := range results {
 		result.AccountID = f.accountID
 		result.ClusterID = f.clusterID

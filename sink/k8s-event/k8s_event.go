@@ -58,7 +58,7 @@ func (k *K8sEventSink) Stop() {
 
 // Write adds results to buffer, implements github.com/MagalixCorp/magalix-policy-agent/pkg/domain.PolicyValidationSink
 func (k *K8sEventSink) Write(_ context.Context, results []domain.PolicyValidation) error {
-	logger.Infow("received validation results", "count", len(results))
+	logger.Infow("writing validation results", "sink", "k8s_events", "count", len(results))
 	for _, result := range results {
 		result.AccountID = k.accountID
 		result.ClusterID = k.clusterID
