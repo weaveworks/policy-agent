@@ -15,6 +15,7 @@ const (
 	EventReasonPolicyCompliance = "PolicyCompliance"
 )
 
+// EventFromPolicyValidationResult gets kubernetes event object from policy violation result object
 func EventFromPolicyValidationResult(result domain.PolicyValidation) v1.Event {
 	var reason, action, etype string
 
@@ -44,8 +45,8 @@ func EventFromPolicyValidationResult(result domain.PolicyValidation) v1.Event {
 		namespace = metav1.NamespaceDefault
 	}
 
-	involvedObject := result.Entity.GetK8sObjectRef()
-	relatedObject := result.Policy.GetK8sObjectRef()
+	involvedObject := result.Entity.ObjectRef()
+	relatedObject := result.Policy.ObjectRef()
 
 	timestamp := metav1.Time{}
 

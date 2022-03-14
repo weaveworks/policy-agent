@@ -45,15 +45,13 @@ type Config struct {
 	DisableAudit     bool
 
 	// filesystem sink config
-	EnableFileSystemSink   bool
 	FileSystemSinkFilePath string
 
 	// kubernets event sink config
 	EnableK8sEventSink bool
 
 	// flux notification sink config
-	EnableFluxNotificationSink bool
-	FluxNotificationSinkAddr   string
+	FluxNotificationSinkAddr string
 }
 
 const (
@@ -145,31 +143,15 @@ func main() {
 			Value:       "info",
 			EnvVars:     []string{"AGENT_LOG_LEVEL"},
 		},
-		&cli.BoolFlag{
-			Name:        "enable-filesystem-sink",
-			Usage:       "enables filesystem sink",
-			Destination: &config.EnableFileSystemSink,
-			Value:       false,
-			EnvVars:     []string{"AGENT_ENABLE_FILESYSTEM_SINK"},
-		},
 		&cli.StringFlag{
 			Name:        "filesystem-sink-file-path",
 			Usage:       "filesystem sink file path",
-			Value:       "/tmp/results.json",
 			Destination: &config.FileSystemSinkFilePath,
 			EnvVars:     []string{"AGENT_FILESYSTEM_SINK_FILE_PATH"},
-		},
-		&cli.BoolFlag{
-			Name:        "enable-flux-notification-sink",
-			Usage:       "enables flux notification sink",
-			Destination: &config.EnableFluxNotificationSink,
-			Value:       false,
-			EnvVars:     []string{"AGENT_ENABLE_FLUX_NOTIFICATION_SINK"},
 		},
 		&cli.StringFlag{
 			Name:        "flux-notification-sink-addr",
 			Usage:       "flux notification sink address",
-			Value:       "http://notification-controller.flux-system.svc.cluster.local",
 			Destination: &config.FluxNotificationSinkAddr,
 			EnvVars:     []string{"AGENT_FLUX_NOTIFICATION_SINK_ADDR"},
 		},
@@ -203,7 +185,7 @@ func main() {
 		return nil
 	}
 
-	app.Action = func(cli *cli.Context) error {
+	app.Action = func(contextCli *cli.Context) error {
 		logger.Info("initializing Magalix Policy Agent")
 		logger.Infof("config: %+v", config)
 
@@ -231,7 +213,7 @@ func main() {
 
 		probeHandler := probes.NewProbesHandler(config.ProbesListen)
 		go func() {
-			err := probeHandler.Run(cli.Context)
+			err := probeHandler.Run(contextCli.Context)
 			if err != nil {
 				logger.Fatal("failed to start probes server", "error", err)
 			}
@@ -242,7 +224,7 @@ func main() {
 		if err != nil {
 			return fmt.Errorf("init client failed: %w", err)
 		}
-		entitiesSources, err := k8s.GetEntitiesSources(cli.Context, kubeClient)
+		entitiesSources, err := k8s.GetEntitiesSources(contextCli.Context, kubeClient)
 		if err != nil {
 			return fmt.Errorf("initializing entities sources failed: %w", err)
 		}
@@ -256,9 +238,9 @@ func main() {
 
 		sinks := []domain.PolicyValidationSink{}
 
-		if config.EnableFileSystemSink {
-			logger.Info("initializing filesystem sink ...")
-			fileSystemSink, err := initFileSystemSink(cli.Context, config)
+		if config.FileSystemSinkFilePath != "" {
+			logger.Infow("initializing filesystem sink ...", "file", config.FileSystemSinkFilePath)
+			fileSystemSink, err := initFileSystemSink(contextCli.Context, config)
 			if err != nil {
 				return err
 			}
@@ -266,9 +248,9 @@ func main() {
 			sinks = append(sinks, fileSystemSink)
 		}
 
-		if config.EnableFluxNotificationSink {
-			logger.Info("initializing flux notification sink ...")
-			fkuxNotificationSink, err := initFluxNotificationSink(cli.Context, config, mgr)
+		if config.FluxNotificationSinkAddr != "" {
+			logger.Info("initializing flux notification sink ...", "endpoint", config.FluxNotificationSinkAddr)
+			fkuxNotificationSink, err := initFluxNotificationSink(contextCli.Context, config, mgr)
 			if err != nil {
 				return err
 			}
@@ -278,7 +260,7 @@ func main() {
 
 		if config.EnableK8sEventSink {
 			logger.Info("initializing kubernetes events sink ...")
-			k8sEventSink, err := initK8sEventSink(cli.Context, config, kubeConfig)
+			k8sEventSink, err := initK8sEventSink(contextCli.Context, config, kubeConfig)
 			if err != nil {
 				return err
 			}
@@ -287,7 +269,7 @@ func main() {
 		}
 
 		probeHandler.MarkReady(true)
-		eg, ctx := errgroup.WithContext(cli.Context)
+		eg, ctx := errgroup.WithContext(contextCli.Context)
 
 		if !config.DisableAudit {
 			validator := validation.NewOPAValidator(

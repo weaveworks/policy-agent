@@ -34,8 +34,8 @@ type Policy struct {
 	Reference   interface{}
 }
 
-// GetK8sObjectRef returns the kubernetes object reference of the policy
-func (p *Policy) GetK8sObjectRef() *v1.ObjectReference {
+// ObjectRef returns the kubernetes object reference of the policy
+func (p *Policy) ObjectRef() *v1.ObjectReference {
 	if obj, ok := p.Reference.(v1.ObjectReference); ok {
 		return &obj
 	}

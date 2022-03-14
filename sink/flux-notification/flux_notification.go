@@ -71,6 +71,7 @@ func (f *FluxNotificationSink) write(result domain.PolicyValidation) {
 	if fluxObject == nil {
 		logger.Infow(
 			"discarding result for orphan entity",
+			"kind", result.Entity.Kind,
 			"name", result.Entity.Name,
 			"namespace", result.Entity.Namespace,
 		)
@@ -82,8 +83,9 @@ func (f *FluxNotificationSink) write(result domain.PolicyValidation) {
 	logger.Infow(
 		"sending event ...",
 		"type", event.Type,
-		"resource_name", result.Entity.Name,
-		"resource_namespace", result.Entity.Namespace,
+		"entity_kind", result.Entity.Kind,
+		"entity_name", result.Entity.Name,
+		"entity_namespace", result.Entity.Namespace,
 		"policy", result.Policy.ID,
 	)
 

@@ -21,8 +21,8 @@ type Entity struct {
 	GitCommit       string                 `json:"git_commit,omitempty,"`
 }
 
-// GetK8sObjectRef returns the kubernetes object reference of the entity
-func (e *Entity) GetK8sObjectRef() *v1.ObjectReference {
+// ObjectRef returns the kubernetes object reference of the entity
+func (e *Entity) ObjectRef() *v1.ObjectReference {
 	return &v1.ObjectReference{
 		APIVersion:      e.APIVersion,
 		Kind:            e.Kind,
