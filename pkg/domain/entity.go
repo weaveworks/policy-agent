@@ -3,13 +3,16 @@ package domain
 import (
 	"context"
 
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // Entity represents a kubernetes resource
 type Entity struct {
 	ID              string                 `json:"id"`
 	Name            string                 `json:"name"`
+	APIVersion      string                 `json:"apiVersion"`
 	Kind            string                 `json:"kind"`
 	Namespace       string                 `json:"namespace"`
 	Manifest        map[string]interface{} `json:"manifest"`
@@ -18,12 +21,25 @@ type Entity struct {
 	GitCommit       string                 `json:"git_commit,omitempty,"`
 }
 
+// ObjectRef returns the kubernetes object reference of the entity
+func (e *Entity) ObjectRef() *v1.ObjectReference {
+	return &v1.ObjectReference{
+		APIVersion:      e.APIVersion,
+		Kind:            e.Kind,
+		UID:             types.UID(e.ID),
+		Name:            e.Name,
+		Namespace:       e.Namespace,
+		ResourceVersion: e.ResourceVersion,
+	}
+}
+
 // NewEntityFromSpec takes map representing a Kubernetes entity and parses it into Entity struct
 func NewEntityFromSpec(entitySpec map[string]interface{}) Entity {
 	kubeEntity := unstructured.Unstructured{Object: entitySpec}
 	return Entity{
 		ID:              string(kubeEntity.GetUID()),
 		Name:            kubeEntity.GetName(),
+		APIVersion:      kubeEntity.GetAPIVersion(),
 		Kind:            kubeEntity.GetKind(),
 		Namespace:       kubeEntity.GetNamespace(),
 		Manifest:        entitySpec,
