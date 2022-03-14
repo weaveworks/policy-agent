@@ -50,6 +50,8 @@ jobs:
           name: Build binary
           command: |
 
+            apk add build-base
+
             export GOCACHE=/go/cache/
 
             cd $SOURCE_PATH

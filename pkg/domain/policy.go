@@ -22,6 +22,7 @@ type Policy struct {
 	Name        string             `json:"name"`
 	ID          string             `json:"id"`
 	Code        string             `json:"code"`
+	Enable      string             `json:"enable"`
 	Parameters  []PolicyParameters `json:"parameters"`
 	Targets     PolicyTargets      `json:"targets"`
 	Description string             `json:"description"`
@@ -29,9 +30,9 @@ type Policy struct {
 	Category    string             `json:"category"`
 	Tags        []string           `json:"tags"`
 	Severity    string             `json:"severity"`
-	GitCommit   string             `json:"git_commit,omitempty"`
 	Controls    []string           `json:"controls"`
-	Reference   interface{}
+	Reference   interface{}        `json:"-"`
+	GitCommit   string             `json:"git_commit,omitempty"`
 }
 
 // ObjectRef returns the kubernetes object reference of the policy

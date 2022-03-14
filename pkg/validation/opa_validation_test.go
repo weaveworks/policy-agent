@@ -7,10 +7,10 @@ import (
 	"reflect"
 	"testing"
 
+	mockpolicy "github.com/MagalixCorp/magalix-policy-agent/internal/policies/mock"
+	mocksink "github.com/MagalixCorp/magalix-policy-agent/internal/sink/mock"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation/testdata"
-	mockpolicy "github.com/MagalixCorp/magalix-policy-agent/policies/mock"
-	mocksink "github.com/MagalixCorp/magalix-policy-agent/sink/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )

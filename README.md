@@ -43,16 +43,18 @@ COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --kube-config-file value   path to kubernetes client config file [$AGENT_KUBE_CONFIG_FILE]
-   --account-id value         Account id, unique per organization [$AGENT_ACCOUNT_ID]
-   --cluster-id value         Cluster id, cluster identifier [$AGENT_CLUSTER_ID]
-   --webhook-listen value     address for the admission webhook server to listen on (default: ":8443") [$AGENT_WEBHOOK_LISTEN]
-   --webhook-cert-file value  cert file path for webhook server (default: "/certs/tls.crt") [$AGENT_WEBHOOK_CERT_FILE]
-   --webhook-key-file value   key file path for webhook server (default: "/certs/tls.key") [$AGENT_WEBHOOK_KEY_FILE]
-   --probes-listen value      address for the probes server to run on (default: ":9000") [$AGENT_PROBES_LISTEN]
-   --write-compliance         enables writing compliance results (default: false) [$AGENT_WRITE_COMPLIANCE]
-   --log-level value          app log level (default: "info") [$AGENT_LOG_LEVEL]
-   --sink-file-path value     file path to write validation result to (default: "/tmp/results.json") [$AGENT_SINK_FILE_PATH]
-   --help, -h                 show help (default: false)
-   --version, -v              print the version (default: false)
+    --kube-config-file value  path to kubernetes client config file [$AGENT_KUBE_CONFIG_FILE]
+   --account-id value        Account id, unique per organization [$AGENT_ACCOUNT_ID]
+   --cluster-id value        Cluster id, cluster identifier [$AGENT_CLUSTER_ID]
+   --webhook-listen value    port for the admission webhook server to listen on (default: 8443) [$AGENT_WEBHOOK_LISTEN]
+   --webhook-cert-dir value  cert directory path for webhook server (default: "/certs") [$AGENT_WEBHOOK_CERT_DIR]
+   --probes-listen value     address for the probes server to run on (default: ":9000") [$AGENT_PROBES_LISTEN]
+   --write-compliance        enables writing compliance results (default: false) [$AGENT_WRITE_COMPLIANCE]
+   --disable-admission       disables admission control (default: false) [$AGENT_DISABLE_ADMISSION]
+   --disable-audit           disables cluster periodical audit (default: false) [$AGENT_DISABLE_AUDIT]
+   --log-level value         app log level (default: "info") [$AGENT_LOG_LEVEL]
+   --sink-file-path value    file path to write validation result to (default: "/tmp/results.json") [$AGENT_SINK_FILE_PATH]
+   --metrics-addr value      address the metric endpoint binds to (default: ":8080") [$AGENT_METRICS_ADDR]
+   --help, -h                show help (default: false)
+   --version, -v             print the version (default: false)
 ```
