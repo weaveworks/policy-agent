@@ -80,7 +80,7 @@ data:
   AGENT_CLUSTER_ID: {{ .Values.clusterId }}
 
   {{- range $key, $val := .Values.config }}
-  {{ $key }}: {{ $val }}
+  {{ $key }}: "{{ $val }}"
   {{- end }}
 ---
 apiVersion: v1
