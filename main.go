@@ -18,6 +18,7 @@ import (
 	flux_notification "github.com/MagalixCorp/magalix-policy-agent/internal/sink/flux-notification"
 	k8s_event "github.com/MagalixCorp/magalix-policy-agent/internal/sink/k8s-event"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
+	"github.com/MagalixCorp/magalix-policy-agent/pkg/log"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation"
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/fluxcd/pkg/runtime/events"
@@ -208,13 +209,15 @@ func main() {
 			return fmt.Errorf("failed to add policy crd to scheme: %w", err)
 		}
 
+		lg := log.NewControllerLog(config.AccountID, config.ClusterID)
+
 		mgr, err := ctrl.NewManager(kubeConfig, ctrl.Options{
 			Scheme:                 scheme,
 			MetricsBindAddress:     config.MetricsAddr,
 			Port:                   config.WebhookListen,
 			CertDir:                config.WebhookCertDir,
 			HealthProbeBindAddress: config.ProbesListen,
-			// Logger: @TODO use our logger in manager process
+			Logger:                 lg,
 		})
 
 		err = mgr.AddHealthzCheck("liveness", healthz.Ping)
