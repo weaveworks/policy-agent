@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -11,17 +12,23 @@ import (
 	"github.com/MagalixCorp/magalix-policy-agent/clients/kube"
 	policiesClient "github.com/MagalixCorp/magalix-policy-agent/clients/magalix.com/v1"
 	"github.com/MagalixCorp/magalix-policy-agent/entities/k8s"
+	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation"
 	"github.com/MagalixCorp/magalix-policy-agent/policies/crd"
 	"github.com/MagalixCorp/magalix-policy-agent/server/admission"
 	"github.com/MagalixCorp/magalix-policy-agent/server/probes"
 	"github.com/MagalixCorp/magalix-policy-agent/sink/filesystem"
+	flux_notification "github.com/MagalixCorp/magalix-policy-agent/sink/flux-notification"
+	k8s_event "github.com/MagalixCorp/magalix-policy-agent/sink/k8s-event"
 	"github.com/MagalixTechnologies/core/logger"
+	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/sync/errgroup"
-	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/kubernetes"
+	scheme_client "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 type Config struct {
@@ -33,14 +40,23 @@ type Config struct {
 	WebhookCertFile  string
 	WebhookKeyFile   string
 	LogLevel         string
-	SinkFilePath     string
 	ProbesListen     string
 	DisableAdmission bool
 	DisableAudit     bool
+
+	// filesystem sink config
+	FileSystemSinkFilePath string
+
+	// kubernets event sink config
+	EnableK8sEventSink bool
+
+	// flux notification sink config
+	FluxNotificationSinkAddr string
 }
 
 const (
-	auditControllerInterval = 23 * time.Hour
+	auditControllerInterval         = 23 * time.Hour
+	eventReportingController string = "magalix-policy-agent"
 )
 
 func main() {
@@ -128,11 +144,23 @@ func main() {
 			EnvVars:     []string{"AGENT_LOG_LEVEL"},
 		},
 		&cli.StringFlag{
-			Name:        "sink-file-path",
-			Usage:       "file path to write validation result to",
-			Destination: &config.SinkFilePath,
-			Value:       "/tmp/results.json", //@TODO remove default value and only add sink when a value is specified
-			EnvVars:     []string{"AGENT_SINK_FILE_PATH"},
+			Name:        "filesystem-sink-file-path",
+			Usage:       "filesystem sink file path",
+			Destination: &config.FileSystemSinkFilePath,
+			EnvVars:     []string{"AGENT_FILESYSTEM_SINK_FILE_PATH"},
+		},
+		&cli.StringFlag{
+			Name:        "flux-notification-sink-addr",
+			Usage:       "flux notification sink address",
+			Destination: &config.FluxNotificationSinkAddr,
+			EnvVars:     []string{"AGENT_FLUX_NOTIFICATION_SINK_ADDR"},
+		},
+		&cli.BoolFlag{
+			Name:        "enable-k8s-events-sink",
+			Usage:       "enables kubernetes events sink",
+			Destination: &config.EnableK8sEventSink,
+			Value:       false,
+			EnvVars:     []string{"AGENT_ENABLE_K8S_EVENTS_SINK"},
 		},
 	}
 
@@ -172,10 +200,16 @@ func main() {
 			return fmt.Errorf("failed to load Kubernetes config: %w", err)
 		}
 
-		err = magalixv1.AddToScheme(scheme.Scheme)
+		scheme := scheme_client.Scheme
+		err = magalixv1.AddToScheme(scheme)
 		if err != nil {
 			return fmt.Errorf("failed to add policy crd to schema: %w", err)
 		}
+
+		mgr, err := ctrl.NewManager(kubeConfig, ctrl.Options{
+			Scheme:             scheme,
+			MetricsBindAddress: "0",
+		})
 
 		probeHandler := probes.NewProbesHandler(config.ProbesListen)
 		go func() {
@@ -202,17 +236,37 @@ func main() {
 		}
 		defer policiesSource.Close()
 
-		fileSystemSink, err := filesystem.NewFileSystemSink(config.SinkFilePath, config.AccountID, config.ClusterID)
-		if err != nil {
-			return fmt.Errorf("failed to initialize file system sink: %w", err)
+		sinks := []domain.PolicyValidationSink{}
+
+		if config.FileSystemSinkFilePath != "" {
+			logger.Infow("initializing filesystem sink ...", "file", config.FileSystemSinkFilePath)
+			fileSystemSink, err := initFileSystemSink(contextCli.Context, config)
+			if err != nil {
+				return err
+			}
+			defer fileSystemSink.Stop()
+			sinks = append(sinks, fileSystemSink)
 		}
 
-		logger.Info("starting file system sink")
-		err = fileSystemSink.Start(contextCli.Context)
-		if err != nil {
-			return fmt.Errorf("failed to start file system sink: %w", err)
+		if config.FluxNotificationSinkAddr != "" {
+			logger.Info("initializing flux notification sink ...", "endpoint", config.FluxNotificationSinkAddr)
+			fkuxNotificationSink, err := initFluxNotificationSink(contextCli.Context, config, mgr)
+			if err != nil {
+				return err
+			}
+			defer fkuxNotificationSink.Stop()
+			sinks = append(sinks, fkuxNotificationSink)
 		}
-		defer fileSystemSink.Stop()
+
+		if config.EnableK8sEventSink {
+			logger.Info("initializing kubernetes events sink ...")
+			k8sEventSink, err := initK8sEventSink(contextCli.Context, config, kubeConfig)
+			if err != nil {
+				return err
+			}
+			defer k8sEventSink.Stop()
+			sinks = append(sinks, k8sEventSink)
+		}
 
 		probeHandler.MarkReady(true)
 		eg, ctx := errgroup.WithContext(contextCli.Context)
@@ -222,7 +276,7 @@ func main() {
 				policiesSource,
 				config.WriteCompliance,
 				auditor.TypeAudit,
-				fileSystemSink,
+				sinks...,
 			)
 			auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
 			eg.Go(func() error {
@@ -237,7 +291,7 @@ func main() {
 				policiesSource,
 				config.WriteCompliance,
 				admission.TypeAdmission,
-				fileSystemSink,
+				sinks...,
 			)
 			admissionServer := admission.NewAdmissionHandler(
 				config.WebhookListen,
@@ -266,4 +320,53 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
+}
+
+func initFileSystemSink(ctx context.Context, config Config) (*filesystem.FileSystemSink, error) {
+	sink, err := filesystem.NewFileSystemSink(config.FileSystemSinkFilePath, config.AccountID, config.ClusterID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize filesystem sink: %w", err)
+	}
+
+	logger.Info("starting file system sink ...")
+	err = sink.Start(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start filesystem sink: %w", err)
+	}
+
+	return sink, nil
+}
+
+func initFluxNotificationSink(ctx context.Context, config Config, mgr ctrl.Manager) (*flux_notification.FluxNotificationSink, error) {
+	recorder, err := events.NewRecorder(mgr, mgr.GetLogger(), config.FluxNotificationSinkAddr, eventReportingController)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize event recorder: %w", err)
+	}
+
+	sink, err := flux_notification.NewFluxNotificationSink(recorder, config.FluxNotificationSinkAddr, config.AccountID, config.ClusterID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize flux notification sink: %w", err)
+	}
+
+	logger.Info("starting flux notification sink ...")
+	sink.Start(ctx)
+
+	return sink, nil
+}
+
+func initK8sEventSink(ctx context.Context, config Config, kubeConfig *rest.Config) (*k8s_event.K8sEventSink, error) {
+	clientset, err := kubernetes.NewForConfig(kubeConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize kubernetes clientset: %w", err)
+	}
+
+	sink, err := k8s_event.NewK8sEventSink(clientset, config.AccountID, config.ClusterID, eventReportingController)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize kubernetes event sink: %w", err)
+	}
+
+	logger.Info("starting kubernetes event sink ...")
+	sink.Start(ctx)
+
+	return sink, nil
 }

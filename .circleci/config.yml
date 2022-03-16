@@ -11,7 +11,6 @@ jobs:
             echo 'export SOURCE_PATH=/home/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME' >> $BASH_ENV
             echo 'export GO111MODULE=on' >> $BASH_ENV
             echo 'export GOPRIVATE=github.com/MagalixTechnologies' >> $BASH_ENV
-
       - run:
           name: Checkout code
           command: |

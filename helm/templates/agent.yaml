@@ -36,6 +36,15 @@ rules:
   - 'policies'
   verbs:
   - '*'
+- apiGroups:
+  - ""
+  - "events.k8s.io"
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+  - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -80,7 +89,7 @@ data:
   AGENT_CLUSTER_ID: {{ .Values.clusterId }}
 
   {{- range $key, $val := .Values.config }}
-  {{ $key }}: {{ $val }}
+  {{ $key }}: "{{ $val }}"
   {{- end }}
 ---
 apiVersion: v1
