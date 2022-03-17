@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
-	mglx_events "github.com/MagalixCorp/magalix-policy-agent/pkg/events"
 	"github.com/MagalixTechnologies/uuid-go"
 	"github.com/stretchr/testify/assert"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
+	mglx_events "github.com/weaveworks/magalix-policy-agent/pkg/events"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 

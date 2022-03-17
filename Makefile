@@ -144,10 +144,10 @@ envtest: ## Download envtest-setup locally if necessary.
 
 .PHONY: mock
 mock:
-	mockgen -package mock -destination sink/mock/mock.go github.com/MagalixCorp/magalix-policy-agent/pkg/domain PolicyValidationSink
-	mockgen -package mock -destination policies/mock/mock.go github.com/MagalixCorp/magalix-policy-agent/pkg/domain PoliciesSource
-	mockgen -package mock -destination pkg/validation/mock/mock.go github.com/MagalixCorp/magalix-policy-agent/pkg/validation Validator
-	mockgen -package mock -destination entities/mock/mock.go github.com/MagalixCorp/magalix-policy-agent/pkg/domain EntitiesSource
+	mockgen -package mock -destination sink/mock/mock.go github.com/weaveworks/magalix-policy-agent/pkg/domain PolicyValidationSink
+	mockgen -package mock -destination policies/mock/mock.go github.com/weaveworks/magalix-policy-agent/pkg/domain PoliciesSource
+	mockgen -package mock -destination pkg/validation/mock/mock.go github.com/weaveworks/magalix-policy-agent/pkg/validation Validator
+	mockgen -package mock -destination entities/mock/mock.go github.com/weaveworks/magalix-policy-agent/pkg/domain EntitiesSource
 
 
 # go-get-tool will 'go get' any package $2 and install it to $1.

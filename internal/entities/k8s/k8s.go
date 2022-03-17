@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	magalixv1 "github.com/MagalixCorp/magalix-policy-agent/api/v1"
-	"github.com/MagalixCorp/magalix-policy-agent/internal/clients/kube"
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	"github.com/MagalixTechnologies/core/logger"
+	magalixv1 "github.com/weaveworks/magalix-policy-agent/api/v1"
+	"github.com/weaveworks/magalix-policy-agent/internal/clients/kube"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
 	corev1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

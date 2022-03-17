@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	opa "github.com/MagalixTechnologies/opa-core"
 	"github.com/MagalixTechnologies/uuid-go"
 	multierror "github.com/hashicorp/go-multierror"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
 )
 
 const (

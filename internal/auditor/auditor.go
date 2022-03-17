@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation"
 	"github.com/MagalixTechnologies/core/logger"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
+	"github.com/weaveworks/magalix-policy-agent/pkg/validation"
 )
 
 // AuditorController performs audit on a regular interval by using entitites sources to retrieve resources

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	magalixcomv1 "github.com/MagalixCorp/magalix-policy-agent/api/v1"
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	"github.com/MagalixTechnologies/core/logger"
+	magalixcomv1 "github.com/weaveworks/magalix-policy-agent/api/v1"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
 	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlCache "sigs.k8s.io/controller-runtime/pkg/cache"
@@ -23,7 +23,7 @@ func NewPoliciesWatcher(ctx context.Context, mgr ctrl.Manager) (*PoliciesWatcher
 	return &PoliciesWatcher{cache: mgr.GetCache()}, nil
 }
 
-// GetAll returns all policies, implements github.com/MagalixCorp/magalix-policy-agent/pkg/domain.PoliciesSource
+// GetAll returns all policies, implements github.com/weaveworks/magalix-policy-agent/pkg/domain.PoliciesSource
 func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 	var policies []domain.Policy
 	policiesCRD := &magalixcomv1.PolicyList{}

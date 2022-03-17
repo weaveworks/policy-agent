@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation"
 	"github.com/MagalixTechnologies/core/logger"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
+	"github.com/weaveworks/magalix-policy-agent/pkg/validation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlAdmission "sigs.k8s.io/controller-runtime/pkg/webhook/admission"

@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	entitiesmock "github.com/MagalixCorp/magalix-policy-agent/internal/entities/mock"
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
-	validationmock "github.com/MagalixCorp/magalix-policy-agent/pkg/validation/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
+	entitiesmock "github.com/weaveworks/magalix-policy-agent/internal/entities/mock"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
+	validationmock "github.com/weaveworks/magalix-policy-agent/pkg/validation/mock"
 	"golang.org/x/sync/errgroup"
 )
 

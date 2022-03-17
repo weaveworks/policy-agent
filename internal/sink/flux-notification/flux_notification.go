@@ -3,9 +3,9 @@ package flux_notification
 import (
 	"context"
 
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
-	mglx_events "github.com/MagalixCorp/magalix-policy-agent/pkg/events"
 	"github.com/MagalixTechnologies/core/logger"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
+	mglx_events "github.com/weaveworks/magalix-policy-agent/pkg/events"
 	"k8s.io/client-go/tools/record"
 )
 
@@ -43,7 +43,7 @@ func (f *FluxNotificationSink) Stop() {
 	f.cancelWorker()
 }
 
-// Write adds results to buffer, implements github.com/MagalixCorp/magalix-policy-agent/pkg/domain.PolicyValidationSink
+// Write adds results to buffer, implements github.com/weaveworks/magalix-policy-agent/pkg/domain.PolicyValidationSink
 func (f *FluxNotificationSink) Write(_ context.Context, results []domain.PolicyValidation) error {
 	logger.Infow("writing validation results", "sink", "flux_notification", "count", len(results))
 	for _, result := range results {

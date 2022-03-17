@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/MagalixCorp/magalix-policy-agent/internal/clients/kube"
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/magalix-policy-agent/internal/clients/kube"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
 	authv1 "k8s.io/api/authorization/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

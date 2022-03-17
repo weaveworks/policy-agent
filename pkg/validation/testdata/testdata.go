@@ -1,8 +1,8 @@
 package testdata
 
 import (
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
 	"github.com/MagalixTechnologies/uuid-go"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
 )
 
 var (
