@@ -30,49 +30,65 @@ var GroupVersionResource = GroupVersion.WithResource(ResourceName)
 
 // PolicyParameters defines a needed input in a policy
 type PolicyParameters struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Required bool   `json:"required"`
+	// Name is a descriptive name of a policy parameter
+	Name string `json:"name"`
+	// Type is the type of that parameter, integer, string,...
+	Type string `json:"type"`
+	// Required specifies if this is a necessary value or not
+	Required bool `json:"required"`
 	// +optional
-	Default *apiextensionsv1.JSON `json:"default"`
+	// Default is the value for that parameter
+	Default *apiextensionsv1.JSON `json:"default,omitempty"`
 }
 
+// PolicyTargets are filters used to determine which resources should be evaluated against a policy
 type PolicyTargets struct {
+	// Kind is a list of Kubernetes kinds that are supported by this policy
 	Kind []string `json:"kind"`
 	// +optional
+	// Label is a list of Kubernetes labels that are needed to evaluate the policy against a resource
+	// this filter is statisfied if only one label existed, using * for value make it so it will match if the key exists regardless of its value
 	Label []map[string]string `json:"label"`
 	// +optional
+	// Namespace is a list of Kubernetes namespaces that a resource needs to be a part of to evaluate against this policy
 	Namespace []string `json:"namespace"`
 }
 
-// Policy represents a policy
+// PolicySpec defines the desired state of Policy
+// It describes all that is needed to evaluate a resource against a rego code
 //+kubebuilder:object:generate:true
 type PolicySpec struct {
+	// Name is the policy name
 	Name string `json:"name"`
-	ID   string `json:"id"`
+	// ID is the policy unique identifier
+	ID string `json:"id"`
+	// Code contains the policy rego code
 	Code string `json:"code"`
 	// +optional
-	Enable string `json:"enable"`
+	// Enable specifies if this policy should be used for evaluation or not
+	Enable string `json:"enable,omitempty"`
 	// +optional
-	Parameters []PolicyParameters `json:"parameters"`
+	// Parameters are the inputs needed for the policy validation
+	Parameters []PolicyParameters `json:"parameters,omitempty"`
 	// +optional
-	Targets     PolicyTargets `json:"targets"`
-	Description string        `json:"description"`
-	HowToSolve  string        `json:"how_to_solve"`
-	Category    string        `json:"category"`
+	// Targets describes the required metadata that needs to be matched to evaluate a resource against the policy
+	// all values specified need to exist in the resource to be considered for evaluation
+	Targets PolicyTargets `json:"targets,omitempty"`
+	// Description is a summary of what that policy validates
+	Description string `json:"description"`
+	// HowToSolve is a description of the steps required to solve the issues reported by the policy
+	HowToSolve string `json:"how_to_solve"`
+	// Category specifies under which grouping this policy should be included
+	Category string `json:"category"`
 	// +optional
-	Tags     []string `json:"tags"`
-	Severity string   `json:"severity"`
+	// Tags is a list of tags associated with that policy
+	Tags []string `json:"tags,omitempty"`
+	// +kubebuilder:validation:Enum=low;medium;high
+	// Severity is a measure of the impact of that policy, can be low, medium or high
+	Severity string `json:"severity"`
 	// +optional
-	Controls []string `json:"controls"`
-}
-
-// PolicySpec defines the desired state of Policy
-
-// PolicyStatus defines the observed state of Policy
-type PolicyStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Controls is a list of policy controls that this policy falls under
+	Controls []string `json:"controls,omitempty"`
 }
 
 //+kubebuilder:object:root=true
