@@ -35,7 +35,7 @@ func (a *AuditorController) RegisterAuditEventListener(auditEventListener AuditE
 	a.auditEventListener = auditEventListener
 }
 
-// Run starts the audit controller
+// Start starts the audit controller
 func (a *AuditorController) Start(ctx context.Context) error {
 	logger.Info("starting audit controller...")
 	auditTicker := time.NewTicker(a.auditInterval)

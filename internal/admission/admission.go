@@ -14,6 +14,7 @@ import (
 	ctrlAdmission "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
+// AdmissionHandler listens to admission requests and validates them using a validator
 type AdmissionHandler struct {
 	logLevel  string
 	validator validation.Validator
@@ -75,7 +76,7 @@ func (a *AdmissionHandler) Handle(ctx context.Context, req ctrlAdmission.Request
 	return ctrlAdmission.ValidationResponse(true, "")
 }
 
-// Run start the admission webhook server
+// Run starts the admission webhook server
 func (a *AdmissionHandler) Run(mgr ctrl.Manager) error {
 	webhook := ctrlAdmission.Webhook{Handler: a}
 	mgr.GetWebhookServer().Register("/admission", &webhook)

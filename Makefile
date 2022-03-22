@@ -98,10 +98,10 @@ docker-push: ## Push docker image with the manager.
 image:
 	@echo :: building image $(NAME):$(VERSION)
 	@docker build -t $(NAME):$(VERSION) -f Dockerfile .
-anchore_scan:
+grype_scan:
 	@echo :: scanning image $(NAME):$(VERSION)
-	@curl -s https://ci-tools.anchore.io/inline_scan-latest | bash -s -- -f -r "$(NAME):$(VERSION)"
-
+	@curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+	@grype "$(NAME):$(VERSION)" --scope all-layers > ./report.txt #--fail-on high to fail on sev high
 
 ##@ Deployment
 
