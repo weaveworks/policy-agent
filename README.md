@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/gh/MagalixCorp/magalix-policy-agent/branch/dev/graph/badge.svg?token=5HALYBWEIQ)](https://codecov.io/gh/MagalixCorp/magalix-policy-agent) [![CircleCI](https://circleci.com/gh/MagalixCorp/magalix-policy-agent.svg?style=shield&circle-token=1d1e7616349e46a7338b44d58c950b0eff08efa7)](https://app.circleci.com/pipelines/github/MagalixCorp/magalix-policy-agent?branch=dev)
+[![codecov](https://codecov.io/gh/weaveworks/magalix-policy-agent/branch/dev/graph/badge.svg?token=5HALYBWEIQ)](https://codecov.io/gh/weaveworks/magalix-policy-agent) [![CircleCI](https://circleci.com/gh/weaveworks/magalix-policy-agent.svg?style=shield&circle-token=1d1e7616349e46a7338b44d58c950b0eff08efa7)](https://app.circleci.com/pipelines/github/weaveworks/magalix-policy-agent?branch=dev)
 
 
 # Magalix Policy Agent
