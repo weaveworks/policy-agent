@@ -3,7 +3,7 @@ package validation
 import (
 	"context"
 
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
 )
 
 func matchEntity(entity domain.Entity, policy domain.Policy) bool {

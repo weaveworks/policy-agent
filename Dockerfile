@@ -1,5 +1,5 @@
 FROM alpine:3.15
 
-COPY build/agent /
+COPY bin/agent /
 
 ENTRYPOINT ["/agent"]

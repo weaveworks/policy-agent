@@ -4,31 +4,31 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
-	magalixv1 "github.com/MagalixCorp/magalix-policy-agent/apiextensions/magalix.com/v1"
-	"github.com/MagalixCorp/magalix-policy-agent/auditor"
-	"github.com/MagalixCorp/magalix-policy-agent/clients/kube"
-	policiesClient "github.com/MagalixCorp/magalix-policy-agent/clients/magalix.com/v1"
-	"github.com/MagalixCorp/magalix-policy-agent/entities/k8s"
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation"
-	"github.com/MagalixCorp/magalix-policy-agent/policies/crd"
-	"github.com/MagalixCorp/magalix-policy-agent/server/admission"
-	"github.com/MagalixCorp/magalix-policy-agent/server/probes"
-	"github.com/MagalixCorp/magalix-policy-agent/sink/filesystem"
-	flux_notification "github.com/MagalixCorp/magalix-policy-agent/sink/flux-notification"
-	k8s_event "github.com/MagalixCorp/magalix-policy-agent/sink/k8s-event"
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
-	"golang.org/x/sync/errgroup"
+	magalixcomv1 "github.com/weaveworks/magalix-policy-agent/api/v1"
+	"github.com/weaveworks/magalix-policy-agent/internal/admission"
+	"github.com/weaveworks/magalix-policy-agent/internal/auditor"
+	"github.com/weaveworks/magalix-policy-agent/internal/clients/kube"
+	"github.com/weaveworks/magalix-policy-agent/internal/entities/k8s"
+	"github.com/weaveworks/magalix-policy-agent/internal/policies/crd"
+	"github.com/weaveworks/magalix-policy-agent/internal/sink/filesystem"
+	flux_notification "github.com/weaveworks/magalix-policy-agent/internal/sink/flux-notification"
+	k8s_event "github.com/weaveworks/magalix-policy-agent/internal/sink/k8s-event"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
+	"github.com/weaveworks/magalix-policy-agent/pkg/log"
+	"github.com/weaveworks/magalix-policy-agent/pkg/validation"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
-	scheme_client "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 )
 
 type Config struct {
@@ -36,9 +36,8 @@ type Config struct {
 	AccountID        string
 	ClusterID        string
 	WriteCompliance  bool
-	WebhookListen    string
-	WebhookCertFile  string
-	WebhookKeyFile   string
+	WebhookListen    int
+	WebhookCertDir   string
 	LogLevel         string
 	ProbesListen     string
 	DisableAdmission bool
@@ -52,7 +51,12 @@ type Config struct {
 
 	// flux notification sink config
 	FluxNotificationSinkAddr string
+	MetricsAddr              string
 }
+
+var (
+	scheme = runtime.NewScheme()
+)
 
 const (
 	auditControllerInterval         = 23 * time.Hour
@@ -87,26 +91,19 @@ func main() {
 			Required:    true,
 			EnvVars:     []string{"AGENT_CLUSTER_ID"},
 		},
-		&cli.StringFlag{
+		&cli.IntFlag{
 			Name:        "webhook-listen",
-			Usage:       "address for the admission webhook server to listen on",
+			Usage:       "port for the admission webhook server to listen on",
 			Destination: &config.WebhookListen,
-			Value:       ":8443",
+			Value:       8443,
 			EnvVars:     []string{"AGENT_WEBHOOK_LISTEN"},
 		},
 		&cli.StringFlag{
-			Name:        "webhook-cert-file",
-			Usage:       "cert file path for webhook server",
-			Destination: &config.WebhookCertFile,
-			Value:       "/certs/tls.crt",
-			EnvVars:     []string{"AGENT_WEBHOOK_CERT_FILE"},
-		},
-		&cli.StringFlag{
-			Name:        "webhook-key-file",
-			Usage:       "key file path for webhook server",
-			Destination: &config.WebhookKeyFile,
-			Value:       "/certs/tls.key",
-			EnvVars:     []string{"AGENT_WEBHOOK_KEY_FILE"},
+			Name:        "webhook-cert-dir",
+			Usage:       "cert directory path for webhook server",
+			Destination: &config.WebhookCertDir,
+			Value:       "/certs",
+			EnvVars:     []string{"AGENT_WEBHOOK_CERT_DIR"},
 		},
 		&cli.StringFlag{
 			Name:        "probes-listen",
@@ -162,6 +159,13 @@ func main() {
 			Value:       false,
 			EnvVars:     []string{"AGENT_ENABLE_K8S_EVENTS_SINK"},
 		},
+		&cli.StringFlag{
+			Name:        "metrics-addr",
+			Usage:       "address the metric endpoint binds to",
+			Destination: &config.MetricsAddr,
+			Value:       ":8080",
+			EnvVars:     []string{"AGENT_METRICS_ADDR"},
+		},
 	}
 
 	app.Before = func(c *cli.Context) error {
@@ -200,26 +204,38 @@ func main() {
 			return fmt.Errorf("failed to load Kubernetes config: %w", err)
 		}
 
-		scheme := scheme_client.Scheme
-		err = magalixv1.AddToScheme(scheme)
+		err = magalixcomv1.AddToScheme(scheme)
 		if err != nil {
-			return fmt.Errorf("failed to add policy crd to schema: %w", err)
+			return fmt.Errorf("failed to add policy crd to scheme: %w", err)
 		}
 
+		lg := log.NewControllerLog(config.AccountID, config.ClusterID)
+
 		mgr, err := ctrl.NewManager(kubeConfig, ctrl.Options{
-			Scheme:             scheme,
-			MetricsBindAddress: "0",
+			Scheme:                 scheme,
+			MetricsBindAddress:     config.MetricsAddr,
+			Port:                   config.WebhookListen,
+			CertDir:                config.WebhookCertDir,
+			HealthProbeBindAddress: config.ProbesListen,
+			Logger:                 lg,
 		})
 
-		probeHandler := probes.NewProbesHandler(config.ProbesListen)
-		go func() {
-			err := probeHandler.Run(contextCli.Context)
-			if err != nil {
-				logger.Fatal("failed to start probes server", "error", err)
-			}
-		}()
+		err = mgr.AddHealthzCheck("liveness", healthz.Ping)
+		if err != nil {
+			return fmt.Errorf("failed to register liveness probe check: %w", err)
+		}
 
-		kubePoliciesClient := policiesClient.NewKubePoliciesClient(kubeConfig)
+		err = mgr.AddReadyzCheck("readiness", func(req *http.Request) error {
+			if mgr.GetCache().WaitForCacheSync(req.Context()) {
+				return nil
+			} else {
+				return errors.New("controller not yet ready")
+			}
+		})
+		if err != nil {
+			return fmt.Errorf("failed to register readiness probe check: %w", err)
+		}
+
 		kubeClient, err := kube.NewKubeClient(kubeConfig)
 		if err != nil {
 			return fmt.Errorf("init client failed: %w", err)
@@ -230,11 +246,10 @@ func main() {
 		}
 
 		logger.Info("starting policies CRD watcher")
-		policiesSource, err := crd.NewPoliciesWatcher(kubePoliciesClient)
+		policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
 		if err != nil {
 			return fmt.Errorf("failed to initialize CRD policies source: %w", err)
 		}
-		defer policiesSource.Close()
 
 		sinks := []domain.PolicyValidationSink{}
 
@@ -268,9 +283,6 @@ func main() {
 			sinks = append(sinks, k8sEventSink)
 		}
 
-		probeHandler.MarkReady(true)
-		eg, ctx := errgroup.WithContext(contextCli.Context)
-
 		if !config.DisableAudit {
 			validator := validation.NewOPAValidator(
 				policiesSource,
@@ -279,10 +291,7 @@ func main() {
 				sinks...,
 			)
 			auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
-			eg.Go(func() error {
-				logger.Info("starting audit controller...")
-				return auditController.Run(ctx)
-			})
+			mgr.Add(auditController)
 			auditController.Audit(auditor.AuditEventTypeInitial, nil)
 		}
 
@@ -294,26 +303,21 @@ func main() {
 				sinks...,
 			)
 			admissionServer := admission.NewAdmissionHandler(
-				config.WebhookListen,
-				config.WebhookCertFile,
-				config.WebhookKeyFile,
 				config.LogLevel,
 				validator,
 			)
-			eg.Go(func() error {
-				logger.Info("starting admission server...")
-				err := admissionServer.Run(ctx)
-				if err != nil {
-					return fmt.Errorf("failed to start admission server: %w", err)
-				}
-				return nil
-			})
+			logger.Info("starting admission server...")
+			err := admissionServer.Run(mgr)
+			if err != nil {
+				return fmt.Errorf("failed to start admission server: %w", err)
+			}
 		}
 
-		err = eg.Wait()
+		err = mgr.Start(ctrl.SetupSignalHandler())
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to run agent: %w", err)
 		}
+
 		return nil
 	}
 	err := app.Run(os.Args)

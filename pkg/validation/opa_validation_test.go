@@ -7,12 +7,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/domain"
-	"github.com/MagalixCorp/magalix-policy-agent/pkg/validation/testdata"
-	mockpolicy "github.com/MagalixCorp/magalix-policy-agent/policies/mock"
-	mocksink "github.com/MagalixCorp/magalix-policy-agent/sink/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
+	mockpolicy "github.com/weaveworks/magalix-policy-agent/internal/policies/mock"
+	mocksink "github.com/weaveworks/magalix-policy-agent/internal/sink/mock"
+	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
+	"github.com/weaveworks/magalix-policy-agent/pkg/validation/testdata"
 )
 
 func TestNewOPAValidator(t *testing.T) {

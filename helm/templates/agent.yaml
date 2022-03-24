@@ -151,12 +151,12 @@ spec:
               cpu: 100m
           livenessProbe:
             httpGet:
-              path: /health
+              path: /healthz
               port: 9000
             initialDelaySeconds: 5
           readinessProbe:
             httpGet:
-              path: /ready
+              path: /readyz
               port: 9000
             initialDelaySeconds: 5
           ports:
