@@ -113,7 +113,7 @@ metadata:
     app.kubernetes.io/name: "policy-agent"
     app.kubernetes.io/instance: "policy-agent"
     app.kubernetes.io/part-of: "policy-agent"
-    app.kubernetes.io/managed-by: "magalix"
+    app.kubernetes.io/managed-by: "weaveworks"
     app.kubernetes.io/version: "1"
     app.kubernetes.io/component: "policy-agent"
     app.kubernetes.io/tier: "backend"
@@ -204,7 +204,7 @@ metadata:
   labels:
     app.kubernetes.io/name: policy-agent
 webhooks:
-  - name: admission.agent.magalix
+  - name: admission.agent.weaveworks
     clientConfig:
       service:
         namespace: {{ .Values.namespace }}
