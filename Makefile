@@ -141,6 +141,15 @@ ENVTEST = $(shell pwd)/bin/setup-envtest
 envtest: ## Download envtest-setup locally if necessary.
 	$(call go-get-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest@latest)
 
+push@%:
+	$(eval VERSION ?= latest)
+	$(eval TAG ?= $*/$(NAME):$(VERSION))
+	@echo :: pushing image $(NAME):$(VERSION)
+	@docker tag $(NAME):$(VERSION) $(TAG)
+	@docker push $(TAG)
+
+	@if [[ "$(tag-file)" ]]; then echo "$(TAG)" > "$(tag-file)"; fi
+	@if [[ "$(version-file)" ]]; then echo "$(VERSION)" > "$(version-file)"; fi
 
 .PHONY: mock
 mock:
