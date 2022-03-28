@@ -14,7 +14,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli/v2 v2.3.0
-	github.com/weaveworks/policy-agent/api v0.0.0-20220317135335-59ac19ed494f
+	github.com/weaveworks/policy-agent/api v1.0.1-0.20220328120600-fbdab40ba695
 	go.uber.org/zap v1.19.1
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	k8s.io/api v0.23.4
