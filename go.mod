@@ -1,24 +1,25 @@
-module github.com/MagalixCorp/magalix-policy-agent
+module github.com/weaveworks/policy-agent
 
 go 1.17
 
-replace (
-	github.com/dgrijalva/jwt-go v3.2.2+incompatible => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
-)
+replace github.com/dgrijalva/jwt-go v3.2.2+incompatible => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 
 require (
-	github.com/MagalixTechnologies/core/logger v1.0.3
+	github.com/MagalixTechnologies/core/logger v1.0.4
 	github.com/MagalixTechnologies/opa-core v1.0.11
 	github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e
 	github.com/fluxcd/pkg/runtime v0.13.1
+	github.com/go-logr/logr v1.2.2
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli/v2 v2.3.0
+	github.com/weaveworks/policy-agent/api v1.0.1-0.20220328120600-fbdab40ba695
+	go.uber.org/zap v1.19.1
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	k8s.io/api v0.23.3
-	k8s.io/apimachinery v0.23.3
-	k8s.io/client-go v0.23.3
+	k8s.io/api v0.23.4
+	k8s.io/apimachinery v0.23.5
+	k8s.io/client-go v0.23.4
 	sigs.k8s.io/controller-runtime v0.11.1
 )
 
@@ -32,7 +33,6 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8 // indirect
-	github.com/go-logr/logr v1.2.2 // indirect
 	github.com/go-logr/zapr v1.2.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -67,7 +67,6 @@ require (
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.19.1 // indirect
 	golang.org/x/net v0.0.0-20211215060638-4ddde0e984e9 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
@@ -80,8 +79,8 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-	k8s.io/apiextensions-apiserver v0.23.0 // indirect
-	k8s.io/component-base v0.23.0 // indirect
+	k8s.io/apiextensions-apiserver v0.23.4 // indirect
+	k8s.io/component-base v0.23.4 // indirect
 	k8s.io/klog/v2 v2.30.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	k8s.io/utils v0.0.0-20211116205334-6203023598ed // indirect

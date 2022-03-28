@@ -1,0 +1,14 @@
+domain: magalix.com
+layout:
+- go.kubebuilder.io/v3
+projectName: policy-agent
+repo: github.com/weaveworks/policy-agent
+resources:
+- api:
+    crdVersion: v1
+    namespaced: false
+  domain: magalix.com
+  kind: Policy
+  path: github.com/weaveworks/policy-agent/api/v1
+  version: v1
+version: "3"

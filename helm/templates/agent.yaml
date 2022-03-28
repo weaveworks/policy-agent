@@ -3,19 +3,19 @@ kind: Namespace
 metadata:
   labels:
     agent-admission: ignore
-    app.kubernetes.io/name: "magalix-system"
+    app.kubernetes.io/name: "{{ .Values.namespace }}"
     app.kubernetes.io/version: "1"
     app.kubernetes.io/component: "namespace"
     app.kubernetes.io/tier: "backend"
-  name: magalix-system
+  name: {{ .Values.namespace }}
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: magalix-policy-agent
-  namespace: magalix-system
+  name: policy-agent
+  namespace: {{ .Values.namespace }}
   labels:
-    app.kubernetes.io/name: "magalix-policy-agent"
+    app.kubernetes.io/name: "policy-agent"
     app.kubernetes.io/version: "1"
     app.kubernetes.io/component: "service-account"
     app.kubernetes.io/tier: "backend"
@@ -23,9 +23,9 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: magalix-policy-agent
+  name: policy-agent
   labels:
-    app.kubernetes.io/name: "magalix-policy-agent"
+    app.kubernetes.io/name: "policy-agent"
     app.kubernetes.io/version: "1"
     app.kubernetes.io/component: "cluster-role"
     app.kubernetes.io/tier: "backend"
@@ -49,27 +49,27 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: magalix-policy-agent
+  name: policy-agent
   labels:
-    app.kubernetes.io/name: "magalix-policy-agent"
+    app.kubernetes.io/name: "policy-agent"
     app.kubernetes.io/version: "1"
     app.kubernetes.io/component: "cluster-role-binding"
     app.kubernetes.io/tier: "backend"
 subjects:
 - kind: ServiceAccount
-  name: magalix-policy-agent
-  namespace: magalix-system
+  name: policy-agent
+  namespace: {{ .Values.namespace }}
 roleRef:
   kind: ClusterRole
-  name: magalix-policy-agent
+  name: policy-agent
   apiGroup: rbac.authorization.k8s.io
 ---
 {{if eq .Values.usePersistence true }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: magalix-policy-agent
-  namespace: magalix-system
+  name: policy-agent
+  namespace: {{ .Values.namespace }}
 spec:
   storageClassName: {{ .Values.storageClassName }}
   accessModes:
@@ -82,8 +82,8 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: magalix-policy-agent
-  namespace: magalix-system
+  name: policy-agent
+  namespace: {{ .Values.namespace }}
 data:
   AGENT_ACCOUNT_ID: {{ .Values.accountId }}
   AGENT_CLUSTER_ID: {{ .Values.clusterId }}
@@ -95,8 +95,8 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: magalix-policy-agent
-  namespace: magalix-system
+  name: policy-agent
+  namespace: {{ .Values.namespace }}
 type: kubernetes.io/tls
 data:
   tls.crt: |
@@ -107,27 +107,27 @@ data:
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: magalix-policy-agent
-  namespace: magalix-system
+  name: policy-agent
+  namespace: {{ .Values.namespace }}
   labels:
-    app.kubernetes.io/name: "magalix-policy-agent"
-    app.kubernetes.io/instance: "magalix-policy-agent"
-    app.kubernetes.io/part-of: "magalix-policy-agent"
+    app.kubernetes.io/name: "policy-agent"
+    app.kubernetes.io/instance: "policy-agent"
+    app.kubernetes.io/part-of: "policy-agent"
     app.kubernetes.io/managed-by: "magalix"
     app.kubernetes.io/version: "1"
-    app.kubernetes.io/component: "magalix-policy-agent"
+    app.kubernetes.io/component: "policy-agent"
     app.kubernetes.io/tier: "backend"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name:  magalix-policy-agent
+      name:  policy-agent
   template:
     metadata:
       labels:
-        name: magalix-policy-agent
+        name: policy-agent
     spec:
-      serviceAccountName: magalix-policy-agent
+      serviceAccountName: policy-agent
       restartPolicy: Always
       containers:
         - image: {{.Values.image}}
@@ -151,12 +151,12 @@ spec:
               cpu: 100m
           livenessProbe:
             httpGet:
-              path: /health
+              path: /healthz
               port: 9000
             initialDelaySeconds: 5
           readinessProbe:
             httpGet:
-              path: /ready
+              path: /readyz
               port: 9000
             initialDelaySeconds: 5
           ports:
@@ -165,7 +165,7 @@ spec:
             protocol: TCP
           envFrom:
           - configMapRef:
-              name: magalix-policy-agent
+              name: policy-agent
           volumeMounts:
           - name: cert
             mountPath: /certs
@@ -177,38 +177,38 @@ spec:
       volumes:
       - name: cert
         secret:
-          secretName: magalix-policy-agent
+          secretName: policy-agent
       {{- if eq .Values.usePersistence true }}
       - name: validation-results
         persistentVolumeClaim:
-          claimName: magalix-policy-agent
+          claimName: policy-agent
       {{- end}}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: magalix-policy-agent
-  namespace: magalix-system
+  name: policy-agent
+  namespace: {{ .Values.namespace }}
 spec:
   ports:
   - name: https-admission-webhook
     port: 443
     targetPort: webhook
   selector:
-    name:  magalix-policy-agent
+    name:  policy-agent
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: magalix-policy-agent
+  name: policy-agent
   labels:
-    app.kubernetes.io/name: magalix-policy-agent
+    app.kubernetes.io/name: policy-agent
 webhooks:
   - name: admission.agent.magalix
     clientConfig:
       service:
-        namespace: magalix-system
-        name: magalix-policy-agent
+        namespace: {{ .Values.namespace }}
+        name: policy-agent
         path: /admission
       caBundle: {{ .Values.caCertificate | b64enc }}
     rules:

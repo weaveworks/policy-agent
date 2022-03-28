@@ -50,6 +50,8 @@ jobs:
           name: Build binary
           command: |
 
+            apk add build-base
+
             export GOCACHE=/go/cache/
 
             cd $SOURCE_PATH
@@ -62,7 +64,9 @@ jobs:
             - /go/pkg/
             - /go/cache/
 
-      - setup_remote_docker
+      - setup_remote_docker:
+          reusable: true
+          exclusive: true
 
       - run:
           name: Build docker image
@@ -96,22 +100,23 @@ jobs:
           name: Scan The Image
           command: |
             cd $SOURCE_PATH
+            REPO=policy-agent
             COMMIT_COUNT=$(git rev-list --count HEAD)
             SHORT_HASH=$(git rev-parse --short HEAD)
             VERSION=${CIRCLE_BRANCH}-${COMMIT_COUNT}-${SHORT_HASH}
-
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
               export VERSION=latest
             fi
-
             if [[ "$CIRCLE_BRANCH" == "dev" ]]; then
               export VERSION=dev
             fi
 
-            make anchore_scan VERSION=$VERSION
+            echo scanning ${REPO}:${VERSION}
+            ssh remote-docker 'curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin'
+            ssh remote-docker grype "${REPO}:${VERSION}" --scope all-layers > /tmp/report.txt #--fail-on high to fail on sev high
 
       - store_artifacts:
-          path: anchore-reports/
+          path: /tmp/report.txt
 
       - deploy:
           name: Push to Docker Registry
@@ -140,5 +145,4 @@ workflows:
   version: 2
   "build & push":
     jobs:
-      - "build & push":
-          context: org-global
+      - "build & push"
