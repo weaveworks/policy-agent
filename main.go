@@ -11,18 +11,18 @@ import (
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
-	magalixcomv1 "github.com/weaveworks/magalix-policy-agent/api/v1"
-	"github.com/weaveworks/magalix-policy-agent/internal/admission"
-	"github.com/weaveworks/magalix-policy-agent/internal/auditor"
-	"github.com/weaveworks/magalix-policy-agent/internal/clients/kube"
-	"github.com/weaveworks/magalix-policy-agent/internal/entities/k8s"
-	"github.com/weaveworks/magalix-policy-agent/internal/policies/crd"
-	"github.com/weaveworks/magalix-policy-agent/internal/sink/filesystem"
-	flux_notification "github.com/weaveworks/magalix-policy-agent/internal/sink/flux-notification"
-	k8s_event "github.com/weaveworks/magalix-policy-agent/internal/sink/k8s-event"
-	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
-	"github.com/weaveworks/magalix-policy-agent/pkg/log"
-	"github.com/weaveworks/magalix-policy-agent/pkg/validation"
+	magalixcomv1 "github.com/weaveworks/policy-agent/api/v1"
+	"github.com/weaveworks/policy-agent/internal/admission"
+	"github.com/weaveworks/policy-agent/internal/auditor"
+	"github.com/weaveworks/policy-agent/internal/clients/kube"
+	"github.com/weaveworks/policy-agent/internal/entities/k8s"
+	"github.com/weaveworks/policy-agent/internal/policies/crd"
+	"github.com/weaveworks/policy-agent/internal/sink/filesystem"
+	flux_notification "github.com/weaveworks/policy-agent/internal/sink/flux-notification"
+	k8s_event "github.com/weaveworks/policy-agent/internal/sink/k8s-event"
+	"github.com/weaveworks/policy-agent/pkg/domain"
+	"github.com/weaveworks/policy-agent/pkg/log"
+	"github.com/weaveworks/policy-agent/pkg/validation"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -60,7 +60,7 @@ var (
 
 const (
 	auditControllerInterval         = 23 * time.Hour
-	eventReportingController string = "magalix-policy-agent"
+	eventReportingController string = "policy-agent"
 )
 
 func main() {
@@ -190,7 +190,7 @@ func main() {
 	}
 
 	app.Action = func(contextCli *cli.Context) error {
-		logger.Info("initializing Magalix Policy Agent")
+		logger.Info("initializing Policy Agent")
 		logger.Infof("config: %+v", config)
 
 		var kubeConfig *rest.Config

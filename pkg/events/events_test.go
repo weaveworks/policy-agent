@@ -6,7 +6,7 @@ import (
 
 	"github.com/MagalixTechnologies/uuid-go"
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
+	"github.com/weaveworks/policy-agent/pkg/domain"
 	v1 "k8s.io/api/core/v1"
 )
 

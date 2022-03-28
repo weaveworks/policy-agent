@@ -9,10 +9,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	mockpolicy "github.com/weaveworks/magalix-policy-agent/internal/policies/mock"
-	mocksink "github.com/weaveworks/magalix-policy-agent/internal/sink/mock"
-	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
-	"github.com/weaveworks/magalix-policy-agent/pkg/validation/testdata"
+	mockpolicy "github.com/weaveworks/policy-agent/internal/policies/mock"
+	mocksink "github.com/weaveworks/policy-agent/internal/sink/mock"
+	"github.com/weaveworks/policy-agent/pkg/domain"
+	"github.com/weaveworks/policy-agent/pkg/validation/testdata"
 )
 
 func TestNewOPAValidator(t *testing.T) {
