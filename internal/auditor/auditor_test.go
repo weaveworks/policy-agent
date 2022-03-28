@@ -7,9 +7,9 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	entitiesmock "github.com/weaveworks/magalix-policy-agent/internal/entities/mock"
-	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
-	validationmock "github.com/weaveworks/magalix-policy-agent/pkg/validation/mock"
+	entitiesmock "github.com/weaveworks/policy-agent/internal/entities/mock"
+	"github.com/weaveworks/policy-agent/pkg/domain"
+	validationmock "github.com/weaveworks/policy-agent/pkg/validation/mock"
 	"golang.org/x/sync/errgroup"
 )
 

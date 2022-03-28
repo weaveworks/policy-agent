@@ -2,7 +2,7 @@
 # Image URL to use all building/pushing image targets
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.23
-NAME = magalix-policy-agent
+NAME = policy-agent
 IMG ?= $(NAME)
 
 VERSION = $(shell printf "%s.%s" \
@@ -153,10 +153,10 @@ push@%:
 
 .PHONY: mock
 mock:
-	mockgen -package mock -destination sink/mock/mock.go github.com/weaveworks/magalix-policy-agent/pkg/domain PolicyValidationSink
-	mockgen -package mock -destination policies/mock/mock.go github.com/weaveworks/magalix-policy-agent/pkg/domain PoliciesSource
-	mockgen -package mock -destination pkg/validation/mock/mock.go github.com/weaveworks/magalix-policy-agent/pkg/validation Validator
-	mockgen -package mock -destination entities/mock/mock.go github.com/weaveworks/magalix-policy-agent/pkg/domain EntitiesSource
+	mockgen -package mock -destination sink/mock/mock.go github.com/weaveworks/policy-agent/pkg/domain PolicyValidationSink
+	mockgen -package mock -destination policies/mock/mock.go github.com/weaveworks/policy-agent/pkg/domain PoliciesSource
+	mockgen -package mock -destination pkg/validation/mock/mock.go github.com/weaveworks/policy-agent/pkg/validation Validator
+	mockgen -package mock -destination entities/mock/mock.go github.com/weaveworks/policy-agent/pkg/domain EntitiesSource
 
 
 # go-get-tool will 'go get' any package $2 and install it to $1.

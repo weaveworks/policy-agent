@@ -1,7 +1,7 @@
-[![codecov](https://codecov.io/gh/weaveworks/magalix-policy-agent/branch/dev/graph/badge.svg?token=5HALYBWEIQ)](https://codecov.io/gh/weaveworks/magalix-policy-agent) [![CircleCI](https://circleci.com/gh/weaveworks/magalix-policy-agent.svg?style=shield&circle-token=1d1e7616349e46a7338b44d58c950b0eff08efa7)](https://app.circleci.com/pipelines/github/weaveworks/magalix-policy-agent?branch=dev)
+[![codecov](https://codecov.io/gh/weaveworks/policy-agent/branch/dev/graph/badge.svg?token=5HALYBWEIQ)](https://codecov.io/gh/weaveworks/policy-agent) [![CircleCI](https://circleci.com/gh/weaveworks/policy-agent.svg?style=shield&circle-token=1d1e7616349e46a7338b44d58c950b0eff08efa7)](https://app.circleci.com/pipelines/github/weaveworks/policy-agent?branch=dev)
 
 
-# Magalix Policy Agent
+# Policy Agent
 
 Policy agent that enforces rego policies by controlling admission of violating resources.
 

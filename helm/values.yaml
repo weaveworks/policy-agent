@@ -1,7 +1,8 @@
 claimStorage: 1Gi
 sinkDir: /tmp
 usePersistence: true
-image: magalixcorp/magalix-policy-agent:master
+image: magalixcorp/policy-agent:master
+namespace: policy-system 
 failurePolicy: Ignore
 config:
   AGENT_FILESYSTEM_SINK_FILE_PATH: "/tmp/result.json"

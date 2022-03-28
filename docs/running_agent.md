@@ -93,18 +93,18 @@ req_extensions = v3_req
 distinguished_name = req_distinguished_name
 prompt = no
 [req_distinguished_name]
-CN = magalix-policy-agent.magalix-system.svc
+CN = policy-agent.policy-system.svc
 [ v3_req ]
 basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth, serverAuth
 subjectAltName = @alt_names
 [alt_names]
-DNS.1 = magalix-policy-agent.magalix-system.svc
-DNS.2 = magalix-policy-agent.magalix-system
+DNS.1 = policy-agent.policy-system.svc
+DNS.2 = policy-agent.policy-system
 EOF
 
-openssl req -new -key tls.key -subj "/CN=magalix-policy-agent.magalix-system.svc" -config admission.conf -out admission.csr
+openssl req -new -key tls.key -subj "/CN=policy-agent.policy-system.svc" -config admission.conf -out admission.csr
 ```
 
 Generate the certificate:
@@ -114,7 +114,7 @@ openssl x509 -req -in admission.csr -CA ca.crt -CAkey ca.key -CAcreateserial -ou
 ```
 
 Now that we generated the needed files we need to add them to the yaml.
-We need to add the `tls.crt` and `tls.key` to the secret `magalix-policy-agent`. As well as the configuration for the validating webhook.
+We need to add the `tls.crt` and `tls.key` to the secret `policy-agent`. As well as the configuration for the validating webhook.
 To do that we copy the content of the files to the helm values file:
 
 ```yaml

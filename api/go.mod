@@ -1,4 +1,4 @@
-module github.com/weaveworks/magalix-policy-agent/api
+module github.com/weaveworks/policy-agent/api
 
 go 1.17
 

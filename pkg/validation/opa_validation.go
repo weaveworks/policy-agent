@@ -10,7 +10,7 @@ import (
 	opa "github.com/MagalixTechnologies/opa-core"
 	"github.com/MagalixTechnologies/uuid-go"
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
+	"github.com/weaveworks/policy-agent/pkg/domain"
 )
 
 const (

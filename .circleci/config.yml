@@ -100,7 +100,7 @@ jobs:
           name: Scan The Image
           command: |
             cd $SOURCE_PATH
-            REPO=magalix-policy-agent
+            REPO=policy-agent
             COMMIT_COUNT=$(git rev-list --count HEAD)
             SHORT_HASH=$(git rev-parse --short HEAD)
             VERSION=${CIRCLE_BRANCH}-${COMMIT_COUNT}-${SHORT_HASH}

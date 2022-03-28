@@ -3,7 +3,7 @@ package validation
 import (
 	"context"
 
-	"github.com/weaveworks/magalix-policy-agent/pkg/domain"
+	"github.com/weaveworks/policy-agent/pkg/domain"
 )
 
 // Validator is responsible for validating policies
