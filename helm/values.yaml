@@ -2,6 +2,7 @@
 image: magalixcorp/policy-agent:latest
 namespace: policy-system 
 failurePolicy: Ignore
+useCertManager: true
 
 persistence:
   enabled: true
