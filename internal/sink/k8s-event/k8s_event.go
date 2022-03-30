@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/MagalixTechnologies/core/logger"
-	"github.com/weaveworks/policy-agent/pkg/domain"
+	"github.com/MagalixTechnologies/policy-core/domain"
 	mglx_events "github.com/weaveworks/policy-agent/pkg/events"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,7 +56,7 @@ func (k *K8sEventSink) Stop() {
 	k.cancelWorker()
 }
 
-// Write adds results to buffer, implements github.com/weaveworks/policy-agent/pkg/domain.PolicyValidationSink
+// Write adds results to buffer, implements github.com/MagalixTechnologies/policy-core/domain.PolicyValidationSink
 func (k *K8sEventSink) Write(_ context.Context, results []domain.PolicyValidation) error {
 	logger.Infow("writing validation results", "sink", "k8s_events", "count", len(results))
 	for _, result := range results {
