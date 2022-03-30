@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/MagalixTechnologies/core/logger"
+	"github.com/MagalixTechnologies/policy-core/domain"
+	"github.com/MagalixTechnologies/policy-core/validation"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
 	magalixcomv1 "github.com/weaveworks/policy-agent/api/v1"
@@ -20,9 +22,7 @@ import (
 	"github.com/weaveworks/policy-agent/internal/sink/filesystem"
 	flux_notification "github.com/weaveworks/policy-agent/internal/sink/flux-notification"
 	k8s_event "github.com/weaveworks/policy-agent/internal/sink/k8s-event"
-	"github.com/weaveworks/policy-agent/pkg/domain"
 	"github.com/weaveworks/policy-agent/pkg/log"
-	"github.com/weaveworks/policy-agent/pkg/validation"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"

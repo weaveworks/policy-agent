@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/MagalixTechnologies/core/logger"
-	"github.com/weaveworks/policy-agent/pkg/domain"
+	"github.com/MagalixTechnologies/policy-core/domain"
 )
 
 const (
@@ -72,7 +72,7 @@ func (f *FileSystemSink) WritePolicyValidationWorker(_ context.Context) {
 	}
 }
 
-// Write adds results to buffer, implements github.com/weaveworks/policy-agent/pkg/domain.PolicyValidationSink
+// Write adds results to buffer, implements github.com/MagalixTechnologies/policy-core/domain.PolicyValidationSink
 func (f *FileSystemSink) Write(_ context.Context, policyValidations []domain.PolicyValidation) error {
 	for i := range policyValidations {
 		PolicyValidation := policyValidations[i]

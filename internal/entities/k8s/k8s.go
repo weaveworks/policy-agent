@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/MagalixTechnologies/core/logger"
+	"github.com/MagalixTechnologies/policy-core/domain"
 	magalixv1 "github.com/weaveworks/policy-agent/api/v1"
 	"github.com/weaveworks/policy-agent/internal/clients/kube"
-	"github.com/weaveworks/policy-agent/pkg/domain"
 	corev1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
