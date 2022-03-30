@@ -1,5 +1,5 @@
 
-image: magalixcorp/policy-agent:dev
+image: magalixcorp/policy-agent:latest
 namespace: policy-system 
 failurePolicy: Ignore
 
