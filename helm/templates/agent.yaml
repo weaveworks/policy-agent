@@ -64,19 +64,19 @@ roleRef:
   name: policy-agent
   apiGroup: rbac.authorization.k8s.io
 ---
-{{if eq .Values.usePersistence true }}
+{{if eq .Values.persistence.enabled true }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: policy-agent
   namespace: {{ .Values.namespace }}
 spec:
-  storageClassName: {{ .Values.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName }}
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.claimStorage }}
+      storage: {{ .Values.persistence.claimStorage }}
 ---
 {{end}}
 apiVersion: v1
@@ -170,15 +170,15 @@ spec:
           - name: cert
             mountPath: /certs
             readOnly: true
-          {{- if eq .Values.usePersistence true }}
+          {{- if eq .Values.persistence.enabled true }}
           - name: validation-results
-            mountPath: {{.Values.sinkDir}}
+            mountPath: {{.Values.persistence.sinkDir}}
           {{- end}}
       volumes:
       - name: cert
         secret:
           secretName: policy-agent
-      {{- if eq .Values.usePersistence true }}
+      {{- if eq .Values.persistence.enabled true }}
       - name: validation-results
         persistentVolumeClaim:
           claimName: policy-agent
