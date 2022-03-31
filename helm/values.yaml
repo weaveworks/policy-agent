@@ -2,7 +2,12 @@
 image: magalixcorp/policy-agent:latest
 namespace: policy-system 
 failurePolicy: Ignore
+
+# If you don't want to use cert-manager, set useCertManager to false and provide your own certs
 useCertManager: true
+certificate: ""
+key: ""
+caCertificate: ""
 
 persistence:
   enabled: true
@@ -19,7 +24,3 @@ config:
 
 accountId: ""
 clusterId: ""
-
-certificate: ""
-key: ""
-caCertificate: ""
