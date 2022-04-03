@@ -5,9 +5,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
   creationTimestamp: null
-  name: policies.magalix.com
+  name: policies.pac.weave.works
 spec:
-  group: magalix.com
+  group: pac.weave.works
   names:
     kind: Policy
     listKind: PolicyList
@@ -33,7 +33,8 @@ spec:
           metadata:
             type: object
           spec:
-            description: PolicySpec defines the desired state of Policy
+            description: PolicySpec defines the desired state of Policy It describes
+              all that is needed to evaluate a resource against a rego code
             properties:
               category:
                 description: Category specifies under which grouping this policy should
@@ -70,9 +71,6 @@ spec:
                 items:
                   description: PolicyParameters defines a needed input in a policy
                   properties:
-                    default:
-                      description: Default is the value for that parameter
-                      x-kubernetes-preserve-unknown-fields: true
                     name:
                       description: Name is a descriptive name of a policy parameter
                       type: string
@@ -83,6 +81,9 @@ spec:
                     type:
                       description: Type is the type of that parameter, integer, string,...
                       type: string
+                    value:
+                      description: Value is the value for that parameter
+                      x-kubernetes-preserve-unknown-fields: true
                   required:
                   - name
                   - required
@@ -107,14 +108,14 @@ spec:
                   be matched to evaluate a resource against the policy all values
                   specified need to exist in the resource to be considered for evaluation
                 properties:
-                  kind:
-                    description: Kind is a list of Kubernetes kinds that are supported
+                  kinds:
+                    description: Kinds is a list of Kubernetes kinds that are supported
                       by this policy
                     items:
                       type: string
                     type: array
-                  label:
-                    description: Label is a list of Kubernetes labels that are needed
+                  labels:
+                    description: Labels is a list of Kubernetes labels that are needed
                       to evaluate the policy against a resource this filter is statisfied
                       if only one label existed, using * for value make it so it will
                       match if the key exists regardless of its value
@@ -123,14 +124,14 @@ spec:
                         type: string
                       type: object
                     type: array
-                  namespace:
-                    description: Namespace is a list of Kubernetes namespaces that
+                  namespaces:
+                    description: Namespaces is a list of Kubernetes namespaces that
                       a resource needs to be a part of to evaluate against this policy
                     items:
                       type: string
                     type: array
                 required:
-                - kind
+                - kinds
                 type: object
             required:
             - category

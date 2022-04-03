@@ -13,7 +13,7 @@ import (
 	"github.com/MagalixTechnologies/policy-core/validation"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
-	magalixcomv1 "github.com/weaveworks/policy-agent/api/v1"
+	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
 	"github.com/weaveworks/policy-agent/internal/admission"
 	"github.com/weaveworks/policy-agent/internal/auditor"
 	"github.com/weaveworks/policy-agent/internal/clients/kube"
@@ -67,7 +67,7 @@ func main() {
 	config := Config{}
 	app := cli.NewApp()
 	app.Version = "0.0.1"
-	app.Name = "Magalix agent"
+	app.Name = "Policy agent"
 	app.Usage = "Enforces compliance on your kubernetes cluster"
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
@@ -204,7 +204,7 @@ func main() {
 			return fmt.Errorf("failed to load Kubernetes config: %w", err)
 		}
 
-		err = magalixcomv1.AddToScheme(scheme)
+		err = policiesv1.AddToScheme(scheme)
 		if err != nil {
 			return fmt.Errorf("failed to add policy crd to scheme: %w", err)
 		}

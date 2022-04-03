@@ -18,7 +18,7 @@ func TestEvents(t *testing.T) {
 		Severity: "low",
 		Reference: v1.ObjectReference{
 			UID:             "my-policy",
-			APIVersion:      "magalix.com/v1",
+			APIVersion:      "pac.weave.works/v1",
 			Kind:            "Policy",
 			Name:            "my-policy",
 			ResourceVersion: "1",

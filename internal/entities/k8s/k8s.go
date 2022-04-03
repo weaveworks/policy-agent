@@ -7,7 +7,7 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
-	magalixv1 "github.com/weaveworks/policy-agent/api/v1"
+	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
 	"github.com/weaveworks/policy-agent/internal/clients/kube"
 	corev1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -75,15 +75,15 @@ func getValidateRules(ctx context.Context, kubeClient *kube.KubeClient) ([]rules
 				cache.apiGroups[rule.APIGroups[k]] = struct{}{}
 			}
 			rulesCaches = append(rulesCaches, cache)
-			checkPoliciesResource := checkAllowed(magalixv1.ResourceName, cache.resources)
-			checkPoliciesGroup := checkAllowed(magalixv1.GroupVersion.Group, cache.apiGroups)
+			checkPoliciesResource := checkAllowed(policiesv1.ResourceName, cache.resources)
+			checkPoliciesGroup := checkAllowed(policiesv1.GroupVersion.Group, cache.apiGroups)
 			if checkPoliciesResource && checkPoliciesGroup {
 				foundPolicicesRule = true
 			}
 		}
 	}
 	if !foundPolicicesRule {
-		return nil, errors.New("missing magalix policices resource permissions")
+		return nil, errors.New("missing weaveworks policies resource permissions")
 	}
 	return rulesCaches, nil
 }
@@ -134,7 +134,7 @@ func GetEntitiesSources(ctx context.Context, kubeClient *kube.KubeClient) ([]dom
 						Group:    groupVersion.Group,
 						Version:  groupVersion.Version,
 						Resource: apiResource.Name}
-					if resource.String() == magalixv1.GroupVersionResource.String() {
+					if resource.String() == policiesv1.GroupVersionResource.String() {
 						continue
 					}
 

@@ -37,21 +37,21 @@ type PolicyParameters struct {
 	// Required specifies if this is a necessary value or not
 	Required bool `json:"required"`
 	// +optional
-	// Default is the value for that parameter
-	Default *apiextensionsv1.JSON `json:"default,omitempty"`
+	// Value is the value for that parameter
+	Value *apiextensionsv1.JSON `json:"value,omitempty"`
 }
 
 // PolicyTargets are filters used to determine which resources should be evaluated against a policy
 type PolicyTargets struct {
-	// Kind is a list of Kubernetes kinds that are supported by this policy
-	Kind []string `json:"kind"`
+	// Kinds is a list of Kubernetes kinds that are supported by this policy
+	Kinds []string `json:"kinds"`
 	// +optional
-	// Label is a list of Kubernetes labels that are needed to evaluate the policy against a resource
+	// Labels is a list of Kubernetes labels that are needed to evaluate the policy against a resource
 	// this filter is statisfied if only one label existed, using * for value make it so it will match if the key exists regardless of its value
-	Label []map[string]string `json:"label"`
+	Labels []map[string]string `json:"labels"`
 	// +optional
-	// Namespace is a list of Kubernetes namespaces that a resource needs to be a part of to evaluate against this policy
-	Namespace []string `json:"namespace"`
+	// Namespaces is a list of Kubernetes namespaces that a resource needs to be a part of to evaluate against this policy
+	Namespaces []string `json:"namespaces"`
 }
 
 // PolicySpec defines the desired state of Policy

@@ -7,7 +7,7 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
-	magalixcomv1 "github.com/weaveworks/policy-agent/api/v1"
+	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
 	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlCache "sigs.k8s.io/controller-runtime/pkg/cache"
@@ -26,7 +26,7 @@ func NewPoliciesWatcher(ctx context.Context, mgr ctrl.Manager) (*PoliciesWatcher
 // GetAll returns all policies, implements github.com/MagalixTechnologies/policy-core/domain.PoliciesSource
 func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 	var policies []domain.Policy
-	policiesCRD := &magalixcomv1.PolicyList{}
+	policiesCRD := &policiesv1.PolicyList{}
 	err := p.cache.List(ctx, policiesCRD, &client.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error while retrieving policies CRD from cache: %w", err)
@@ -40,9 +40,9 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 			Code:   policyCRD.Code,
 			Enable: policyCRD.Enable,
 			Targets: domain.PolicyTargets{
-				Kind:      policyCRD.Targets.Kind,
-				Label:     policyCRD.Targets.Label,
-				Namespace: policyCRD.Targets.Namespace,
+				Kinds:      policyCRD.Targets.Kinds,
+				Labels:     policyCRD.Targets.Labels,
+				Namespaces: policyCRD.Targets.Namespaces,
 			},
 			Description: policyCRD.Description,
 			HowToSolve:  policyCRD.HowToSolve,
@@ -66,10 +66,10 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 				Type:     paramCRD.Type,
 				Required: paramCRD.Required,
 			}
-			if paramCRD.Default != nil {
-				err = json.Unmarshal(paramCRD.Default.Raw, &param.Default)
+			if paramCRD.Value != nil {
+				err = json.Unmarshal(paramCRD.Value.Raw, &param.Value)
 				if err != nil {
-					logger.Errorw("failed to load policy parameter default value", "error", err)
+					logger.Errorw("failed to load policy parameter value", "error", err)
 				}
 			}
 			policy.Parameters = append(policy.Parameters, param)
