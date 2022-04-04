@@ -2,32 +2,35 @@ module github.com/weaveworks/policy-agent
 
 go 1.17
 
-replace github.com/dgrijalva/jwt-go v3.2.2+incompatible => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
+replace (
+	github.com/dgrijalva/jwt-go v3.2.2+incompatible => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
+	github.com/weaveworks/policy-agent/api => ./api
+)
 
 require (
 	github.com/MagalixTechnologies/core/logger v1.0.4
-	github.com/MagalixTechnologies/opa-core v1.0.11
+	github.com/MagalixTechnologies/policy-core v1.0.0
 	github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e
 	github.com/fluxcd/pkg/runtime v0.13.1
 	github.com/go-logr/logr v1.2.2
 	github.com/golang/mock v1.6.0
-	github.com/hashicorp/go-multierror v1.1.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	github.com/urfave/cli/v2 v2.3.0
-	github.com/weaveworks/policy-agent/api v1.0.1-0.20220328120600-fbdab40ba695
+	github.com/weaveworks/policy-agent/api v0.0.0
 	go.uber.org/zap v1.19.1
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	k8s.io/api v0.23.4
+	k8s.io/api v0.23.5
 	k8s.io/apimachinery v0.23.5
 	k8s.io/client-go v0.23.4
 	sigs.k8s.io/controller-runtime v0.11.1
 )
 
 require (
+	github.com/MagalixTechnologies/opa-core v1.0.12 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -43,14 +46,15 @@ require (
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
-	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/open-policy-agent/opa v0.32.0 // indirect
+	github.com/open-policy-agent/opa v0.37.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
@@ -58,9 +62,8 @@ require (
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	github.com/russross/blackfriday/v2 v2.0.1 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b // indirect
-	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect

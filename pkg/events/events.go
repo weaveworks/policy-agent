@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/weaveworks/policy-agent/pkg/domain"
+	"github.com/MagalixTechnologies/policy-core/domain"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

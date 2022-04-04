@@ -68,6 +68,18 @@ config:
 
 For a server to be registered as an admission control it needs to be able to serve HTTPS traffic. Since the server should only be accessible as a webhook server, self signed certificates will be used.
 
+#### Using Cert manager
+
+The simplest way is to have [cert manager](https://cert-manager.io/docs/installation/) installed. Once that is satisfied you then need to add this to your value file:
+
+```yaml
+useCertManager: true
+```
+
+The certificate will be generated then and cert manager will update the validating webhook configuration
+
+#### Manual generation
+
 The following steps shows how to generate the certificate from a self signed CA using `openssl`.
 
 To generate the CA cert and private key:

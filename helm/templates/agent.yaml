@@ -64,19 +64,19 @@ roleRef:
   name: policy-agent
   apiGroup: rbac.authorization.k8s.io
 ---
-{{if eq .Values.usePersistence true }}
+{{if eq .Values.persistence.enabled true }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: policy-agent
   namespace: {{ .Values.namespace }}
 spec:
-  storageClassName: {{ .Values.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName }}
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.claimStorage }}
+      storage: {{ .Values.persistence.claimStorage }}
 ---
 {{end}}
 apiVersion: v1
@@ -92,10 +92,35 @@ data:
   {{ $key }}: "{{ $val }}"
   {{- end }}
 ---
+{{if eq .Values.useCertManager true }}
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: agent-issuer
+  namespace: {{ .Values.namespace }}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: agent-certificate
+  namespace: {{ .Values.namespace }}
+spec:
+  commonName: policy-agent.{{ .Values.namespace }}.svc
+  dnsNames:
+  - policy-agent.{{ .Values.namespace }}.svc.cluster.local
+  - policy-agent.{{ .Values.namespace }}.svc
+  issuerRef:
+    kind: Issuer
+    name: agent-issuer
+  secretName: policy-agent-cert
+---
+{{ else }}
 apiVersion: v1
 kind: Secret
 metadata:
-  name: policy-agent
+  name: policy-agent-cert
   namespace: {{ .Values.namespace }}
 type: kubernetes.io/tls
 data:
@@ -104,6 +129,7 @@ data:
   tls.key: |
       {{ .Values.key | b64enc }}
 ---
+{{- end }}
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -113,7 +139,7 @@ metadata:
     app.kubernetes.io/name: "policy-agent"
     app.kubernetes.io/instance: "policy-agent"
     app.kubernetes.io/part-of: "policy-agent"
-    app.kubernetes.io/managed-by: "magalix"
+    app.kubernetes.io/managed-by: "weaveworks"
     app.kubernetes.io/version: "1"
     app.kubernetes.io/component: "policy-agent"
     app.kubernetes.io/tier: "backend"
@@ -170,15 +196,15 @@ spec:
           - name: cert
             mountPath: /certs
             readOnly: true
-          {{- if eq .Values.usePersistence true }}
+          {{- if eq .Values.persistence.enabled true }}
           - name: validation-results
-            mountPath: {{.Values.sinkDir}}
+            mountPath: {{.Values.persistence.sinkDir}}
           {{- end}}
       volumes:
       - name: cert
         secret:
-          secretName: policy-agent
-      {{- if eq .Values.usePersistence true }}
+          secretName: policy-agent-cert
+      {{- if eq .Values.persistence.enabled true }}
       - name: validation-results
         persistentVolumeClaim:
           claimName: policy-agent
@@ -203,8 +229,12 @@ metadata:
   name: policy-agent
   labels:
     app.kubernetes.io/name: policy-agent
+  {{- if eq .Values.useCertManager true }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Values.namespace }}/agent-certificate
+  {{- end }}
 webhooks:
-  - name: admission.agent.magalix
+  - name: admission.agent.weaveworks
     clientConfig:
       service:
         namespace: {{ .Values.namespace }}

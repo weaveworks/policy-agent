@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MagalixTechnologies/policy-core/domain"
 	"github.com/MagalixTechnologies/uuid-go"
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/policy-agent/pkg/domain"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
