@@ -63,8 +63,8 @@ github.com/MagalixTechnologies/core/logger v1.0.4 h1:qnlUUMYSZMKPwxV9MQC+Cg3Rkh/
 github.com/MagalixTechnologies/core/logger v1.0.4/go.mod h1:HUb6GF/FKiBWkVCiRNCpxo3btqIxp8Ek4HZNt4Ga0KA=
 github.com/MagalixTechnologies/opa-core v1.0.12 h1:v9fwq+fwXBnKT7LXK7Ynbb5AkXym+GPEUX5wpdovRu8=
 github.com/MagalixTechnologies/opa-core v1.0.12/go.mod h1:OOvF4AcJEQ1fAcelaC10CCnn4w4AxoJYvRAJi5yFGgo=
-github.com/MagalixTechnologies/policy-core v1.0.0 h1:vC9sfp9qHrOvLS19U53RoI9XS0plnCLXPxR+KvS4jxI=
-github.com/MagalixTechnologies/policy-core v1.0.0/go.mod h1:gM6cocm6aDq7c1DW+JbQlzv1RMM6iwiJojBufSXPUfU=
+github.com/MagalixTechnologies/policy-core v1.0.2 h1:lk+J24tfWj5oROxKzet3BCGQcz7VUT3oX4LDal9Moek=
+github.com/MagalixTechnologies/policy-core v1.0.2/go.mod h1:gM6cocm6aDq7c1DW+JbQlzv1RMM6iwiJojBufSXPUfU=
 github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e h1:l/ci+0/7XVCFdnLSIvgTM9femU75hXpoCBgVX+w1XTA=
 github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e/go.mod h1:/ZuJrsOm2BFLXkKN6zBuQ5L35llSU1x40U5eo4Aa6Dg=
 github.com/NYTimes/gziphandler v0.0.0-20170623195520-56545f4a5d46/go.mod h1:3wb06e3pkSAbeQ52E9H9iFoQsEEwGN64994WTCIhntQ=
