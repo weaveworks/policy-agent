@@ -54,7 +54,7 @@ help: ## Display this help.
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	cd api && $(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=../config/crd/bases
-	cp config/crd/bases/magalix.com_policies.yaml helm/templates
+	cp config/crd/bases/pac.weave.works_policies.yaml helm/crds
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.

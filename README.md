@@ -31,7 +31,7 @@ There are additional arguments that can be specified, refer to the help for more
 ```bash
 agent -h
 NAME:
-   Magalix agent - Enforces compliance on your kubernetes cluster
+   Policy agent - Enforces compliance on your kubernetes cluster
 
 USAGE:
    agent [global options] command [command options] [arguments...]

@@ -24,7 +24,7 @@ func TestFluxNotificationSink(t *testing.T) {
 		Severity:    "severity",
 		Reference: v1.ObjectReference{
 			UID:             types.UID(uuid.NewV4().String()),
-			APIVersion:      "magalix.com/v1",
+			APIVersion:      "pac.weave.works/v1",
 			Kind:            "Policy",
 			Name:            "my-policy",
 			ResourceVersion: "1",

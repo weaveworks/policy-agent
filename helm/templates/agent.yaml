@@ -31,7 +31,7 @@ metadata:
     app.kubernetes.io/tier: "backend"
 rules:
 - apiGroups:
-  - 'magalix.com'
+  - 'pac.weave.works'
   resources:
   - 'policies'
   verbs:

@@ -62,7 +62,7 @@ func TestGetEntitiesSources(t *testing.T) {
 								{
 									Verbs:     []string{"list"},
 									Resources: []string{"policies"},
-									APIGroups: []string{"magalix.com"},
+									APIGroups: []string{"pac.weave.works"},
 								},
 								{
 									Verbs:     []string{"list"},
@@ -142,7 +142,7 @@ func TestGetEntitiesSources(t *testing.T) {
 								{
 									Verbs:     []string{"list"},
 									Resources: []string{"policies"},
-									APIGroups: []string{"magalix.com"},
+									APIGroups: []string{"pac.weave.works"},
 								},
 								{
 									Verbs:     []string{"*"},
@@ -189,7 +189,7 @@ func TestGetEntitiesSources(t *testing.T) {
 								{
 									Verbs:     []string{"list"},
 									Resources: []string{"policies"},
-									APIGroups: []string{"magalix.com"},
+									APIGroups: []string{"pac.weave.works"},
 								},
 								{
 									Verbs:     []string{"list"},
@@ -236,7 +236,7 @@ func TestGetEntitiesSources(t *testing.T) {
 								{
 									Verbs:     []string{"list"},
 									Resources: []string{"policies"},
-									APIGroups: []string{"magalix.com"},
+									APIGroups: []string{"pac.weave.works"},
 								},
 								{
 									Verbs:     []string{"list"},
@@ -262,7 +262,7 @@ func TestGetEntitiesSources(t *testing.T) {
 								{
 									Verbs:     []string{"list"},
 									Resources: []string{"policies"},
-									APIGroups: []string{"magalix.com"},
+									APIGroups: []string{"pac.weave.works"},
 								},
 								{
 									Verbs:     []string{"list"},
@@ -290,7 +290,7 @@ func TestGetEntitiesSources(t *testing.T) {
 			},
 		},
 		{
-			name: "skip magalix policies",
+			name: "skip weaveworks policies",
 			args: args{
 				permissions: Permissions{
 					review: &authv1.SelfSubjectRulesReview{
@@ -299,7 +299,7 @@ func TestGetEntitiesSources(t *testing.T) {
 								{
 									Verbs:     []string{"list"},
 									Resources: []string{"policies"},
-									APIGroups: []string{"magalix.com"},
+									APIGroups: []string{"pac.weave.works"},
 								},
 								{
 									Verbs:     []string{"list"},
@@ -313,7 +313,7 @@ func TestGetEntitiesSources(t *testing.T) {
 				discoveryClient: &DiscoveryMock{
 					ApiList: []*meta.APIResourceList{
 						{
-							GroupVersion: "magalix.com/v1",
+							GroupVersion: "pac.weave.works/v1",
 							APIResources: []meta.APIResource{
 								{
 									Name:  "policies",
@@ -347,7 +347,7 @@ func TestGetEntitiesSources(t *testing.T) {
 			},
 		},
 		{
-			name: "magalix policies not available in rules",
+			name: "weaveworks policies not available in rules",
 			args: args{
 				permissions: Permissions{
 					review: &authv1.SelfSubjectRulesReview{
@@ -389,7 +389,7 @@ func TestGetEntitiesSources(t *testing.T) {
 								{
 									Verbs:     []string{"list"},
 									Resources: []string{"policies"},
-									APIGroups: []string{"magalix.com"},
+									APIGroups: []string{"pac.weave.works"},
 								},
 								{
 									APIGroups: []string{"apps"},
@@ -451,7 +451,7 @@ func TestGetEntitiesSources(t *testing.T) {
 								{
 									Verbs:     []string{"list"},
 									Resources: []string{"policies"},
-									APIGroups: []string{"magalix.com"},
+									APIGroups: []string{"pac.weave.works"},
 								},
 								{
 									APIGroups: []string{"*"},
@@ -520,7 +520,7 @@ func TestGetEntitiesSources(t *testing.T) {
 								{
 									Verbs:     []string{"list"},
 									Resources: []string{"policies"},
-									APIGroups: []string{"magalix.com"},
+									APIGroups: []string{"pac.weave.works"},
 								},
 								{
 									APIGroups: []string{"*"},
@@ -599,7 +599,7 @@ func TestGetEntitiesSources(t *testing.T) {
 								{
 									Verbs:     []string{"list"},
 									Resources: []string{"policies"},
-									APIGroups: []string{"magalix.com"},
+									APIGroups: []string{"pac.weave.works"},
 								},
 								{
 									Verbs:         []string{"list"},
@@ -648,7 +648,7 @@ func TestGetEntitiesSources(t *testing.T) {
 								{
 									Verbs:     []string{"list"},
 									Resources: []string{"policies"},
-									APIGroups: []string{"magalix.com"},
+									APIGroups: []string{"pac.weave.works"},
 								},
 								{
 									Verbs:         []string{"list"},
