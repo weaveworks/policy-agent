@@ -6,7 +6,6 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
-	mglx_events "github.com/weaveworks/policy-agent/pkg/events"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -80,7 +79,7 @@ func (f *K8sEventSink) writeWorker(ctx context.Context) {
 }
 
 func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation) {
-	event := mglx_events.EventFromPolicyValidationResult(result)
+	event := domain.NewK8sEventFromPolicyVlidation(result)
 	event.ReportingController = k.reportingController
 	event.ReportingInstance = k.reportingInstance
 	event.Source = v1.EventSource{Component: k.reportingController}

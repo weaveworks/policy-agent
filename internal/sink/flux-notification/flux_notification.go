@@ -5,7 +5,6 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
-	mglx_events "github.com/weaveworks/policy-agent/pkg/events"
 	"k8s.io/client-go/tools/record"
 )
 
@@ -78,7 +77,7 @@ func (f *FluxNotificationSink) write(result domain.PolicyValidation) {
 		return
 	}
 
-	event := mglx_events.EventFromPolicyValidationResult(result)
+	event := domain.NewK8sEventFromPolicyVlidation(result)
 
 	logger.Debugw(
 		"sending event ...",

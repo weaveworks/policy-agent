@@ -8,7 +8,6 @@ import (
 	"github.com/MagalixTechnologies/policy-core/domain"
 	"github.com/MagalixTechnologies/uuid-go"
 	"github.com/stretchr/testify/assert"
-	mglx_events "github.com/weaveworks/policy-agent/pkg/events"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -105,8 +104,8 @@ func TestK8sEventSink(t *testing.T) {
 
 	for _, event := range events.Items {
 		if event.Type == v1.EventTypeWarning {
-			assert.Equal(t, event.Reason, mglx_events.EventReasonPolicyViolation)
-			assert.Equal(t, event.Action, mglx_events.EventActionRejected)
+			assert.Equal(t, event.Reason, domain.EventReasonPolicyViolation)
+			assert.Equal(t, event.Action, domain.EventActionRejected)
 
 			// verify involved object holds entity info
 			assert.Equal(t, event.InvolvedObject.APIVersion, violatingEntity.APIVersion)
@@ -115,8 +114,8 @@ func TestK8sEventSink(t *testing.T) {
 			assert.Equal(t, event.InvolvedObject.Namespace, violatingEntity.Namespace)
 
 		} else if event.Type == v1.EventTypeNormal {
-			assert.Equal(t, event.Reason, mglx_events.EventReasonPolicyCompliance)
-			assert.Equal(t, event.Action, mglx_events.EventActionAllowed)
+			assert.Equal(t, event.Reason, domain.EventReasonPolicyCompliance)
+			assert.Equal(t, event.Action, domain.EventActionAllowed)
 
 			// verify involved object holds entity info
 			assert.Equal(t, event.InvolvedObject.APIVersion, compliantEntity.APIVersion)
