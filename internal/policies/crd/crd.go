@@ -49,7 +49,6 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 			Category:    policyCRD.Category,
 			Tags:        policyCRD.Tags,
 			Severity:    policyCRD.Severity,
-			Controls:    policyCRD.Controls,
 			Reference: v1.ObjectReference{
 				APIVersion:      policiesCRD.Items[i].APIVersion,
 				Kind:            policiesCRD.Items[i].Kind,
@@ -73,6 +72,14 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 				}
 			}
 			policy.Parameters = append(policy.Parameters, param)
+		}
+
+		for _, standardCRD := range policyCRD.Standards {
+			standard := domain.PolicyStandard{
+				ID:       standardCRD.ID,
+				Controls: standardCRD.Controls,
+			}
+			policy.Standards = append(policy.Standards, standard)
 		}
 		policies = append(policies, policy)
 	}

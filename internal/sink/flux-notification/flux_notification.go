@@ -77,7 +77,19 @@ func (f *FluxNotificationSink) write(result domain.PolicyValidation) {
 		return
 	}
 
-	event := domain.NewK8sEventFromPolicyVlidation(result)
+	event, err := domain.NewK8sEventFromPolicyValidation(result)
+	if err != nil {
+		logger.Errorw(
+			"failed to create event from policy validation for flux notification",
+			"error",
+			err,
+			"entity_kind", result.Entity.Kind,
+			"entity_name", result.Entity.Name,
+			"entity_namespace", result.Entity.Namespace,
+			"policy", result.Policy.ID,
+		)
+		return
+	}
 
 	logger.Debugw(
 		"sending event ...",

@@ -43,19 +43,13 @@ spec:
               code:
                 description: Code contains the policy rego code
                 type: string
-              controls:
-                description: Controls is a list of policy controls that this policy
-                  falls under
-                items:
-                  type: string
-                type: array
               description:
                 description: Description is a summary of what that policy validates
                 type: string
               enable:
                 description: Enable specifies if this policy should be used for evaluation
                   or not
-                type: string
+                type: boolean
               how_to_solve:
                 description: HowToSolve is a description of the steps required to
                   solve the issues reported by the policy
@@ -98,6 +92,23 @@ spec:
                 - medium
                 - high
                 type: string
+              standards:
+                description: Standards is a list of policy standards that this policy
+                  falls under
+                items:
+                  properties:
+                    controls:
+                      description: Controls standard controls
+                      items:
+                        type: string
+                      type: array
+                    id:
+                      description: ID idenitifer of the standarad
+                      type: string
+                  required:
+                  - id
+                  type: object
+                type: array
               tags:
                 description: Tags is a list of tags associated with that policy
                 items:
