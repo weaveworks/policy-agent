@@ -54,6 +54,13 @@ type PolicyTargets struct {
 	Namespaces []string `json:"namespaces"`
 }
 
+type PolicyStandard struct {
+	// ID idenitifer of the standarad
+	ID string `json:"id"`
+	// Controls standard controls
+	Controls []string `json:"controls,omitempty"`
+}
+
 // PolicySpec defines the desired state of Policy
 // It describes all that is needed to evaluate a resource against a rego code
 //+kubebuilder:object:generate:true
@@ -66,7 +73,7 @@ type PolicySpec struct {
 	Code string `json:"code"`
 	// +optional
 	// Enable specifies if this policy should be used for evaluation or not
-	Enable string `json:"enable,omitempty"`
+	Enable bool `json:"enable,omitempty"`
 	// +optional
 	// Parameters are the inputs needed for the policy validation
 	Parameters []PolicyParameters `json:"parameters,omitempty"`
@@ -87,8 +94,8 @@ type PolicySpec struct {
 	// Severity is a measure of the impact of that policy, can be low, medium or high
 	Severity string `json:"severity"`
 	// +optional
-	// Controls is a list of policy controls that this policy falls under
-	Controls []string `json:"controls,omitempty"`
+	// Standards is a list of policy standards that this policy falls under
+	Standards []PolicyStandard `json:"standards"`
 }
 
 //+kubebuilder:object:root=true

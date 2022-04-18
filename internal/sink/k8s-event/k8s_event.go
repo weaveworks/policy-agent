@@ -79,7 +79,19 @@ func (f *K8sEventSink) writeWorker(ctx context.Context) {
 }
 
 func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation) {
-	event := domain.NewK8sEventFromPolicyVlidation(result)
+	event, err := domain.NewK8sEventFromPolicyValidation(result)
+	if err != nil {
+		logger.Errorw(
+			"failed to create event from policy validation",
+			"error",
+			err,
+			"entity_kind", result.Entity.Kind,
+			"entity_name", result.Entity.Name,
+			"entity_namespace", result.Entity.Namespace,
+			"policy", result.Policy.ID,
+		)
+		return
+	}
 	event.ReportingController = k.reportingController
 	event.ReportingInstance = k.reportingInstance
 	event.Source = v1.EventSource{Component: k.reportingController}
@@ -93,7 +105,7 @@ func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation
 		"policy", result.Policy.ID,
 	)
 
-	_, err := k.kubeClient.CoreV1().Events(event.Namespace).Create(ctx, &event, metav1.CreateOptions{})
+	_, err = k.kubeClient.CoreV1().Events(event.Namespace).Create(ctx, event, metav1.CreateOptions{})
 	if err != nil {
 		logger.Errorw("failed to send event", "error", err)
 	}
