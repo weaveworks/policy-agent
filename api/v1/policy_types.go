@@ -72,8 +72,8 @@ type PolicySpec struct {
 	// Code contains the policy rego code
 	Code string `json:"code"`
 	// +optional
-	// Enable specifies if this policy should be used for evaluation or not
-	Enable bool `json:"enable,omitempty"`
+	// Enabled flag for third parties consumers that indicates if this policy should be considered or not
+	Enabled bool `json:"enabled,omitempty"`
 	// +optional
 	// Parameters are the inputs needed for the policy validation
 	Parameters []PolicyParameters `json:"parameters,omitempty"`
