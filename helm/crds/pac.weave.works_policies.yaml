@@ -46,9 +46,9 @@ spec:
               description:
                 description: Description is a summary of what that policy validates
                 type: string
-              enable:
-                description: Enable specifies if this policy should be used for evaluation
-                  or not
+              enabled:
+                description: Enabled flag for third parties consumers that indicates
+                  if this policy should be considered or not
                 type: boolean
               how_to_solve:
                 description: HowToSolve is a description of the steps required to

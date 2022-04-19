@@ -76,6 +76,9 @@ func (a *AuditorController) doAudit(ctx context.Context, auditEvent AuditEvent) 
 
 			for idx := range entitiesList.Data {
 				entity := entitiesList.Data[idx]
+				if entity.HasParent {
+					continue
+				}
 				_, err := a.validator.Validate(ctx, entity, string(auditEvent.Type))
 				if err != nil {
 					logger.Errorw(

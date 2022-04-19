@@ -35,10 +35,10 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 	for i := range policiesCRD.Items {
 		policyCRD := policiesCRD.Items[i].Spec
 		policy := domain.Policy{
-			Name:   policyCRD.Name,
-			ID:     policyCRD.ID,
-			Code:   policyCRD.Code,
-			Enable: policyCRD.Enable,
+			Name:    policyCRD.Name,
+			ID:      policyCRD.ID,
+			Code:    policyCRD.Code,
+			Enabled: policyCRD.Enabled,
 			Targets: domain.PolicyTargets{
 				Kinds:      policyCRD.Targets.Kinds,
 				Labels:     policyCRD.Targets.Labels,
