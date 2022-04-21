@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	authv1 "k8s.io/api/authorization/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -80,4 +81,23 @@ func (k *KubeClient) GetAPIResources(ctx context.Context) ([]*meta.APIResourceLi
 		return nil, fmt.Errorf("failed to get server api resources: %w", err)
 	}
 	return apiResourcesList, nil
+}
+
+func (k *KubeClient) GetServerVersion() (string, error) {
+	version, err := k.DiscoveryClient.ServerVersion()
+	if err != nil {
+		return "", fmt.Errorf("unable to get cluster version: %w", err)
+	}
+
+	return version.String(), nil
+}
+
+func (k *KubeClient) GetClusterProvider(ctx context.Context) (string, error) {
+	nodes, err := k.ClientSet.CoreV1().Nodes().List(ctx, meta.ListOptions{})
+	if err != nil {
+		return "", fmt.Errorf("unable to list cluster nodes: %w", err)
+	}
+
+	node := nodes.Items[0]
+	return strings.Split(node.Spec.ProviderID, ":")[0], nil
 }

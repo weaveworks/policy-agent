@@ -88,7 +88,7 @@ func TestFluxNotificationSink(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	sink.Start(ctx)
+	go sink.Start(ctx)
 
 	err = sink.Write(ctx, results)
 	if err != nil {

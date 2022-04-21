@@ -31,10 +31,10 @@ func NewFluxNotificationSink(recorder record.EventRecorder, webhook, accountID, 
 }
 
 // Start starts the writer worker
-func (f *FluxNotificationSink) Start(ctx context.Context) {
+func (f *FluxNotificationSink) Start(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	f.cancelWorker = cancel
-	go f.writeWorker(ctx)
+	return f.writeWorker(ctx)
 }
 
 // Stop stops worker
@@ -53,7 +53,7 @@ func (f *FluxNotificationSink) Write(_ context.Context, results []domain.PolicyV
 	return nil
 }
 
-func (f *FluxNotificationSink) writeWorker(ctx context.Context) {
+func (f *FluxNotificationSink) writeWorker(ctx context.Context) error {
 	for {
 		select {
 		case result := <-f.resultChan:

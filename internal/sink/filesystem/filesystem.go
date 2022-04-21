@@ -40,8 +40,7 @@ func NewFileSystemSink(filePath string, accountID, clusterID string) (*FileSyste
 func (f *FileSystemSink) Start(ctx context.Context) error {
 	cancelCtx, cancel := context.WithCancel(ctx)
 	f.cancelWorker = cancel
-	go f.WritePolicyValidationWorker(cancelCtx)
-	return nil
+	return f.WritePolicyValidationWorker(cancelCtx)
 }
 
 func (f *FileSystemSink) writeValidationResutl(policyValidation domain.PolicyValidation) error {
@@ -53,7 +52,7 @@ func (f *FileSystemSink) writeValidationResutl(policyValidation domain.PolicyVal
 }
 
 // WritePolicyValidationWorker worker that listens on results and admits them to a file
-func (f *FileSystemSink) WritePolicyValidationWorker(_ context.Context) {
+func (f *FileSystemSink) WritePolicyValidationWorker(_ context.Context) error {
 	for {
 		select {
 		case result := <-f.PolicyValidationChan:
