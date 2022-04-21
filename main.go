@@ -303,13 +303,13 @@ func main() {
 
 		if config.FluxNotificationSinkAddr != "" {
 			logger.Info("initializing flux notification sink ...", "endpoint", config.FluxNotificationSinkAddr)
-			fkuxNotificationSink, err := initFluxNotificationSink(mgr, config)
+			fluxNotificationSink, err := initFluxNotificationSink(mgr, config)
 			if err != nil {
 				return err
 			}
-			defer fkuxNotificationSink.Stop()
-			auditSinks = append(auditSinks, fkuxNotificationSink)
-			admissionSinks = append(admissionSinks, fkuxNotificationSink)
+			defer fluxNotificationSink.Stop()
+			auditSinks = append(auditSinks, fluxNotificationSink)
+			admissionSinks = append(admissionSinks, fluxNotificationSink)
 		}
 
 		if config.EnableK8sEventSink {
