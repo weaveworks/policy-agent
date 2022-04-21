@@ -44,10 +44,10 @@ func NewK8sEventSink(kubeClient kubernetes.Interface, accountID, clusterID, repo
 }
 
 // Start starts the writer worker
-func (k *K8sEventSink) Start(ctx context.Context) {
+func (k *K8sEventSink) Start(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	k.cancelWorker = cancel
-	go k.writeWorker(ctx)
+	return k.writeWorker(ctx)
 }
 
 // Stop stops worker
@@ -66,7 +66,7 @@ func (k *K8sEventSink) Write(_ context.Context, results []domain.PolicyValidatio
 	return nil
 }
 
-func (f *K8sEventSink) writeWorker(ctx context.Context) {
+func (f *K8sEventSink) writeWorker(ctx context.Context) error {
 	for {
 		select {
 		case result := <-f.resultChan:

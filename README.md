@@ -34,7 +34,7 @@ NAME:
    Policy agent - Enforces compliance on your kubernetes cluster
 
 USAGE:
-   agent [global options] command [command options] [arguments...]
+   main [global options] command [command options] [arguments...]
 
 VERSION:
    0.0.1
@@ -43,18 +43,22 @@ COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-    --kube-config-file value  path to kubernetes client config file [$AGENT_KUBE_CONFIG_FILE]
-   --account-id value        Account id, unique per organization [$AGENT_ACCOUNT_ID]
-   --cluster-id value        Cluster id, cluster identifier [$AGENT_CLUSTER_ID]
-   --webhook-listen value    port for the admission webhook server to listen on (default: 8443) [$AGENT_WEBHOOK_LISTEN]
-   --webhook-cert-dir value  cert directory path for webhook server (default: "/certs") [$AGENT_WEBHOOK_CERT_DIR]
-   --probes-listen value     address for the probes server to run on (default: ":9000") [$AGENT_PROBES_LISTEN]
-   --write-compliance        enables writing compliance results (default: false) [$AGENT_WRITE_COMPLIANCE]
-   --disable-admission       disables admission control (default: false) [$AGENT_DISABLE_ADMISSION]
-   --disable-audit           disables cluster periodical audit (default: false) [$AGENT_DISABLE_AUDIT]
-   --log-level value         app log level (default: "info") [$AGENT_LOG_LEVEL]
-   --sink-file-path value    file path to write validation result to (default: "/tmp/results.json") [$AGENT_SINK_FILE_PATH]
-   --metrics-addr value      address the metric endpoint binds to (default: ":8080") [$AGENT_METRICS_ADDR]
-   --help, -h                show help (default: false)
-   --version, -v             print the version (default: false)
+   --kube-config-file value             path to kubernetes client config file [$AGENT_KUBE_CONFIG_FILE]
+   --account-id value                   Account id, unique per organization [$AGENT_ACCOUNT_ID]
+   --cluster-id value                   Cluster id, cluster identifier [$AGENT_CLUSTER_ID]
+   --webhook-listen value               port for the admission webhook server to listen on (default: 8443) [$AGENT_WEBHOOK_LISTEN]
+   --webhook-cert-dir value             cert directory path for webhook server (default: "/certs") [$AGENT_WEBHOOK_CERT_DIR]
+   --probes-listen value                address for the probes server to run on (default: ":9000") [$AGENT_PROBES_LISTEN]
+   --write-compliance                   enables writing compliance results (default: false) [$AGENT_WRITE_COMPLIANCE]
+   --admission                          enables admission control (default: false) [$AGENT_DISABLE_ADMISSION]
+   --audit                              enables cluster periodical audit (default: false) [$AGENT_DISABLE_AUDIT]
+   --log-level value                    app log level (default: "info") [$AGENT_LOG_LEVEL]
+   --filesystem-sink-file-path value    filesystem sink file path [$AGENT_FILESYSTEM_SINK_FILE_PATH]
+   --flux-notification-sink-addr value  flux notification sink address [$AGENT_FLUX_NOTIFICATION_SINK_ADDR]
+   --enable-k8s-events-sink             enables kubernetes events sink (default: false) [$AGENT_ENABLE_K8S_EVENTS_SINK]
+   --gateway-sink-url value             connection to the saas gateway [$AGENT_GATEWAY_SINK_URL]
+   --gateway-sink-secret value          secret used to authenticate for the saas sink [$AGENT_GATEWAY_SINK_SECRET]
+   --metrics-addr value                 address the metric endpoint binds to (default: ":8080") [$AGENT_METRICS_ADDR]
+   --help, -h                           show help (default: false)
+   --version, -v                        print the version (default: false)
 ```

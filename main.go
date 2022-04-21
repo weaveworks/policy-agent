@@ -2,26 +2,33 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
 	"github.com/MagalixTechnologies/core/logger"
+	"github.com/MagalixTechnologies/core/packet"
 	"github.com/MagalixTechnologies/policy-core/domain"
 	"github.com/MagalixTechnologies/policy-core/validation"
+	"github.com/MagalixTechnologies/uuid-go"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
 	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
 	"github.com/weaveworks/policy-agent/internal/admission"
 	"github.com/weaveworks/policy-agent/internal/auditor"
+	"github.com/weaveworks/policy-agent/internal/clients/gateway"
 	"github.com/weaveworks/policy-agent/internal/clients/kube"
 	"github.com/weaveworks/policy-agent/internal/entities/k8s"
 	"github.com/weaveworks/policy-agent/internal/policies/crd"
 	"github.com/weaveworks/policy-agent/internal/sink/filesystem"
 	flux_notification "github.com/weaveworks/policy-agent/internal/sink/flux-notification"
 	k8s_event "github.com/weaveworks/policy-agent/internal/sink/k8s-event"
+	"github.com/weaveworks/policy-agent/internal/sink/saas"
 	"github.com/weaveworks/policy-agent/pkg/log"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -29,19 +36,28 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
+const (
+	SaaSSinkBatchSize   = 500
+	SaaSSinkBatchExpiry = 10 * time.Second
+)
+
+// build is overriden during compilation of the binary
+var build = "[runtime build]"
+
 type Config struct {
-	KubeConfigFile   string
-	AccountID        string
-	ClusterID        string
-	WriteCompliance  bool
-	WebhookListen    int
-	WebhookCertDir   string
-	LogLevel         string
-	ProbesListen     string
-	DisableAdmission bool
-	DisableAudit     bool
+	KubeConfigFile  string
+	AccountID       string
+	ClusterID       string
+	WriteCompliance bool
+	WebhookListen   int
+	WebhookCertDir  string
+	LogLevel        string
+	ProbesListen    string
+	EnableAdmission bool
+	EnableAudit     bool
 
 	// filesystem sink config
 	FileSystemSinkFilePath string
@@ -51,7 +67,12 @@ type Config struct {
 
 	// flux notification sink config
 	FluxNotificationSinkAddr string
-	MetricsAddr              string
+
+	// saas sink config
+	GatewaySinkURL    string
+	GatewaySinkSecret string
+
+	MetricsAddr string
 }
 
 var (
@@ -120,18 +141,18 @@ func main() {
 			EnvVars:     []string{"AGENT_WRITE_COMPLIANCE"},
 		},
 		&cli.BoolFlag{
-			Name:        "disable-admission",
-			Usage:       "disables admission control",
-			Destination: &config.DisableAdmission,
+			Name:        "admission",
+			Usage:       "enables admission control",
+			Destination: &config.EnableAdmission,
 			Value:       false,
-			EnvVars:     []string{"AGENT_DISABLE_ADMISSION"},
+			EnvVars:     []string{"AGENT_ENABLE_ADMISSION"},
 		},
 		&cli.BoolFlag{
-			Name:        "disable-audit",
-			Usage:       "disables cluster periodical audit",
-			Destination: &config.DisableAudit,
+			Name:        "audit",
+			Usage:       "enables cluster periodical audit",
+			Destination: &config.EnableAudit,
 			Value:       false,
-			EnvVars:     []string{"AGENT_DISABLE_AUDIT"},
+			EnvVars:     []string{"AGENT_ENABLE_AUDIT"},
 		},
 		&cli.StringFlag{
 			Name:        "log-level",
@@ -160,6 +181,18 @@ func main() {
 			EnvVars:     []string{"AGENT_ENABLE_K8S_EVENTS_SINK"},
 		},
 		&cli.StringFlag{
+			Name:        "gateway-sink-url",
+			Usage:       "connection to the saas gateway",
+			Destination: &config.GatewaySinkURL,
+			EnvVars:     []string{"AGENT_GATEWAY_SINK_URL"},
+		},
+		&cli.StringFlag{
+			Name:        "gateway-sink-secret",
+			Usage:       "secret used to authenticate for the saas sink",
+			Destination: &config.GatewaySinkSecret,
+			EnvVars:     []string{"AGENT_GATEWAY_SINK_SECRET"},
+		},
+		&cli.StringFlag{
 			Name:        "metrics-addr",
 			Usage:       "address the metric endpoint binds to",
 			Destination: &config.MetricsAddr,
@@ -169,7 +202,7 @@ func main() {
 	}
 
 	app.Before = func(c *cli.Context) error {
-		if config.DisableAdmission && config.DisableAudit {
+		if !config.EnableAdmission && !config.EnableAudit {
 			return errors.New("agent needs to be run with at least one mode of operation")
 		}
 
@@ -190,7 +223,7 @@ func main() {
 	}
 
 	app.Action = func(contextCli *cli.Context) error {
-		logger.Info("initializing Policy Agent")
+		logger.Infow("initializing Policy Agent", "build", build)
 		logger.Infof("config: %+v", config)
 
 		var kubeConfig *rest.Config
@@ -219,6 +252,9 @@ func main() {
 			HealthProbeBindAddress: config.ProbesListen,
 			Logger:                 lg,
 		})
+		if err != nil {
+			return fmt.Errorf("failed to initialize manager: %w", err)
+		}
 
 		err = mgr.AddHealthzCheck("liveness", healthz.Ping)
 		if err != nil {
@@ -251,56 +287,72 @@ func main() {
 			return fmt.Errorf("failed to initialize CRD policies source: %w", err)
 		}
 
-		sinks := []domain.PolicyValidationSink{}
+		auditSinks := []domain.PolicyValidationSink{}
+		admissionSinks := []domain.PolicyValidationSink{}
 
 		if config.FileSystemSinkFilePath != "" {
 			logger.Infow("initializing filesystem sink ...", "file", config.FileSystemSinkFilePath)
-			fileSystemSink, err := initFileSystemSink(contextCli.Context, config)
+			fileSystemSink, err := initFileSystemSink(mgr, config)
 			if err != nil {
 				return err
 			}
 			defer fileSystemSink.Stop()
-			sinks = append(sinks, fileSystemSink)
+			auditSinks = append(auditSinks, fileSystemSink)
+			admissionSinks = append(admissionSinks, fileSystemSink)
 		}
 
 		if config.FluxNotificationSinkAddr != "" {
 			logger.Info("initializing flux notification sink ...", "endpoint", config.FluxNotificationSinkAddr)
-			fkuxNotificationSink, err := initFluxNotificationSink(contextCli.Context, config, mgr)
+			fluxNotificationSink, err := initFluxNotificationSink(mgr, config)
 			if err != nil {
 				return err
 			}
-			defer fkuxNotificationSink.Stop()
-			sinks = append(sinks, fkuxNotificationSink)
+			defer fluxNotificationSink.Stop()
+			auditSinks = append(auditSinks, fluxNotificationSink)
+			admissionSinks = append(admissionSinks, fluxNotificationSink)
 		}
 
 		if config.EnableK8sEventSink {
 			logger.Info("initializing kubernetes events sink ...")
-			k8sEventSink, err := initK8sEventSink(contextCli.Context, config, kubeConfig)
+			k8sEventSink, err := initK8sEventSink(mgr, config)
 			if err != nil {
 				return err
 			}
 			defer k8sEventSink.Stop()
-			sinks = append(sinks, k8sEventSink)
+			auditSinks = append(auditSinks, k8sEventSink)
+			admissionSinks = append(admissionSinks, k8sEventSink)
 		}
 
-		if !config.DisableAudit {
+		if config.GatewaySinkURL != "" {
+			logger.Info("initializing SaaS gateway sink...")
+			gatewaySink, err := initSaaSSink(contextCli.Context, mgr, kubeClient, config)
+			if err != nil {
+				return err
+			}
+			if config.EnableAdmission {
+				logger.Warn("ignoring SaaS gateway sink for admission validation")
+			}
+			auditSinks = append(auditSinks, gatewaySink)
+		}
+
+		if config.EnableAudit {
 			validator := validation.NewOPAValidator(
 				policiesSource,
 				config.WriteCompliance,
 				auditor.TypeAudit,
-				sinks...,
+				auditSinks...,
 			)
 			auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
 			mgr.Add(auditController)
 			auditController.Audit(auditor.AuditEventTypeInitial, nil)
 		}
 
-		if !config.DisableAdmission {
+		if config.EnableAdmission {
 			validator := validation.NewOPAValidator(
 				policiesSource,
 				config.WriteCompliance,
 				admission.TypeAdmission,
-				sinks...,
+				admissionSinks...,
 			)
 			admissionServer := admission.NewAdmissionHandler(
 				config.LogLevel,
@@ -326,22 +378,19 @@ func main() {
 	}
 }
 
-func initFileSystemSink(ctx context.Context, config Config) (*filesystem.FileSystemSink, error) {
+func initFileSystemSink(mgr manager.Manager, config Config) (*filesystem.FileSystemSink, error) {
 	sink, err := filesystem.NewFileSystemSink(config.FileSystemSinkFilePath, config.AccountID, config.ClusterID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize filesystem sink: %w", err)
 	}
 
 	logger.Info("starting file system sink ...")
-	err = sink.Start(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start filesystem sink: %w", err)
-	}
+	mgr.Add(sink)
 
 	return sink, nil
 }
 
-func initFluxNotificationSink(ctx context.Context, config Config, mgr ctrl.Manager) (*flux_notification.FluxNotificationSink, error) {
+func initFluxNotificationSink(mgr manager.Manager, config Config) (*flux_notification.FluxNotificationSink, error) {
 	recorder, err := events.NewRecorder(mgr, mgr.GetLogger(), config.FluxNotificationSinkAddr, eventReportingController)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize event recorder: %w", err)
@@ -353,13 +402,13 @@ func initFluxNotificationSink(ctx context.Context, config Config, mgr ctrl.Manag
 	}
 
 	logger.Info("starting flux notification sink ...")
-	sink.Start(ctx)
+	mgr.Add(sink)
 
 	return sink, nil
 }
 
-func initK8sEventSink(ctx context.Context, config Config, kubeConfig *rest.Config) (*k8s_event.K8sEventSink, error) {
-	clientset, err := kubernetes.NewForConfig(kubeConfig)
+func initK8sEventSink(mgr manager.Manager, config Config) (*k8s_event.K8sEventSink, error) {
+	clientset, err := kubernetes.NewForConfig(mgr.GetConfig())
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize kubernetes clientset: %w", err)
 	}
@@ -370,7 +419,81 @@ func initK8sEventSink(ctx context.Context, config Config, kubeConfig *rest.Confi
 	}
 
 	logger.Info("starting kubernetes event sink ...")
-	sink.Start(ctx)
+	mgr.Add(sink)
+
+	return sink, nil
+}
+
+func initSaaSSink(ctx context.Context, mgr manager.Manager, kubeClient *kube.KubeClient, config Config) (*saas.SaaSGatewaySink, error) {
+	secret, err := base64.StdEncoding.DecodeString(config.GatewaySinkSecret)
+	if err != nil {
+		return nil, errors.New("secret not encoded in base64 format")
+	}
+	gatewayURL, err := url.Parse(config.GatewaySinkURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse gateway url: %w", err)
+	}
+	accountID, err := uuid.FromString(config.AccountID)
+	if err != nil {
+		return nil, errors.New("invalid uuid format for account id")
+	}
+	clusterID, err := uuid.FromString(config.ClusterID)
+	if err != nil {
+		return nil, errors.New("invalid uuid format for cluster id")
+	}
+
+	var agentPermissions string
+	permissionsObj, err := kubeClient.GetAgentPermissions(ctx)
+	if err != nil {
+		agentPermissions = err.Error()
+		logger.Warnw("Failed to get agent permissions", "error", err)
+	}
+
+	agentPermissionsBytes, err := json.Marshal(permissionsObj.Status.ResourceRules)
+	if err != nil {
+		parseErr := fmt.Errorf("error while parsing agent permissions: %w", err)
+		agentPermissions = parseErr.Error()
+		logger.Warnw("Failed to parse agent permissions", "error", err)
+	}
+
+	agentPermissions = string(agentPermissionsBytes)
+
+	k8sServerVersion, err := kubeClient.GetServerVersion()
+	if err != nil {
+		k8sServerVersion = err.Error()
+		logger.Warnw("failed to discover kubernetes server version", "error", err)
+	}
+
+	clusterProvider, err := kubeClient.GetClusterProvider(ctx)
+	if err != nil {
+		clusterProvider = err.Error()
+		logger.Warnw("failed to get kubernetes cluster provider", "error", err)
+	}
+
+	gateway := gateway.NewGateway(
+		*gatewayURL,
+		accountID,
+		clusterID,
+		secret,
+		k8sServerVersion,
+		clusterProvider,
+		agentPermissions,
+		build,
+	)
+	sink := saas.NewSaaSGatewaySink(
+		gateway,
+		packet.PacketPolicyValidationAudit,
+		SaaSSinkBatchSize,
+		SaaSSinkBatchExpiry,
+	)
+	logger.Info("starting SaaS gateway connection")
+	go gateway.Start(ctx)
+	active := gateway.WaitActive(ctx, 10*time.Second)
+	if !active {
+		return nil, errors.New("timeout while waiting for SaaS gateway connection")
+	}
+	logger.Info("starting Saas gateway sink ...")
+	mgr.Add(sink)
 
 	return sink, nil
 }
