@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	authv1 "k8s.io/api/authorization/v1"
@@ -100,4 +101,13 @@ func (k *KubeClient) GetClusterProvider(ctx context.Context) (string, error) {
 
 	node := nodes.Items[0]
 	return strings.Split(node.Spec.ProviderID, ":")[0], nil
+}
+
+func (k *KubeClient) GetAgentNamespace() string {
+	namespace := "undefined"
+	namespaceBytes, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+	if err == nil {
+		namespace = string(namespaceBytes)
+	}
+	return namespace
 }
