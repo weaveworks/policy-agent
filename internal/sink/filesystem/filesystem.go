@@ -16,22 +16,18 @@ const (
 
 type FileSystemSink struct {
 	File                 *os.File
-	AccountID            string
-	ClusterID            string
 	PolicyValidationChan chan domain.PolicyValidation
 	cancelWorker         context.CancelFunc
 }
 
 // NewFileSystemSink returns a sink that writes results to the file system
-func NewFileSystemSink(filePath string, accountID, clusterID string) (*FileSystemSink, error) {
+func NewFileSystemSink(filePath string) (*FileSystemSink, error) {
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %s to write validation results: %w", filePath, err)
 	}
 	return &FileSystemSink{
 		File:                 file,
-		AccountID:            accountID,
-		ClusterID:            clusterID,
 		PolicyValidationChan: make(chan domain.PolicyValidation, 50),
 	}, nil
 }
