@@ -59,8 +59,6 @@ func (k *K8sEventSink) Stop() {
 func (k *K8sEventSink) Write(_ context.Context, results []domain.PolicyValidation) error {
 	logger.Infow("writing validation results", "sink", "k8s_events", "count", len(results))
 	for _, result := range results {
-		result.AccountID = k.accountID
-		result.ClusterID = k.clusterID
 		k.resultChan <- result
 	}
 	return nil

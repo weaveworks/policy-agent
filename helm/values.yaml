@@ -23,7 +23,7 @@ config:
   # AGENT_FLUX_NOTIFICATION_SINK_ADDR: <flux-notification-controller-svc>
 
   # enbales admission functionality
-  AGENT_ENABLE_ADMISSION: 1
+  AGENT_ENABLE_ADMISSION: "1"
 
 accountId: ""
 clusterId: ""

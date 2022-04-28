@@ -46,8 +46,6 @@ func (f *FluxNotificationSink) Stop() {
 func (f *FluxNotificationSink) Write(_ context.Context, results []domain.PolicyValidation) error {
 	logger.Infow("writing validation results", "sink", "flux_notification", "count", len(results))
 	for _, result := range results {
-		result.AccountID = f.accountID
-		result.ClusterID = f.clusterID
 		f.resultChan <- result
 	}
 	return nil

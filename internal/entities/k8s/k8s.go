@@ -17,9 +17,10 @@ import (
 )
 
 const (
-	allAllowed         = "*"
-	listVerb           = "list"
-	entityMetadataName = "metadata.name"
+	allAllowed              = "*"
+	listVerb                = "list"
+	entityMetadataName      = "metadata.name"
+	entityMetadataNamespace = "metadata.namespace"
 )
 
 type rulesCache struct {
@@ -100,6 +101,7 @@ func GetEntitiesSources(ctx context.Context, kubeClient *kube.KubeClient) ([]dom
 		return nil, err
 	}
 
+	ignoredNamespace := kubeClient.GetAgentNamespace()
 	var sources []domain.EntitiesSource
 	for i := range apiResourceList {
 		list := apiResourceList[i]
@@ -139,10 +141,11 @@ func GetEntitiesSources(ctx context.Context, kubeClient *kube.KubeClient) ([]dom
 					}
 
 					sources = append(sources, &K8SEntitySource{
-						resource:      resource,
-						kubeClient:    kubeClient,
-						kind:          apiResource.Kind,
-						resourceNames: cache.resourceNames,
+						resource:         resource,
+						kubeClient:       kubeClient,
+						kind:             apiResource.Kind,
+						resourceNames:    cache.resourceNames,
+						ignoredNamespace: ignoredNamespace,
 					})
 					break
 				}
@@ -157,10 +160,11 @@ func GetEntitiesSources(ctx context.Context, kubeClient *kube.KubeClient) ([]dom
 
 // K8SEntitySource allows retrieving of items of a specific group version resource
 type K8SEntitySource struct {
-	resource      schema.GroupVersionResource
-	kubeClient    *kube.KubeClient
-	kind          string
-	resourceNames []string
+	resource         schema.GroupVersionResource
+	kubeClient       *kube.KubeClient
+	kind             string
+	resourceNames    []string
+	ignoredNamespace string
 }
 
 // List returns list of resources from the entities source
@@ -194,8 +198,10 @@ func (k *K8SEntitySource) List(ctx context.Context, listOptions *domain.ListOpti
 	var data []domain.Entity
 
 	for i := range entitiesList.Items {
-		entity := domain.NewEntityFromSpec(entitiesList.Items[i].Object)
-		data = append(data, entity)
+		if entitiesList.Items[i].GetNamespace() != k.ignoredNamespace {
+			entity := domain.NewEntityFromSpec(entitiesList.Items[i].Object)
+			data = append(data, entity)
+		}
 	}
 	return &domain.EntitiesList{
 		HasNext: keySet != "",

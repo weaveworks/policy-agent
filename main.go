@@ -308,7 +308,9 @@ func main() {
 				return err
 			}
 			defer fluxNotificationSink.Stop()
-			auditSinks = append(auditSinks, fluxNotificationSink)
+			if config.EnableAudit {
+				logger.Warn("ignoring flux notifications sink for audit validation")
+			}
 			admissionSinks = append(admissionSinks, fluxNotificationSink)
 		}
 
@@ -319,7 +321,9 @@ func main() {
 				return err
 			}
 			defer k8sEventSink.Stop()
-			auditSinks = append(auditSinks, k8sEventSink)
+			if config.EnableAudit {
+				logger.Warn("ignoring kubernetes events sink for audit validation")
+			}
 			admissionSinks = append(admissionSinks, k8sEventSink)
 		}
 
@@ -340,6 +344,8 @@ func main() {
 				policiesSource,
 				config.WriteCompliance,
 				auditor.TypeAudit,
+				config.AccountID,
+				config.ClusterID,
 				auditSinks...,
 			)
 			auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
@@ -352,6 +358,8 @@ func main() {
 				policiesSource,
 				config.WriteCompliance,
 				admission.TypeAdmission,
+				config.AccountID,
+				config.ClusterID,
 				admissionSinks...,
 			)
 			admissionServer := admission.NewAdmissionHandler(
@@ -379,7 +387,7 @@ func main() {
 }
 
 func initFileSystemSink(mgr manager.Manager, config Config) (*filesystem.FileSystemSink, error) {
-	sink, err := filesystem.NewFileSystemSink(config.FileSystemSinkFilePath, config.AccountID, config.ClusterID)
+	sink, err := filesystem.NewFileSystemSink(config.FileSystemSinkFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize filesystem sink: %w", err)
 	}
