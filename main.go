@@ -18,7 +18,7 @@ import (
 	"github.com/MagalixTechnologies/uuid-go"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
-	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv1 "github.com/weaveworks/policy-agent/api/v1"
 	"github.com/weaveworks/policy-agent/internal/admission"
 	"github.com/weaveworks/policy-agent/internal/auditor"
 	"github.com/weaveworks/policy-agent/internal/clients/gateway"
@@ -72,7 +72,9 @@ type Config struct {
 	GatewaySinkURL    string
 	GatewaySinkSecret string
 
-	MetricsAddr string
+	MetricsAddr        string
+	AuditPolicySet     string
+	AdmissionPolicySet string
 }
 
 var (
@@ -199,6 +201,18 @@ func main() {
 			Value:       ":8080",
 			EnvVars:     []string{"AGENT_METRICS_ADDR"},
 		},
+		&cli.StringFlag{
+			Name:        "audit-policy-set",
+			Usage:       "audit policy set id",
+			Destination: &config.AuditPolicySet,
+			EnvVars:     []string{"AGENT_AUDIT_POLICY_SET"},
+		},
+		&cli.StringFlag{
+			Name:        "admission-policy-set",
+			Usage:       "admission policy set id",
+			Destination: &config.AdmissionPolicySet,
+			EnvVars:     []string{"AGENT_ADMISSION_POLICY_SET"},
+		},
 	}
 
 	app.Before = func(c *cli.Context) error {
@@ -237,7 +251,7 @@ func main() {
 			return fmt.Errorf("failed to load Kubernetes config: %w", err)
 		}
 
-		err = policiesv1.AddToScheme(scheme)
+		err = pacv1.AddToScheme(scheme)
 		if err != nil {
 			return fmt.Errorf("failed to add policy crd to scheme: %w", err)
 		}
@@ -279,12 +293,6 @@ func main() {
 		entitiesSources, err := k8s.GetEntitiesSources(contextCli.Context, kubeClient)
 		if err != nil {
 			return fmt.Errorf("initializing entities sources failed: %w", err)
-		}
-
-		logger.Info("starting policies CRD watcher")
-		policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
-		if err != nil {
-			return fmt.Errorf("failed to initialize CRD policies source: %w", err)
 		}
 
 		auditSinks := []domain.PolicyValidationSink{}
@@ -340,6 +348,17 @@ func main() {
 		}
 
 		if config.EnableAudit {
+			logger.Info("starting audit policies watcher")
+
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
+			if err != nil {
+				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
+			}
+
+			if config.AuditPolicySet != "" {
+				policiesSource.SetPolicySet(config.AuditPolicySet)
+			}
+
 			validator := validation.NewOPAValidator(
 				policiesSource,
 				config.WriteCompliance,
@@ -348,12 +367,24 @@ func main() {
 				config.ClusterID,
 				auditSinks...,
 			)
+
 			auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
 			mgr.Add(auditController)
 			auditController.Audit(auditor.AuditEventTypeInitial, nil)
 		}
 
 		if config.EnableAdmission {
+			logger.Info("starting admission policies watcher")
+
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
+			if err != nil {
+				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
+			}
+
+			if config.AdmissionPolicySet != "" {
+				policiesSource.SetPolicySet(config.AdmissionPolicySet)
+			}
+
 			validator := validation.NewOPAValidator(
 				policiesSource,
 				config.WriteCompliance,
@@ -367,7 +398,7 @@ func main() {
 				validator,
 			)
 			logger.Info("starting admission server...")
-			err := admissionServer.Run(mgr)
+			err = admissionServer.Run(mgr)
 			if err != nil {
 				return fmt.Errorf("failed to start admission server: %w", err)
 			}
