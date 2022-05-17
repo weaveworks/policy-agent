@@ -22,7 +22,6 @@ type AdmissionHandler struct {
 
 const (
 	TypeAdmission               = "Admission"
-	TriggerAdmission            = "admission"
 	DebugLevel                  = "debug"
 	ExcludedefaultNamespacesMsg = "default kubernetes namespaces are excluded"
 	ErrGettingAdmissionEntity   = "failed to get entity info from admission request"
@@ -64,7 +63,7 @@ func (a *AdmissionHandler) Handle(ctx context.Context, req ctrlAdmission.Request
 	}
 
 	entity := domain.NewEntityFromSpec(entitySpec)
-	result, err := a.validator.Validate(ctx, entity, TriggerAdmission)
+	result, err := a.validator.Validate(ctx, entity, string(req.AdmissionRequest.Operation))
 	if err != nil {
 		return a.handleErrors(err, ErrValidatingResource)
 	}
