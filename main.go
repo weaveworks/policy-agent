@@ -341,10 +341,8 @@ func main() {
 			if err != nil {
 				return err
 			}
-			if config.EnableAdmission {
-				logger.Warn("ignoring SaaS gateway sink for admission validation")
-			}
 			auditSinks = append(auditSinks, gatewaySink)
+			admissionSinks = append(admissionSinks, gatewaySink)
 		}
 
 		if config.EnableAudit {
