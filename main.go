@@ -69,8 +69,9 @@ type Config struct {
 	FluxNotificationSinkAddr string
 
 	// saas sink config
-	GatewaySinkURL    string
-	GatewaySinkSecret string
+	GatewayAuditSinkURL     string
+	GatewayAdmissionSinkURL string
+	GatewaySinkSecret       string
 
 	MetricsAddr        string
 	AuditPolicySet     string
@@ -183,10 +184,16 @@ func main() {
 			EnvVars:     []string{"AGENT_ENABLE_K8S_EVENTS_SINK"},
 		},
 		&cli.StringFlag{
-			Name:        "gateway-sink-url",
-			Usage:       "connection to the saas gateway",
-			Destination: &config.GatewaySinkURL,
-			EnvVars:     []string{"AGENT_GATEWAY_SINK_URL"},
+			Name:        "gateway-audit-sink-url",
+			Usage:       "connection to the saas audit gateway",
+			Destination: &config.GatewayAuditSinkURL,
+			EnvVars:     []string{"AGENT_GATEWAY_AUDIT_SINK_URL"},
+		},
+		&cli.StringFlag{
+			Name:        "gateway-admission-sink-url",
+			Usage:       "connection to the saas admission gateway",
+			Destination: &config.GatewayAdmissionSinkURL,
+			EnvVars:     []string{"AGENT_GATEWAY_ADMISSION_SINK_URL"},
 		},
 		&cli.StringFlag{
 			Name:        "gateway-sink-secret",
@@ -335,13 +342,21 @@ func main() {
 			admissionSinks = append(admissionSinks, k8sEventSink)
 		}
 
-		if config.GatewaySinkURL != "" {
-			logger.Info("initializing SaaS gateway sink...")
-			gatewaySink, err := initSaaSSink(contextCli.Context, mgr, kubeClient, config)
+		if config.GatewayAuditSinkURL != "" {
+			logger.Info("initializing Audit SaaS gateway sink...")
+			gatewaySink, err := initAuditSaaSSink(contextCli.Context, mgr, kubeClient, config)
 			if err != nil {
 				return err
 			}
 			auditSinks = append(auditSinks, gatewaySink)
+		}
+
+		if config.GatewayAdmissionSinkURL != "" {
+			logger.Info("initializing Admission SaaS gateway sink...")
+			gatewaySink, err := initAdmissionSaaSSink(contextCli.Context, mgr, kubeClient, config)
+			if err != nil {
+				return err
+			}
 			admissionSinks = append(admissionSinks, gatewaySink)
 		}
 
@@ -461,12 +476,60 @@ func initK8sEventSink(mgr manager.Manager, config Config) (*k8s_event.K8sEventSi
 	return sink, nil
 }
 
-func initSaaSSink(ctx context.Context, mgr manager.Manager, kubeClient *kube.KubeClient, config Config) (*saas.SaaSGatewaySink, error) {
+func initAuditSaaSSink(ctx context.Context, mgr manager.Manager, kubeClient *kube.KubeClient, config Config) (*saas.SaaSGatewaySink, error) {
+	gateway, err := initSaaSGateway(ctx, kubeClient, config, config.GatewayAuditSinkURL)
+	if err != nil {
+		return nil, err
+	}
+
+	sink := saas.NewSaaSGatewaySink(
+		gateway,
+		packet.PacketPolicyValidationAudit,
+		SaaSSinkBatchSize,
+		SaaSSinkBatchExpiry,
+	)
+	logger.Info("starting audit SaaS gateway connection")
+	go gateway.Start(ctx)
+	active := gateway.WaitActive(ctx, 10*time.Second)
+	if !active {
+		return nil, errors.New("timeout while waiting for audit SaaS gateway connection")
+	}
+	logger.Info("starting audit Saas gateway sink ...")
+	mgr.Add(sink)
+
+	return sink, nil
+}
+
+func initAdmissionSaaSSink(ctx context.Context, mgr manager.Manager, kubeClient *kube.KubeClient, config Config) (*saas.SaaSGatewaySink, error) {
+	gateway, err := initSaaSGateway(ctx, kubeClient, config, config.GatewayAdmissionSinkURL)
+	if err != nil {
+		return nil, err
+	}
+
+	sink := saas.NewSaaSGatewaySink(
+		gateway,
+		packet.PacketPolicyValidationAdmission,
+		SaaSSinkBatchSize,
+		SaaSSinkBatchExpiry,
+	)
+	logger.Info("starting admission SaaS gateway connection")
+	go gateway.Start(ctx)
+	active := gateway.WaitActive(ctx, 10*time.Second)
+	if !active {
+		return nil, errors.New("timeout while waiting for admission SaaS gateway connection")
+	}
+	logger.Info("starting admission Saas gateway sink ...")
+	mgr.Add(sink)
+
+	return sink, nil
+}
+
+func initSaaSGateway(ctx context.Context, kubeClient *kube.KubeClient, config Config, gatewaySinkURL string) (*gateway.Gateway, error) {
 	secret, err := base64.StdEncoding.DecodeString(config.GatewaySinkSecret)
 	if err != nil {
 		return nil, errors.New("secret not encoded in base64 format")
 	}
-	gatewayURL, err := url.Parse(config.GatewaySinkURL)
+	gatewayURL, err := url.Parse(gatewaySinkURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse gateway url: %w", err)
 	}
@@ -517,20 +580,5 @@ func initSaaSSink(ctx context.Context, mgr manager.Manager, kubeClient *kube.Kub
 		agentPermissions,
 		build,
 	)
-	sink := saas.NewSaaSGatewaySink(
-		gateway,
-		packet.PacketPolicyValidationAudit,
-		SaaSSinkBatchSize,
-		SaaSSinkBatchExpiry,
-	)
-	logger.Info("starting SaaS gateway connection")
-	go gateway.Start(ctx)
-	active := gateway.WaitActive(ctx, 10*time.Second)
-	if !active {
-		return nil, errors.New("timeout while waiting for SaaS gateway connection")
-	}
-	logger.Info("starting Saas gateway sink ...")
-	mgr.Add(sink)
-
-	return sink, nil
+	return gateway, nil
 }
