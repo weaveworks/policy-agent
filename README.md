@@ -56,7 +56,8 @@ GLOBAL OPTIONS:
    --filesystem-sink-file-path value    filesystem sink file path [$AGENT_FILESYSTEM_SINK_FILE_PATH]
    --flux-notification-sink-addr value  flux notification sink address [$AGENT_FLUX_NOTIFICATION_SINK_ADDR]
    --enable-k8s-events-sink             enables kubernetes events sink (default: false) [$AGENT_ENABLE_K8S_EVENTS_SINK]
-   --gateway-sink-url value             connection to the saas gateway [$AGENT_GATEWAY_SINK_URL]
+   --gateway-audit-sink-url value             connection to the saas audit gateway [$AGENT_GATEWAY_AUDIT_SINK_URL]
+   --gateway-admission-sink-url value             connection to the saas admission gateway [$AGENT_GATEWAY_ADMISSION_SINK_URL]
    --gateway-sink-secret value          secret used to authenticate for the saas sink [$AGENT_GATEWAY_SINK_SECRET]
    --metrics-addr value                 address the metric endpoint binds to (default: ":8080") [$AGENT_METRICS_ADDR]
    --help, -h                           show help (default: false)
