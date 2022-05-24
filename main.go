@@ -337,15 +337,19 @@ func main() {
 
 		if config.GatewaySinkURL != "" {
 			logger.Info("initializing SaaS gateway sink...")
+			gateway, err := initSaaSGateway(contextCli.Context, kubeClient, config)
+			if err != nil {
+				return err
+			}
 			if config.EnableAudit {
-				gatewaySink, err := initSaaSSink(contextCli.Context, mgr, kubeClient, config, packet.PacketPolicyValidationAudit)
+				gatewaySink, err := initSaaSSink(contextCli.Context, mgr, kubeClient, config, gateway, packet.PacketPolicyValidationAudit)
 				if err != nil {
 					return err
 				}
 				auditSinks = append(auditSinks, gatewaySink)
 			}
 			if config.EnableAdmission {
-				gatewaySink, err := initSaaSSink(contextCli.Context, mgr, kubeClient, config, packet.PacketPolicyValidationAdmission)
+				gatewaySink, err := initSaaSSink(contextCli.Context, mgr, kubeClient, config, gateway, packet.PacketPolicyValidationAdmission)
 				if err != nil {
 					return err
 				}
@@ -469,12 +473,7 @@ func initK8sEventSink(mgr manager.Manager, config Config) (*k8s_event.K8sEventSi
 	return sink, nil
 }
 
-func initSaaSSink(ctx context.Context, mgr manager.Manager, kubeClient *kube.KubeClient, config Config, packetKind packet.PacketKind) (*saas.SaaSGatewaySink, error) {
-	gateway, err := initSaaSGateway(ctx, kubeClient, config)
-	if err != nil {
-		return nil, err
-	}
-
+func initSaaSSink(ctx context.Context, mgr manager.Manager, kubeClient *kube.KubeClient, config Config, gateway *gateway.Gateway, packetKind packet.PacketKind) (*saas.SaaSGatewaySink, error) {
 	sink := saas.NewSaaSGatewaySink(
 		gateway,
 		packetKind,
