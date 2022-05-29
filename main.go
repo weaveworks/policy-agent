@@ -18,7 +18,7 @@ import (
 	"github.com/MagalixTechnologies/uuid-go"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta1"
 	"github.com/weaveworks/policy-agent/internal/admission"
 	"github.com/weaveworks/policy-agent/internal/auditor"
 	"github.com/weaveworks/policy-agent/internal/clients/gateway"
@@ -75,6 +75,10 @@ type Config struct {
 	MetricsAddr        string
 	AuditPolicySet     string
 	AdmissionPolicySet string
+
+	//backwards compatibility only
+	DisableAdmission bool
+	DisableAudit     bool
 }
 
 var (
@@ -213,12 +217,29 @@ func main() {
 			Destination: &config.AdmissionPolicySet,
 			EnvVars:     []string{"AGENT_ADMISSION_POLICY_SET"},
 		},
+		// deprecated, for backwards compatibility
+		&cli.BoolFlag{
+			Name:        "disable-admission",
+			Usage:       "disables admission control",
+			Destination: &config.DisableAdmission,
+			Value:       false,
+			EnvVars:     []string{"AGENT_DISABLE_ADMISSION"},
+		},
+		// deprecated, for backwards compatibility
+		&cli.BoolFlag{
+			Name:        "disable-audit",
+			Usage:       "disables cluster periodical audit",
+			Destination: &config.DisableAudit,
+			Value:       false,
+			EnvVars:     []string{"AGENT_DISABLE_AUDIT"},
+		},
 	}
 
 	app.Before = func(c *cli.Context) error {
-		if !config.EnableAdmission && !config.EnableAudit {
-			return errors.New("agent needs to be run with at least one mode of operation")
-		}
+		//@TODO this should be the correct behavior after the initial backwards compatible release
+		// if !config.EnableAdmission && !config.EnableAudit {
+		// return errors.New("agent needs to be run with at least one mode of operation")
+		// }
 
 		switch config.LogLevel {
 		case "info":
@@ -239,6 +260,16 @@ func main() {
 	app.Action = func(contextCli *cli.Context) error {
 		logger.Infow("initializing Policy Agent", "build", build)
 		logger.Infof("config: %+v", config)
+		enableAdmission := true
+		enableAudit := true
+
+		if config.EnableAdmission || config.EnableAudit {
+			enableAdmission = config.EnableAdmission
+			enableAudit = config.EnableAudit
+		} else if config.DisableAdmission || config.DisableAudit {
+			enableAdmission = !config.DisableAdmission
+			enableAudit = !config.DisableAudit
+		}
 
 		var kubeConfig *rest.Config
 		var err error
@@ -251,7 +282,7 @@ func main() {
 			return fmt.Errorf("failed to load Kubernetes config: %w", err)
 		}
 
-		err = pacv1.AddToScheme(scheme)
+		err = pacv2.AddToScheme(scheme)
 		if err != nil {
 			return fmt.Errorf("failed to add policy crd to scheme: %w", err)
 		}
@@ -316,7 +347,7 @@ func main() {
 				return err
 			}
 			defer fluxNotificationSink.Stop()
-			if config.EnableAudit {
+			if enableAudit {
 				logger.Warn("ignoring flux notifications sink for audit validation")
 			}
 			admissionSinks = append(admissionSinks, fluxNotificationSink)
@@ -329,7 +360,7 @@ func main() {
 				return err
 			}
 			defer k8sEventSink.Stop()
-			if config.EnableAudit {
+			if enableAudit {
 				logger.Warn("ignoring kubernetes events sink for audit validation")
 			}
 			admissionSinks = append(admissionSinks, k8sEventSink)
@@ -341,14 +372,14 @@ func main() {
 			if err != nil {
 				return err
 			}
-			if config.EnableAudit {
+			if enableAudit {
 				gatewaySink, err := initSaaSSink(contextCli.Context, mgr, kubeClient, config, gateway, packet.PacketPolicyValidationAudit)
 				if err != nil {
 					return err
 				}
 				auditSinks = append(auditSinks, gatewaySink)
 			}
-			if config.EnableAdmission {
+			if enableAdmission {
 				gatewaySink, err := initSaaSSink(contextCli.Context, mgr, kubeClient, config, gateway, packet.PacketPolicyValidationAdmission)
 				if err != nil {
 					return err
@@ -357,7 +388,7 @@ func main() {
 			}
 		}
 
-		if config.EnableAudit {
+		if enableAudit {
 			logger.Info("starting audit policies watcher")
 
 			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
@@ -383,7 +414,7 @@ func main() {
 			auditController.Audit(auditor.AuditEventTypeInitial, nil)
 		}
 
-		if config.EnableAdmission {
+		if enableAdmission {
 			logger.Info("starting admission policies watcher")
 
 			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
