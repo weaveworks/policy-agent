@@ -7,6 +7,9 @@ resources:
 - api:
     crdVersion: v1
     namespaced: false
+  - api:
+    crdVersion: v2beta1
+    namespaced: false
   domain: weave.works
   kind: Policy
   path: github.com/weaveworks/policy-agent/api/v1

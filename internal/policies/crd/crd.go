@@ -7,7 +7,7 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta1"
 	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlCache "sigs.k8s.io/controller-runtime/pkg/cache"
@@ -30,7 +30,7 @@ func (p *PoliciesWatcher) SetPolicySet(name string) {
 
 // GetAll returns all policies, implements github.com/MagalixTechnologies/policy-core/domain.PoliciesSource
 func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
-	policiesCRD := &pacv1.PolicyList{}
+	policiesCRD := &pacv2.PolicyList{}
 
 	err := p.cache.List(ctx, policiesCRD, &client.ListOptions{})
 	if err != nil {
@@ -111,7 +111,7 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 }
 
 func (p *PoliciesWatcher) GetPolicySet(ctx context.Context, id string) (*domain.PolicySet, error) {
-	policySet := pacv1.PolicySet{}
+	policySet := pacv2.PolicySet{}
 	err := p.cache.Get(ctx, client.ObjectKey{Name: id}, &policySet)
 	if err != nil {
 		return nil, err

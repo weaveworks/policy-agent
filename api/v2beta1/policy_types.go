@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1
+package v2beta1
 
 import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -22,11 +22,16 @@ import (
 )
 
 const (
-	ResourceName = "policies"
-	Kind         = "Policy"
+	PolicyResourceName    = "policies"
+	PolicyKind            = "Policy"
+	PolicySetResourceName = "policysets"
+	PolicySetKind         = "PolicySet"
 )
 
-var GroupVersionResource = GroupVersion.WithResource(ResourceName)
+var (
+	PolicyGroupVersionResource    = GroupVersion.WithResource(PolicyResourceName)
+	PolicySetGroupVersionResource = GroupVersion.WithResource(PolicySetResourceName)
+)
 
 // PolicyParameters defines a needed input in a policy
 type PolicyParameters struct {
@@ -54,6 +59,13 @@ type PolicyTargets struct {
 	Namespaces []string `json:"namespaces"`
 }
 
+type PolicyStandard struct {
+	// ID idenitifer of the standarad
+	ID string `json:"id"`
+	// Controls standard controls
+	Controls []string `json:"controls,omitempty"`
+}
+
 // PolicySpec defines the desired state of Policy
 // It describes all that is needed to evaluate a resource against a rego code
 //+kubebuilder:object:generate:true
@@ -65,8 +77,8 @@ type PolicySpec struct {
 	// Code contains the policy rego code
 	Code string `json:"code"`
 	// +optional
-	// Enable specifies if this policy should be used for evaluation or not
-	Enable string `json:"enable,omitempty"`
+	// Enabled flag for third parties consumers that indicates if this policy should be considered or not
+	Enabled bool `json:"enabled,omitempty"`
 	// +optional
 	// Parameters are the inputs needed for the policy validation
 	Parameters []PolicyParameters `json:"parameters,omitempty"`
@@ -87,22 +99,37 @@ type PolicySpec struct {
 	// Severity is a measure of the impact of that policy, can be low, medium or high
 	Severity string `json:"severity"`
 	// +optional
-	// Controls is a list of policy controls that this policy falls under
-	Controls []string `json:"controls,omitempty"`
+	// Standards is a list of policy standards that this policy falls under
+	Standards []PolicyStandard `json:"standards"`
+}
+
+type PolicySetFilters struct {
+	IDs        []string `json:"ids,omitempty"`
+	Categories []string `json:"categories,omitempty"`
+	Severities []string `json:"severities,omitempty"`
+	Standards  []string `json:"standards,omitempty"`
+	Tags       []string `json:"tags,omitempty"`
+}
+
+type PolicySetSpec struct {
+	ID      string           `json:"id"`
+	Name    string           `json:"name"`
+	Filters PolicySetFilters `json:"filters"`
 }
 
 //+kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
+//+kubebuilder:resource:scope=Cluster
+//+kubebuilder:storageversion
 
 // Policy is the Schema for the policies API
 type Policy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec PolicySpec `json:"spec,omitempty"`
+	Spec              PolicySpec `json:"spec,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:scope=Cluster
 
 // PolicyList contains a list of Policy
 type PolicyList struct {
@@ -111,6 +138,27 @@ type PolicyList struct {
 	Items           []Policy `json:"items"`
 }
 
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:scope=Cluster
+
+// PolicySet is the Schema for the policysets API
+type PolicySet struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec PolicySetSpec `json:"spec,omitempty"`
+}
+
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:scope=Cluster
+
+// PolicySetList contains a list of PolicySet
+type PolicySetList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []PolicySet `json:"items"`
+}
+
 func init() {
-	SchemeBuilder.Register(&Policy{}, &PolicyList{})
+	SchemeBuilder.Register(&Policy{}, &PolicyList{}, &PolicySet{}, &PolicySetList{})
 }
