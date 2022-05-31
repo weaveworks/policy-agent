@@ -16,22 +16,18 @@ const (
 
 type FileSystemSink struct {
 	File                 *os.File
-	AccountID            string
-	ClusterID            string
 	PolicyValidationChan chan domain.PolicyValidation
 	cancelWorker         context.CancelFunc
 }
 
 // NewFileSystemSink returns a sink that writes results to the file system
-func NewFileSystemSink(filePath string, accountID, clusterID string) (*FileSystemSink, error) {
+func NewFileSystemSink(filePath string) (*FileSystemSink, error) {
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %s to write validation results: %w", filePath, err)
 	}
 	return &FileSystemSink{
 		File:                 file,
-		AccountID:            accountID,
-		ClusterID:            clusterID,
 		PolicyValidationChan: make(chan domain.PolicyValidation, 50),
 	}, nil
 }
@@ -40,8 +36,7 @@ func NewFileSystemSink(filePath string, accountID, clusterID string) (*FileSyste
 func (f *FileSystemSink) Start(ctx context.Context) error {
 	cancelCtx, cancel := context.WithCancel(ctx)
 	f.cancelWorker = cancel
-	go f.WritePolicyValidationWorker(cancelCtx)
-	return nil
+	return f.WritePolicyValidationWorker(cancelCtx)
 }
 
 func (f *FileSystemSink) writeValidationResutl(policyValidation domain.PolicyValidation) error {
@@ -53,7 +48,7 @@ func (f *FileSystemSink) writeValidationResutl(policyValidation domain.PolicyVal
 }
 
 // WritePolicyValidationWorker worker that listens on results and admits them to a file
-func (f *FileSystemSink) WritePolicyValidationWorker(_ context.Context) {
+func (f *FileSystemSink) WritePolicyValidationWorker(_ context.Context) error {
 	for {
 		select {
 		case result := <-f.PolicyValidationChan:

@@ -5,7 +5,6 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
-	mglx_events "github.com/weaveworks/policy-agent/pkg/events"
 	"k8s.io/client-go/tools/record"
 )
 
@@ -32,10 +31,10 @@ func NewFluxNotificationSink(recorder record.EventRecorder, webhook, accountID, 
 }
 
 // Start starts the writer worker
-func (f *FluxNotificationSink) Start(ctx context.Context) {
+func (f *FluxNotificationSink) Start(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	f.cancelWorker = cancel
-	go f.writeWorker(ctx)
+	return f.writeWorker(ctx)
 }
 
 // Stop stops worker
@@ -47,14 +46,12 @@ func (f *FluxNotificationSink) Stop() {
 func (f *FluxNotificationSink) Write(_ context.Context, results []domain.PolicyValidation) error {
 	logger.Infow("writing validation results", "sink", "flux_notification", "count", len(results))
 	for _, result := range results {
-		result.AccountID = f.accountID
-		result.ClusterID = f.clusterID
 		f.resultChan <- result
 	}
 	return nil
 }
 
-func (f *FluxNotificationSink) writeWorker(ctx context.Context) {
+func (f *FluxNotificationSink) writeWorker(ctx context.Context) error {
 	for {
 		select {
 		case result := <-f.resultChan:
@@ -78,7 +75,19 @@ func (f *FluxNotificationSink) write(result domain.PolicyValidation) {
 		return
 	}
 
-	event := mglx_events.EventFromPolicyValidationResult(result)
+	event, err := domain.NewK8sEventFromPolicyValidation(result)
+	if err != nil {
+		logger.Errorw(
+			"failed to create event from policy validation for flux notification",
+			"error",
+			err,
+			"entity_kind", result.Entity.Kind,
+			"entity_name", result.Entity.Name,
+			"entity_namespace", result.Entity.Namespace,
+			"policy", result.Policy.ID,
+		)
+		return
+	}
 
 	logger.Debugw(
 		"sending event ...",

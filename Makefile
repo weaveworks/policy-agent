@@ -79,7 +79,7 @@ build: generate fmt vet ## Build agent binary.
 	@go get -v -d
 	@rm -rf bin/agent
 	CGO_ENABLED=0 GOOS=linux go build -o bin/agent \
-		-ldflags "-X main.version=$(VERSION)" \
+		-ldflags "-X main.build=$(VERSION)" \
 		-gcflags "-trimpath $(GOPATH)/src"
 
 .PHONY: run

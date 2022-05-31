@@ -103,6 +103,27 @@ func TestAuditorController_doAudit(t *testing.T) {
 				}, nil)
 			},
 		},
+		{
+			name: "ignore entity with parents",
+			args: args{
+				auditType: AuditEventTypeInitial,
+			},
+			loadStubs: func(val *validationmock.MockValidator, ent *entitiesmock.MockEntitiesSource) {
+				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(0)
+				ent.EXPECT().List(gomock.Any(), gomock.Any()).
+					Times(1).Return(&domain.EntitiesList{
+					HasNext: false,
+					Data: []domain.Entity{
+						{
+							Name:      "test",
+							Kind:      "Deployment",
+							HasParent: true,
+						},
+					},
+				}, nil)
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

@@ -313,7 +313,7 @@ func TestGetEntitiesSources(t *testing.T) {
 				discoveryClient: &DiscoveryMock{
 					ApiList: []*meta.APIResourceList{
 						{
-							GroupVersion: "pac.weave.works/v1",
+							GroupVersion: "pac.weave.works/v2beta1",
 							APIResources: []meta.APIResource{
 								{
 									Name:  "policies",
@@ -727,9 +727,10 @@ type Reaction struct {
 
 func TestK8SEntitySource_List(t *testing.T) {
 	type fields struct {
-		resource      schema.GroupVersionResource
-		kind          string
-		resourceNames []string
+		resource         schema.GroupVersionResource
+		kind             string
+		resourceNames    []string
+		ignoredNamespace string
 	}
 	type args struct {
 		listOptions *domain.ListOptions
@@ -854,6 +855,35 @@ func TestK8SEntitySource_List(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "ignored namespace",
+			fields: fields{
+				resource:         schema.GroupVersionResource{Resource: "deployments", Version: "v1", Group: "apps"},
+				kind:             "Deployment",
+				ignoredNamespace: "ignored",
+			},
+			args: args{
+				listOptions: &domain.ListOptions{},
+			},
+			reaction: Reaction{
+				objects: []unstructured.Unstructured{
+					{
+						Object: map[string]interface{}{
+							"apiVersion": "v1",
+							"kind":       "Deployment",
+							"metadata": map[string]interface{}{
+								"namespace": "ignored",
+								"name":      "test",
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				data:    []unstructured.Unstructured{},
+				hasNext: false,
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -875,10 +905,11 @@ func TestK8SEntitySource_List(t *testing.T) {
 					Items: test.reaction.objects}, nil
 			})
 			k := &K8SEntitySource{
-				resource:      test.fields.resource,
-				kubeClient:    kubeClient,
-				kind:          test.fields.kind,
-				resourceNames: test.fields.resourceNames,
+				resource:         test.fields.resource,
+				kubeClient:       kubeClient,
+				kind:             test.fields.kind,
+				resourceNames:    test.fields.resourceNames,
+				ignoredNamespace: test.fields.ignoredNamespace,
 			}
 			ctx := context.Background()
 			got, err := k.List(ctx, test.args.listOptions)

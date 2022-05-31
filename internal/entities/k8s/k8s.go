@@ -7,7 +7,7 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
-	policiesv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta1"
 	"github.com/weaveworks/policy-agent/internal/clients/kube"
 	corev1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,9 +17,10 @@ import (
 )
 
 const (
-	allAllowed         = "*"
-	listVerb           = "list"
-	entityMetadataName = "metadata.name"
+	allAllowed              = "*"
+	listVerb                = "list"
+	entityMetadataName      = "metadata.name"
+	entityMetadataNamespace = "metadata.namespace"
 )
 
 type rulesCache struct {
@@ -75,8 +76,8 @@ func getValidateRules(ctx context.Context, kubeClient *kube.KubeClient) ([]rules
 				cache.apiGroups[rule.APIGroups[k]] = struct{}{}
 			}
 			rulesCaches = append(rulesCaches, cache)
-			checkPoliciesResource := checkAllowed(policiesv1.ResourceName, cache.resources)
-			checkPoliciesGroup := checkAllowed(policiesv1.GroupVersion.Group, cache.apiGroups)
+			checkPoliciesResource := checkAllowed(pacv2.PolicyResourceName, cache.resources)
+			checkPoliciesGroup := checkAllowed(pacv2.GroupVersion.Group, cache.apiGroups)
 			if checkPoliciesResource && checkPoliciesGroup {
 				foundPolicicesRule = true
 			}
@@ -100,6 +101,7 @@ func GetEntitiesSources(ctx context.Context, kubeClient *kube.KubeClient) ([]dom
 		return nil, err
 	}
 
+	ignoredNamespace := kubeClient.GetAgentNamespace()
 	var sources []domain.EntitiesSource
 	for i := range apiResourceList {
 		list := apiResourceList[i]
@@ -134,33 +136,32 @@ func GetEntitiesSources(ctx context.Context, kubeClient *kube.KubeClient) ([]dom
 						Group:    groupVersion.Group,
 						Version:  groupVersion.Version,
 						Resource: apiResource.Name}
-					if resource.String() == policiesv1.GroupVersionResource.String() {
+					if resource.String() == pacv2.PolicyGroupVersionResource.String() {
 						continue
 					}
 
 					sources = append(sources, &K8SEntitySource{
-						resource:      resource,
-						kubeClient:    kubeClient,
-						kind:          apiResource.Kind,
-						resourceNames: cache.resourceNames,
+						resource:         resource,
+						kubeClient:       kubeClient,
+						kind:             apiResource.Kind,
+						resourceNames:    cache.resourceNames,
+						ignoredNamespace: ignoredNamespace,
 					})
 					break
 				}
-
 			}
-
 		}
-
 	}
 	return sources, nil
 }
 
 // K8SEntitySource allows retrieving of items of a specific group version resource
 type K8SEntitySource struct {
-	resource      schema.GroupVersionResource
-	kubeClient    *kube.KubeClient
-	kind          string
-	resourceNames []string
+	resource         schema.GroupVersionResource
+	kubeClient       *kube.KubeClient
+	kind             string
+	resourceNames    []string
+	ignoredNamespace string
 }
 
 // List returns list of resources from the entities source
@@ -194,8 +195,10 @@ func (k *K8SEntitySource) List(ctx context.Context, listOptions *domain.ListOpti
 	var data []domain.Entity
 
 	for i := range entitiesList.Items {
-		entity := domain.NewEntityFromSpec(entitiesList.Items[i].Object)
-		data = append(data, entity)
+		if entitiesList.Items[i].GetNamespace() != k.ignoredNamespace {
+			entity := domain.NewEntityFromSpec(entitiesList.Items[i].Object)
+			data = append(data, entity)
+		}
 	}
 	return &domain.EntitiesList{
 		HasNext: keySet != "",

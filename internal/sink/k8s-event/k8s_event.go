@@ -6,7 +6,6 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
-	mglx_events "github.com/weaveworks/policy-agent/pkg/events"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -45,10 +44,10 @@ func NewK8sEventSink(kubeClient kubernetes.Interface, accountID, clusterID, repo
 }
 
 // Start starts the writer worker
-func (k *K8sEventSink) Start(ctx context.Context) {
+func (k *K8sEventSink) Start(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	k.cancelWorker = cancel
-	go k.writeWorker(ctx)
+	return k.writeWorker(ctx)
 }
 
 // Stop stops worker
@@ -60,14 +59,12 @@ func (k *K8sEventSink) Stop() {
 func (k *K8sEventSink) Write(_ context.Context, results []domain.PolicyValidation) error {
 	logger.Infow("writing validation results", "sink", "k8s_events", "count", len(results))
 	for _, result := range results {
-		result.AccountID = k.accountID
-		result.ClusterID = k.clusterID
 		k.resultChan <- result
 	}
 	return nil
 }
 
-func (f *K8sEventSink) writeWorker(ctx context.Context) {
+func (f *K8sEventSink) writeWorker(ctx context.Context) error {
 	for {
 		select {
 		case result := <-f.resultChan:
@@ -80,7 +77,19 @@ func (f *K8sEventSink) writeWorker(ctx context.Context) {
 }
 
 func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation) {
-	event := mglx_events.EventFromPolicyValidationResult(result)
+	event, err := domain.NewK8sEventFromPolicyValidation(result)
+	if err != nil {
+		logger.Errorw(
+			"failed to create event from policy validation",
+			"error",
+			err,
+			"entity_kind", result.Entity.Kind,
+			"entity_name", result.Entity.Name,
+			"entity_namespace", result.Entity.Namespace,
+			"policy", result.Policy.ID,
+		)
+		return
+	}
 	event.ReportingController = k.reportingController
 	event.ReportingInstance = k.reportingInstance
 	event.Source = v1.EventSource{Component: k.reportingController}
@@ -94,7 +103,7 @@ func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation
 		"policy", result.Policy.ID,
 	)
 
-	_, err := k.kubeClient.CoreV1().Events(event.Namespace).Create(ctx, &event, metav1.CreateOptions{})
+	_, err = k.kubeClient.CoreV1().Events(event.Namespace).Create(ctx, event, metav1.CreateOptions{})
 	if err != nil {
 		logger.Errorw("failed to send event", "error", err)
 	}

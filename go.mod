@@ -8,12 +8,15 @@ replace (
 )
 
 require (
+	github.com/MagalixTechnologies/channel v1.1.0
 	github.com/MagalixTechnologies/core/logger v1.0.4
-	github.com/MagalixTechnologies/policy-core v1.0.2
+	github.com/MagalixTechnologies/core/packet v1.0.1
+	github.com/MagalixTechnologies/policy-core v1.0.10
 	github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e
 	github.com/fluxcd/pkg/runtime v0.13.1
 	github.com/go-logr/logr v1.2.2
 	github.com/golang/mock v1.6.0
+	github.com/golang/snappy v0.0.4
 	github.com/stretchr/testify v1.7.1
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/weaveworks/policy-agent/api v0.0.0
@@ -45,6 +48,7 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
