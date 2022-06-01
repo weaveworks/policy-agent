@@ -239,8 +239,6 @@ func main() {
 	app.Action = func(contextCli *cli.Context) error {
 		logger.Infow("initializing Policy Agent", "build", build)
 		logger.Infof("config: %+v", config)
-		enableAdmission := true
-		enableAudit := true
 
 		var kubeConfig *rest.Config
 		var err error
@@ -318,7 +316,7 @@ func main() {
 				return err
 			}
 			defer fluxNotificationSink.Stop()
-			if enableAudit {
+			if config.EnableAudit {
 				logger.Warn("ignoring flux notifications sink for audit validation")
 			}
 			admissionSinks = append(admissionSinks, fluxNotificationSink)
@@ -331,7 +329,7 @@ func main() {
 				return err
 			}
 			defer k8sEventSink.Stop()
-			if enableAudit {
+			if config.EnableAudit {
 				logger.Warn("ignoring kubernetes events sink for audit validation")
 			}
 			admissionSinks = append(admissionSinks, k8sEventSink)
@@ -343,14 +341,14 @@ func main() {
 			if err != nil {
 				return err
 			}
-			if enableAudit {
+			if config.EnableAudit {
 				gatewaySink, err := initSaaSSink(contextCli.Context, mgr, kubeClient, config, gateway, packet.PacketPolicyValidationAudit)
 				if err != nil {
 					return err
 				}
 				auditSinks = append(auditSinks, gatewaySink)
 			}
-			if enableAdmission {
+			if config.EnableAdmission {
 				gatewaySink, err := initSaaSSink(contextCli.Context, mgr, kubeClient, config, gateway, packet.PacketPolicyValidationAdmission)
 				if err != nil {
 					return err
@@ -359,7 +357,7 @@ func main() {
 			}
 		}
 
-		if enableAudit {
+		if config.EnableAudit {
 			logger.Info("starting audit policies watcher")
 
 			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
@@ -385,7 +383,7 @@ func main() {
 			auditController.Audit(auditor.AuditEventTypeInitial, nil)
 		}
 
-		if enableAdmission {
+		if config.EnableAdmission {
 			logger.Info("starting admission policies watcher")
 
 			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
