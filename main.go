@@ -141,7 +141,7 @@ func main() {
 		},
 		&cli.BoolFlag{
 			Name:        "write-compliance",
-			Usage:       "enables writing compliance results",
+			Usage:       "enables writing compliance for audit results",
 			Destination: &config.WriteCompliance,
 			Value:       false,
 			EnvVars:     []string{"AGENT_WRITE_COMPLIANCE"},
@@ -428,7 +428,7 @@ func main() {
 
 			validator := validation.NewOPAValidator(
 				policiesSource,
-				config.WriteCompliance,
+				false,
 				admission.TypeAdmission,
 				config.AccountID,
 				config.ClusterID,
