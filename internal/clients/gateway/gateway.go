@@ -170,7 +170,7 @@ func (g *Gateway) watchdog(ctx context.Context) {
 			logger.Debugw("wachdog status:", "connected", connected, "authorized", g.authorized)
 
 		case <-ctx.Done():
-			break
+			return
 		}
 	}
 	logger.Info("terminating watchdog ...")
