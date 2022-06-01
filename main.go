@@ -75,10 +75,6 @@ type Config struct {
 	MetricsAddr        string
 	AuditPolicySet     string
 	AdmissionPolicySet string
-
-	//backwards compatibility only
-	DisableAdmission bool
-	DisableAudit     bool
 }
 
 var (
@@ -141,7 +137,7 @@ func main() {
 		},
 		&cli.BoolFlag{
 			Name:        "write-compliance",
-			Usage:       "enables writing compliance results",
+			Usage:       "enables writing compliance for audit results",
 			Destination: &config.WriteCompliance,
 			Value:       false,
 			EnvVars:     []string{"AGENT_WRITE_COMPLIANCE"},
@@ -217,29 +213,12 @@ func main() {
 			Destination: &config.AdmissionPolicySet,
 			EnvVars:     []string{"AGENT_ADMISSION_POLICY_SET"},
 		},
-		// deprecated, for backwards compatibility
-		&cli.BoolFlag{
-			Name:        "disable-admission",
-			Usage:       "disables admission control",
-			Destination: &config.DisableAdmission,
-			Value:       false,
-			EnvVars:     []string{"AGENT_DISABLE_ADMISSION"},
-		},
-		// deprecated, for backwards compatibility
-		&cli.BoolFlag{
-			Name:        "disable-audit",
-			Usage:       "disables cluster periodical audit",
-			Destination: &config.DisableAudit,
-			Value:       false,
-			EnvVars:     []string{"AGENT_DISABLE_AUDIT"},
-		},
 	}
 
 	app.Before = func(c *cli.Context) error {
-		//@TODO this should be the correct behavior after the initial backwards compatible release
-		// if !config.EnableAdmission && !config.EnableAudit {
-		// return errors.New("agent needs to be run with at least one mode of operation")
-		// }
+		if !config.EnableAdmission && !config.EnableAudit {
+			return errors.New("agent needs to be run with at least one mode of operation")
+		}
 
 		switch config.LogLevel {
 		case "info":
@@ -262,14 +241,6 @@ func main() {
 		logger.Infof("config: %+v", config)
 		enableAdmission := true
 		enableAudit := true
-
-		if config.EnableAdmission || config.EnableAudit {
-			enableAdmission = config.EnableAdmission
-			enableAudit = config.EnableAudit
-		} else if config.DisableAdmission || config.DisableAudit {
-			enableAdmission = !config.DisableAdmission
-			enableAudit = !config.DisableAudit
-		}
 
 		var kubeConfig *rest.Config
 		var err error
@@ -428,7 +399,7 @@ func main() {
 
 			validator := validation.NewOPAValidator(
 				policiesSource,
-				config.WriteCompliance,
+				false,
 				admission.TypeAdmission,
 				config.AccountID,
 				config.ClusterID,

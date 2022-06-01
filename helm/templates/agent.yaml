@@ -223,6 +223,7 @@ spec:
   selector:
     name:  policy-agent
 ---
+{{- if eq .Values.config.AGENT_ENABLE_ADMISSION "1" }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
@@ -260,3 +261,4 @@ webhooks:
       - key: agent-admission
         operator: NotIn
         values: ["ignore"]
+{{- end}}
