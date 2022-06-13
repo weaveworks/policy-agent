@@ -71,7 +71,7 @@ func (f *K8sEventSink) writeWorker(ctx context.Context) error {
 			f.write(ctx, result)
 		case <-ctx.Done():
 			logger.Info("stopping write worker ...")
-			break
+			return nil
 		}
 	}
 }

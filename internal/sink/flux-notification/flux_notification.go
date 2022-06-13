@@ -58,7 +58,7 @@ func (f *FluxNotificationSink) writeWorker(ctx context.Context) error {
 			f.write(result)
 		case <-ctx.Done():
 			logger.Info("stopping write worker ...")
-			break
+			return nil
 		}
 	}
 }
