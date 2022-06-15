@@ -3,6 +3,7 @@ package admission
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -67,10 +68,8 @@ func (a *AdmissionHandler) Handle(ctx context.Context, req ctrlAdmission.Request
 	if err != nil {
 		return a.handleErrors(err, ErrValidatingResource)
 	}
-
 	if len(result.Violations) > 0 {
-		violationsMessages := result.GetViolationMessages()
-		return ctrlAdmission.ValidationResponse(false, strings.Join(violationsMessages, "\n"))
+		return ctrlAdmission.ValidationResponse(false, generateResponse(result.Violations))
 	}
 	return ctrlAdmission.ValidationResponse(true, "")
 }
@@ -81,4 +80,24 @@ func (a *AdmissionHandler) Run(mgr ctrl.Manager) error {
 	mgr.GetWebhookServer().Register("/admission", &webhook)
 
 	return nil
+}
+
+func generateResponse(violations []domain.PolicyValidation) string {
+	var buffer strings.Builder
+	for _, violation := range violations {
+		buffer.WriteString("==================================================================\n")
+		buffer.WriteString(fmt.Sprintf("Policy	: %s\n", violation.Policy.ID))
+
+		if violation.Entity.Namespace == "" {
+			buffer.WriteString(fmt.Sprintf("Entity	: %s/%s\n", strings.ToLower(violation.Entity.Kind), violation.Entity.Name))
+		} else {
+			buffer.WriteString(fmt.Sprintf("Entity	: %s/%s in namespace: %s\n", strings.ToLower(violation.Entity.Kind), violation.Entity.Name, violation.Entity.Namespace))
+		}
+
+		buffer.WriteString("Occurrences:\n")
+		for _, occurrence := range violation.Occurrences {
+			buffer.WriteString(fmt.Sprintf("- %s\n", occurrence.Message))
+		}
+	}
+	return buffer.String()
 }
