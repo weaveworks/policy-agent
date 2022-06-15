@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/MagalixTechnologies/policy-core/domain"
 	"github.com/MagalixTechnologies/policy-core/validation"
 	validationmock "github.com/MagalixTechnologies/policy-core/validation/mock"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/policy-agent/internal/admission/testdata"
 	v1 "k8s.io/api/admission/v1"
@@ -170,4 +172,28 @@ func TestAdmissionHandler_Handle(t *testing.T) {
 			assert.Equal(tt.wantResponse, resp, "unexpected admission response")
 		})
 	}
+}
+
+func TestGeneratingMessage(t *testing.T) {
+	violations := []domain.PolicyValidation{
+		{
+			Policy: domain.Policy{
+				ID: "policy-1",
+			},
+			Entity: domain.Entity{
+				Name:      "entity-1",
+				Namespace: "namespace-1",
+			},
+			Occurrences: []domain.Occurrence{
+				{Message: "occurrence-1"},
+				{Message: "occurrence-2"},
+			},
+		},
+	}
+	response := generateResponse(violations)
+	assert.Equal(t, strings.Contains(response, violations[0].Policy.ID), true)
+	assert.Equal(t, strings.Contains(response, violations[0].Entity.Name), true)
+	assert.Equal(t, strings.Contains(response, violations[0].Entity.Namespace), true)
+	assert.Equal(t, strings.Contains(response, violations[0].Occurrences[0].Message), true)
+	assert.Equal(t, strings.Contains(response, violations[0].Occurrences[1].Message), true)
 }
