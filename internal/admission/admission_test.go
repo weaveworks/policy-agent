@@ -135,8 +135,10 @@ func TestAdmissionHandler_Handle(t *testing.T) {
 				AdmissionResponse: v1.AdmissionResponse{
 					Allowed: false,
 					Result: &metav1.Status{
-						Reason: "violation",
-						Code:   http.StatusForbidden,
+						Reason: metav1.StatusReason(generateResponse([]domain.PolicyValidation{
+							{Message: "violation"},
+						})),
+						Code: http.StatusForbidden,
 					},
 				},
 			},
