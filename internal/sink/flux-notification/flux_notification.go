@@ -2,6 +2,7 @@ package flux_notification
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
@@ -44,7 +45,7 @@ func (f *FluxNotificationSink) Stop() {
 
 // Write adds results to buffer, implements github.com/MagalixTechnologies/policy-core/domain.PolicyValidationSink
 func (f *FluxNotificationSink) Write(_ context.Context, results []domain.PolicyValidation) error {
-	logger.Infow("writing validation results", "sink", "flux_notification", "count", len(results))
+	logger.Debugw("writing validation results", "sink", "flux_notification", "count", len(results))
 	for _, result := range results {
 		f.resultChan <- result
 	}
@@ -67,7 +68,7 @@ func (f *FluxNotificationSink) write(result domain.PolicyValidation) {
 	fluxObject := getFluxObject(result.Entity.Labels)
 	if fluxObject == nil {
 		logger.Debugw(
-			"discarding result for orphan entity",
+			fmt.Sprintf("discarding %s result for orphan entity", result.Type),
 			"kind", result.Entity.Kind,
 			"name", result.Entity.Name,
 			"namespace", result.Entity.Namespace,
