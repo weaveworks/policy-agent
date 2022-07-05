@@ -11,7 +11,7 @@ import (
 type SinksConfig struct {
 	FilesystemSink       *FileSystemSink
 	FluxNotificationSink *FluxNotificationSink
-	K8sEventSink         *K8sEventsSink
+	K8sEventsSink        *K8sEventsSink
 	SaasGatewaySink      *SaaSGatewaySink
 }
 
@@ -73,7 +73,7 @@ func GetAgentConfiguration(filePath string) Config {
 	viper.SetEnvKeyReplacer(replacer)
 
 	viper.SetConfigName(file)
-	viper.SetConfigType("toml")
+	viper.SetConfigType("yaml")
 	viper.AddConfigPath(dir)
 
 	err := viper.ReadInConfig()

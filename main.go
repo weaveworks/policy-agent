@@ -174,7 +174,7 @@ func main() {
 				defer fileSystemSink.Stop()
 				auditSinks = append(auditSinks, fileSystemSink)
 			}
-			if auditSinksConfig.K8sEventSink != nil && auditSinksConfig.K8sEventSink.Enabled {
+			if auditSinksConfig.K8sEventsSink != nil && auditSinksConfig.K8sEventsSink.Enabled {
 				logger.Info("initializing kubernetes events audit sink ...")
 				k8sEventSink, err := initK8sEventSink(mgr, config)
 				if err != nil {
@@ -210,7 +210,7 @@ func main() {
 				defer fileSystemSink.Stop()
 				admissionSinks = append(admissionSinks, fileSystemSink)
 			}
-			if admissionSinksConfig.K8sEventSink != nil && admissionSinksConfig.K8sEventSink.Enabled {
+			if admissionSinksConfig.K8sEventsSink != nil && admissionSinksConfig.K8sEventsSink.Enabled {
 				logger.Info("initializing kubernetes events admission sink ...")
 				k8sEventSink, err := initK8sEventSink(mgr, config)
 				if err != nil {
