@@ -45,3 +45,52 @@ GLOBAL OPTIONS:
    --help, -h           show help (default: false)
    --version, -v        print the version (default: false)
 ```
+
+### Policy Agent config File
+The config file is the single entry point for configuring the agent. 
+
+The agent needs the following parameters to be provided in the configuration yaml file: 
+- kubeConfigFile: path to the kubernetes config file to access the cluster
+- accountId: unique identifier that signifies the owner of that agent
+- clusterId: unique identifier for the cluster that the agent will run against
+
+
+There are additional parameters could be provided:
+- logLevel: app log level (default: "info")
+- probesListen: address for the probes server to run on (default: ":9000")
+- metricsAddress: address the metric endpoint binds to (default: ":8080")
+- admission: defines admission control configuration including the supported sinks and webhooks (disabled by default)
+- audit: defines defines cluster periodical audit configuration including configuration including the supported sinks (disabled by default)
+
+Example:
+
+This example provides the expected format for the config file, you can define different sinks configuration for admission control mode and cluster periodical audit mode, such as (File system Sink, Flux notification Controller Sink, K8S events Sink and WeavePolicy SaaS Sink)
+```
+accountId: "76xdx488-a02x-78xc-32xx-8f5574bexxx"
+clusterId: "76xdx488-a02x-78xc-32xx-8f5574bexxx"
+kubeConfigFile: "/.kube/config"
+logLevel: "Info"
+admission:
+   enabled: true
+   sinks:
+      filesystemSink:
+         filePath: ""
+      fluxNotificationSink:
+         address: ""
+      k8sEventsSink:
+         enabled: true
+      saasGatewaySink:
+         url: ""
+audit:
+   enabled: true
+   writeCompliance: true
+   sinks:
+      filesystemSink:
+         filePath: ""
+      fluxNotificationSink:
+         address: ""
+      k8sEventsSink:
+         enabled: true
+      saasGatewaySink:
+         url: ""
+```
