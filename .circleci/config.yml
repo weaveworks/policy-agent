@@ -78,7 +78,7 @@ jobs:
             VERSION=${CIRCLE_BRANCH}-${COMMIT_COUNT}-${SHORT_HASH}
 
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-              export VERSION=latest
+              export VERSION=$(<version.txt)
             fi
 
             if [[ "$CIRCLE_BRANCH" == "dev" ]]; then
@@ -105,7 +105,7 @@ jobs:
             SHORT_HASH=$(git rev-parse --short HEAD)
             VERSION=${CIRCLE_BRANCH}-${COMMIT_COUNT}-${SHORT_HASH}
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-              export VERSION=latest
+              export VERSION=$(<version.txt)
             fi
             if [[ "$CIRCLE_BRANCH" == "dev" ]]; then
               export VERSION=dev
