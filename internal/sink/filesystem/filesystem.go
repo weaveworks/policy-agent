@@ -55,7 +55,7 @@ func (f *FileSystemSink) WritePolicyValidationWorker(_ context.Context) error {
 			err := f.writeValidationResutl(result)
 			if err != nil {
 				logger.Errorw(
-					"error while writing results",
+					fmt.Sprintf("error while writing %s results", result.Type),
 					"error", err,
 					"policy-id", result.Policy.ID,
 					"entity-name", result.Entity.Name,
