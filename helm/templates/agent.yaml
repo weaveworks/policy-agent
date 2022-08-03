@@ -82,19 +82,15 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: policy-agent-config
-  namespace: {{ .Values.namespace }}
-data:
-  config.yaml: |-
-    {{- toYaml .Values.config | nindent 6 }}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
   name: policy-agent
   namespace: {{ .Values.namespace }}
 data:
-  AGENT_CONFIG_FILE: {{ .Values.configFile }}
+  AGENT_ACCOUNT_ID: {{ .Values.accountId }}
+  AGENT_CLUSTER_ID: {{ .Values.clusterId }}
+
+  {{- range $key, $val := .Values.config }}
+  {{ $key }}: "{{ $val }}"
+  {{- end }}
 ---
 {{if eq .Values.useCertManager true }}
 apiVersion: cert-manager.io/v1
@@ -200,8 +196,6 @@ spec:
           - name: cert
             mountPath: /certs
             readOnly: true
-          - name: agent-config-volume
-            mountPath: /config
           {{- if eq .Values.persistence.enabled true }}
           - name: validation-results
             mountPath: {{.Values.persistence.sinkDir}}
@@ -210,9 +204,6 @@ spec:
       - name: cert
         secret:
           secretName: policy-agent-cert
-      - name: agent-config-volume
-        configMap:
-          name: policy-agent-config
       {{- if eq .Values.persistence.enabled true }}
       - name: validation-results
         persistentVolumeClaim:
@@ -232,7 +223,7 @@ spec:
   selector:
     name:  policy-agent
 ---
-{{- if eq .Values.config.admission.enabled true }}
+{{- if eq .Values.config.AGENT_ENABLE_ADMISSION "1" }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
