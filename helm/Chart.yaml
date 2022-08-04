@@ -3,3 +3,6 @@ appVersion: "0.4.2"
 description: A Helm chart for Kubernetes to configure the policy agent
 name: policy-agent
 version: 0.4.2
+maintainers:
+  - name: Weaveworks
+    email: support@weave.works
