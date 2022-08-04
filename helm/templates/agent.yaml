@@ -1,19 +1,7 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    agent-admission: ignore
-    app.kubernetes.io/name: "{{ .Values.namespace }}"
-    app.kubernetes.io/version: "1"
-    app.kubernetes.io/component: "namespace"
-    app.kubernetes.io/tier: "backend"
-  name: {{ .Values.namespace }}
----
-apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: policy-agent
-  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: "policy-agent"
     app.kubernetes.io/version: "1"
@@ -58,7 +46,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: policy-agent
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
   name: policy-agent
@@ -69,7 +57,6 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: policy-agent
-  namespace: {{ .Values.namespace }}
 spec:
   storageClassName: {{ .Values.persistence.storageClassName }}
   accessModes:
@@ -83,7 +70,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: policy-agent
-  namespace: {{ .Values.namespace }}
 data:
   AGENT_ACCOUNT_ID: {{ .Values.accountId }}
   AGENT_CLUSTER_ID: {{ .Values.clusterId }}
@@ -97,7 +83,6 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: agent-issuer
-  namespace: {{ .Values.namespace }}
 spec:
   selfSigned: {}
 ---
@@ -105,12 +90,11 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: agent-certificate
-  namespace: {{ .Values.namespace }}
 spec:
-  commonName: policy-agent.{{ .Values.namespace }}.svc
+  commonName: policy-agent.{{ .Release.Namespace }}.svc
   dnsNames:
-  - policy-agent.{{ .Values.namespace }}.svc.cluster.local
-  - policy-agent.{{ .Values.namespace }}.svc
+  - policy-agent.{{ .Release.Namespace }}.svc.cluster.local
+  - policy-agent.{{ .Release.Namespace }}.svc
   issuerRef:
     kind: Issuer
     name: agent-issuer
@@ -121,7 +105,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: policy-agent-cert
-  namespace: {{ .Values.namespace }}
 type: kubernetes.io/tls
 data:
   tls.crt: |
@@ -134,7 +117,6 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: policy-agent
-  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: "policy-agent"
     app.kubernetes.io/instance: "policy-agent"
@@ -156,7 +138,7 @@ spec:
       serviceAccountName: policy-agent
       restartPolicy: Always
       containers:
-        - image: {{.Values.image}}
+        - image: {{ .Values.image }}:{{ .Chart.AppVersion }}
           imagePullPolicy: Always
           name: policy-agent
           securityContext:
@@ -214,7 +196,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: policy-agent
-  namespace: {{ .Values.namespace }}
 spec:
   ports:
   - name: https-admission-webhook
@@ -232,25 +213,25 @@ metadata:
     app.kubernetes.io/name: policy-agent
   {{- if eq .Values.useCertManager true }}
   annotations:
-    cert-manager.io/inject-ca-from: {{ .Values.namespace }}/agent-certificate
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/agent-certificate
   {{- end }}
 webhooks:
   - name: admission.agent.weaveworks
     clientConfig:
       service:
-        namespace: {{ .Values.namespace }}
+        namespace: {{ .Release.Namespace }}
         name: policy-agent
         path: /admission
       caBundle: {{ .Values.caCertificate | b64enc }}
     rules:
       - operations: [ "CREATE", "UPDATE" ]
         apiVersions: ["*"]
-        apiGroups: ["", "extensions", "apps", "batch", "metrics.k8s.io", "networking.k8s.io"]
-        resources: ["nodes", "nodes/stats", "nodes/metrics", "nodes/proxy", "namespaces", "pods", "limitranges", "deployments", "replicationcontrollers", "statefulsets", "daemonsets", "replicasets", "jobs", "cronjobs", "ingresses", "ingressclasses", "services", "networkpolicies"]
+        apiGroups: ["", "extensions", "apps", "batch", "metrics.k8s.io"]
+        resources: ["namespaces", "pods", "limitranges", "deployments", "replicationcontrollers", "statefulsets", "daemonsets", "replicasets", "jobs", "cronjobs", "services"]
       - operations: [ "CREATE", "UPDATE" ]
         apiVersions: ["*"]
-        apiGroups: ["", "rbac.authorization.k8s.io", "storage.k8s.io"]
-        resources: ["clusterrolebindings", "clusterroles", "roles", "rolebindings", "persistentvolumes", "persistentvolumeclaims", "storageclasses"]
+        apiGroups: ["", "rbac.authorization.k8s.io", "storage.k8s.io", "source.toolkit.fluxcd.io"]
+        resources: ["clusterrolebindings", "clusterroles", "roles", "rolebindings", "persistentvolumes", "persistentvolumeclaims", "storageclasses", "gitrepositories", "helmrepositories", "buckets"]
     timeoutSeconds: 5
     failurePolicy: {{ .Values.failurePolicy }}
     admissionReviewVersions: ["v1", "v1beta1"]
@@ -258,7 +239,7 @@ webhooks:
     matchPolicy: Equivalent
     namespaceSelector:
       matchExpressions:
-      - key: agent-admission
+      - key: kubernetes.io/metadata.name
         operator: NotIn
-        values: ["ignore"]
+        values: [{{ .Release.Namespace }}]
 {{- end}}
