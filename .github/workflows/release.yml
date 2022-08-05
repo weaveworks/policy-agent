@@ -3,7 +3,7 @@ name: Release Charts
 on:
   push:
     branches:
-      - release_helm
+      - main
 
 jobs:
   release:
@@ -12,16 +12,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
+          path: main
           fetch-depth: 0
 
-      - name: Configure Git
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: gh-pages
+          ref: gh-pages
+          fetch-depth: 0
+      
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+
+      - name: Release
+        shell: bash
         run: |
+          helm package main/helm
+          mkdir -p gh-pages/releases
+          mv policy-agent-* gh-pages/releases/
+          cd gh-pages
+          helm repo index releases --url https://weaveworks.github.io/policy-agent/releases
+          mv releases/index.yaml index.yaml
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.1.0
-        with:
-          charts_dir: helm
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          git add releases index.yaml
+          git commit -m "update release charts"
+          git push
