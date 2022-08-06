@@ -36,14 +36,8 @@ jobs:
         run: |
           make build
 
-
-      # - setup_remote_docker:
-      #     reusable: true
-      #     exclusive: true
-
       - name: Build docker image
         run: |
-
           COMMIT_COUNT=$(git rev-list --count HEAD)
           SHORT_HASH=$(git rev-parse --short HEAD)
           VERSION=${GITHUB_REF_NAME}-${COMMIT_COUNT}-${SHORT_HASH}
@@ -60,7 +54,6 @@ jobs:
 
       - name: run test    
         run: |
-
           go test -v -cover -covermode=atomic -coverprofile=coverage.txt ./...
           bash <(curl -s https://codecov.io/bash) -F unit
 
@@ -78,20 +71,16 @@ jobs:
           fi
 
           echo scanning ${REPO}:${VERSION}
-          ssh remote-docker 'curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin'
-          ssh remote-docker grype "${REPO}:${VERSION}" --scope all-layers > /tmp/report.txt #--fail-on high to fail on sev high
-
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
+          grype "${REPO}:${VERSION}" --scope all-layers > /tmp/report.txt #--fail-on high to fail on sev high
 
       - name: Release and push to Docker Registry
         run: |
           if [[ ! "$SHOULD_PUSH" ]]; then
             echo :: no push
-
             exit 0
           fi
-
           docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
-
           if [[ "$GITHUB_REF_NAME" == "master" ]]; then
             export VERSION=$(<version.txt)
             git config user.email "release-ci@weave.works"
