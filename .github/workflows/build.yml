@@ -80,7 +80,9 @@ jobs:
             echo :: no push
             exit 0
           fi
-          docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
+          echo user ${{ secrets.DOCKERHUB_USERNAME }}
+          echo password ${{ secrets.DOCKERHUB_USERNAME }}
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
           if [[ "$GITHUB_REF_NAME" == "master" ]]; then
             export VERSION=$(<version.txt)
             git config user.email "release-ci@weave.works"
