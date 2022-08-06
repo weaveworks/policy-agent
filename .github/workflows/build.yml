@@ -27,8 +27,7 @@ jobs:
 
       - name: Should push?
         run: |
-          echo "$GITHUB_BASE_REF"
-          if [[ "$GITHUB_BASE_REF" == "dev" || "$GITHUB_BASE_REF" == "master" ]]
+          if [[ "$GITHUB_REF_NAME" == "dev" || "$GITHUB_REF_NAME" == "master" ]]
           then
             echo 'export SHOULD_PUSH=true' >> $GITHUB_ENV
           else
