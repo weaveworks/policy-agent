@@ -1,0 +1,110 @@
+name: build & push
+
+on:
+  push:
+    branches: [ master, dev, 52-replace-circle-ci-with-github-actions ]
+  pull_request:
+    branches: [ master, dev,  52-replace-circle-ci-with-github-actions ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.17'
+          cache: true
+
+
+      - name: Set up source path directory and checkout code
+        run: |
+          export PATH=/home/runner/go/bin:$PATH
+          export GO111MODULE=on
+          git checkout -q "$GITHUB_REF_NAME"
+
+      - name: Should push?
+        run: |
+          if [[ "$GITHUB_BASE_REF" == "dev" || "$GITHUB_BASE_REF" == "master" ]]
+          then
+            echo 'export SHOULD_PUSH=true' >> $GITHUB_ENV
+          else
+            echo :: will not push
+          fi
+
+      - name: Build binary
+        run: |
+          make build
+
+
+      # - setup_remote_docker:
+      #     reusable: true
+      #     exclusive: true
+
+      - name: Build docker image
+        run: |
+
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          VERSION=${GITHUB_BASE_REF}-${COMMIT_COUNT}-${SHORT_HASH}
+
+          if [[ "$GITHUB_BASE_REF" == "master" ]]; then
+            export VERSION=$(<version.txt)
+          fi
+
+          if [[ "$GITHUB_BASE_REF" == "dev" ]]; then
+            export VERSION=dev
+          fi
+
+          make image VERSION=$VERSION
+
+      - name: run test    
+        run: |
+
+          go test -v -cover -covermode=atomic -coverprofile=coverage.txt ./...
+          bash <(curl -s https://codecov.io/bash) -F unit
+
+      - name: Scan The Image
+        run: |
+          REPO=policy-agent
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          VERSION=${GITHUB_BASE_REF}-${COMMIT_COUNT}-${SHORT_HASH}
+          if [[ "$GITHUB_BASE_REF" == "master" ]]; then
+            export VERSION=$(<version.txt)
+          fi
+          if [[ "$GITHUB_BASE_REF" == "dev" ]]; then
+            export VERSION=dev
+          fi
+
+          echo scanning ${REPO}:${VERSION}
+          ssh remote-docker 'curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin'
+          ssh remote-docker grype "${REPO}:${VERSION}" --scope all-layers > /tmp/report.txt #--fail-on high to fail on sev high
+
+
+      - name: Release and push to Docker Registry
+        run: |
+          if [[ ! "$SHOULD_PUSH" ]]; then
+            echo :: no push
+
+            exit 0
+          fi
+
+          cd $SOURCE_PATH
+
+          docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
+
+          if [[ "$GITHUB_BASE_REF" == "master" ]]; then
+            export VERSION=$(<version.txt)
+            git config user.email "release-ci@weave.works"
+            git config user.name "release-ci"
+            git tag -a v$VERSION -m "Policy Agent v$VERSION release" 
+            git push -u origin v$VERSION
+          fi
+
+          if [[ "$GITHUB_BASE_REF" == "dev" ]]; then
+            export VERSION=dev
+          fi
+
+          make push@magalixcorp tag-file=new-tag version-file=new-version VERSION=$VERSION
