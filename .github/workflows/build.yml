@@ -23,7 +23,6 @@ jobs:
           export PATH=/home/runner/go/bin:$PATH
           export GO111MODULE=on
           git checkout -q "$GITHUB_REF_NAME"
-          echo "$GITHUB_REF_NAME"
 
       - name: Should push?
         run: |
