@@ -17,11 +17,10 @@ jobs:
           go-version: '1.17'
           cache: true
 
-
       - name: Set up source path directory and checkout code
         run: |
-          export PATH=/home/runner/go/bin:$PATH
-          export GO111MODULE=on
+          echo 'export GO111MODULE=on' >> $GITHUB_ENV
+          echo 'export GOPRIVATE=github.com/MagalixTechnologies' >> $GITHUB_ENV
           git checkout -q "$GITHUB_REF_NAME"
 
       - name: Should push?
@@ -35,6 +34,7 @@ jobs:
 
       - name: Build binary
         run: |
+          apt-get install build-base
           make build
 
 
