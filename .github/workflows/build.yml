@@ -14,7 +14,7 @@ jobs:
       - name: setup go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version: '1.17'
           cache: true
 
       - name: Set up source path directory and checkout code
@@ -34,7 +34,7 @@ jobs:
 
       - name: Build binary
         run: |
-          go mod tidy
+          go clean -modcache
           make build
 
 
