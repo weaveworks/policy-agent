@@ -23,9 +23,11 @@ jobs:
           export PATH=/home/runner/go/bin:$PATH
           export GO111MODULE=on
           git checkout -q "$GITHUB_REF_NAME"
+          echo "$GITHUB_REF_NAME"
 
       - name: Should push?
         run: |
+          echo "$GITHUB_BASE_REF"
           if [[ "$GITHUB_BASE_REF" == "dev" || "$GITHUB_BASE_REF" == "master" ]]
           then
             echo 'export SHOULD_PUSH=true' >> $GITHUB_ENV
