@@ -26,6 +26,7 @@ import (
 	"github.com/weaveworks/policy-agent/internal/clients/kube"
 	"github.com/weaveworks/policy-agent/internal/entities/k8s"
 	"github.com/weaveworks/policy-agent/internal/policies/crd"
+	"github.com/weaveworks/policy-agent/internal/sink/elastic"
 	"github.com/weaveworks/policy-agent/internal/sink/filesystem"
 	flux_notification "github.com/weaveworks/policy-agent/internal/sink/flux-notification"
 	k8s_event "github.com/weaveworks/policy-agent/internal/sink/k8s-event"
@@ -193,6 +194,14 @@ func main() {
 				defer fluxNotificationSink.Stop()
 				auditSinks = append(auditSinks, fluxNotificationSink)
 			}
+			if auditSinksConfig.ElasticSink != nil {
+				elasticsearchSinkConfig := auditSinksConfig.ElasticSink
+				elasticsearchSink, err := initElasticSearchSink(mgr, *elasticsearchSinkConfig)
+				if err != nil {
+					return err
+				}
+				auditSinks = append(auditSinks, elasticsearchSink)
+			}
 			if auditSinksConfig.SaasGatewaySink != nil {
 				auditSaaSGatewaySink = auditSinksConfig.SaasGatewaySink
 			}
@@ -228,6 +237,14 @@ func main() {
 				}
 				defer fluxNotificationSink.Stop()
 				admissionSinks = append(admissionSinks, fluxNotificationSink)
+			}
+			if admissionSinksConfig.ElasticSink != nil {
+				elasticsearchSinkConfig := admissionSinksConfig.ElasticSink
+				elasticsearchSink, err := initElasticSearchSink(mgr, *elasticsearchSinkConfig)
+				if err != nil {
+					return err
+				}
+				auditSinks = append(auditSinks, elasticsearchSink)
 			}
 
 			if admissionSinksConfig.SaasGatewaySink != nil {
@@ -380,6 +397,18 @@ func initK8sEventSink(mgr manager.Manager, config configuration.Config) (*k8s_ev
 	}
 
 	logger.Info("starting kubernetes event sink ...")
+	mgr.Add(sink)
+
+	return sink, nil
+}
+
+func initElasticSearchSink(mgr manager.Manager, elasticsearchSinkConfig configuration.ElasticSink) (*elastic.ElasticSearchSink, error) {
+	sink, err := elastic.NewElasticSearchSink(elasticsearchSinkConfig.Address, elasticsearchSinkConfig.Username, elasticsearchSinkConfig.Password, elasticsearchSinkConfig.IndexName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize elasticsearch sink: %w", err)
+	}
+
+	logger.Info("starting elasticsearch sink ...")
 	mgr.Add(sink)
 
 	return sink, nil
