@@ -84,7 +84,7 @@ jobs:
             VERSION=${CIRCLE_BRANCH}-${COMMIT_COUNT}-${SHORT_HASH}
 
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-              export VERSION=latest
+              export VERSION=$(<version.txt)
             fi
 
             if [[ "$CIRCLE_BRANCH" == "dev" ]]; then
@@ -111,7 +111,7 @@ jobs:
             SHORT_HASH=$(git rev-parse --short HEAD)
             VERSION=${CIRCLE_BRANCH}-${COMMIT_COUNT}-${SHORT_HASH}
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-              export VERSION=latest
+              export VERSION=$(<version.txt)
             fi
             if [[ "$CIRCLE_BRANCH" == "dev" ]]; then
               export VERSION=dev
@@ -125,7 +125,7 @@ jobs:
           path: /tmp/report.txt
 
       - deploy:
-          name: Push to Docker Registry
+          name: Release and push to Docker Registry
           command: |
             if [[ ! "$SHOULD_PUSH" ]]; then
               echo :: no push
@@ -138,7 +138,11 @@ jobs:
             docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
 
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-              export VERSION=latest
+              export VERSION=$(<version.txt)
+              git config user.email "release-ci@weave.works"
+              git config user.name "release-ci"
+              git tag -a v$VERSION -m "Policy Agent v$VERSION release" 
+              git push -u origin v$VERSION
             fi
 
             if [[ "$CIRCLE_BRANCH" == "dev" ]]; then
