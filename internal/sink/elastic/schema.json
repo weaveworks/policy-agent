@@ -1,0 +1,134 @@
+{
+    "properties": {
+        "account_id": {
+            "type": "keyword"
+        },
+        "cluster_id": {
+            "type": "keyword"
+        },
+        "created_at": {
+            "type": "date",
+            "format": "date_optional_time"
+        },
+        "entity": {
+            "properties": {
+                "apiVersion": {
+                    "type": "keyword"
+                },
+                "has_parent": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "keyword"
+                },
+                "kind": {
+                    "type": "keyword"
+                },
+                "manifest": {
+                    "dynamic": false,
+                    "properties": {}
+                },
+                "name": {
+                    "type": "keyword"
+                },
+                "namespace": {
+                    "type": "keyword"
+                },
+                "resource_version": {
+                    "type": "keyword"
+                }
+            }
+        },
+        "id": {
+            "type": "keyword"
+        },
+        "message": {
+            "type": "keyword"
+        },
+        "occurrences": {
+            "type": "nested",
+            "dynamic": "false"
+        },
+        "policy": {
+            "properties": {
+                "category": {
+                    "type": "keyword"
+                },
+                "code": {
+                    "type": "keyword"
+                },
+                "description": {
+                    "type": "keyword"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "how_to_solve": {
+                    "type": "keyword"
+                },
+                "id": {
+                    "type": "keyword"
+                },
+                "name": {
+                    "type": "keyword"
+                },
+                "parameters": {
+                    "type": "nested",
+                    "properties": {
+                        "name": {
+                            "type": "keyword"
+                        },
+                        "required": {
+                            "type": "boolean"
+                        },
+                        "type": {
+                            "type": "keyword"
+                        },
+                        "value": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                "severity": {
+                    "type": "keyword"
+                },
+                "standards": {
+                    "type": "nested",
+                    "properties": {
+                        "controls": {
+                            "type": "keyword"
+                        },
+                        "id": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                "tags": {
+                    "type": "keyword"
+                },
+                "targets": {
+                    "properties": {
+                        "kinds": {
+                            "type": "keyword"
+                        },
+                        "labels": {
+                            "type": "keyword"
+                        },
+                        "namespaces": {
+                            "type": "keyword"
+                        }
+                    }
+                }
+            }
+        },
+        "source": {
+            "type": "keyword"
+        },
+        "status": {
+            "type": "keyword"
+        },
+        "trigger": {
+            "type": "keyword"
+        }
+    }
+}

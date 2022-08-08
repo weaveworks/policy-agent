@@ -4,21 +4,26 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io/ioutil"
+	"net/http"
 	"time"
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/uuid"
 )
 
 const (
 	resultChanSize  int           = 50
+	batchSize       int           = 100
 	batchExpiry     time.Duration = 10 * time.Second
 	retriesInterval time.Duration = 500 * time.Millisecond
-	batchSize       int           = 100
 	retries         int           = 5
 )
+
+var schemaFilePath string = "internal/sink/elastic/schema.json"
 
 type IndexTemplate struct {
 	Index Index `json:"index"`
@@ -38,16 +43,22 @@ type ElasticSearchSink struct {
 
 // NewElasticSearchSink returns a sink that sends results to elasticsearch index
 func NewElasticSearchSink(address, username, password, index string) (*ElasticSearchSink, error) {
-	cfg := elasticsearch.Config{
-		Addresses: []string{address},
-		Username:  username,
-		Password:  password,
-	}
-
-	client, err := elasticsearch.NewClient(cfg)
+	client, err := elasticsearch.NewClient(
+		elasticsearch.Config{
+			Addresses: []string{address},
+			Username:  username,
+			Password:  password,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
+
+	err = createIndexSchema(client, index)
+	if err != nil {
+		return nil, err
+	}
+
 	return &ElasticSearchSink{
 		policyValidationChan:   make(chan domain.PolicyValidation, resultChanSize),
 		policyValidationsBatch: make([]domain.PolicyValidation, 0, batchSize),
@@ -58,7 +69,6 @@ func NewElasticSearchSink(address, username, password, index string) (*ElasticSe
 
 // Write adds results to buffer, implements github.com/MagalixTechnologies/policy-core/domain.PolicyValidationSink
 func (es *ElasticSearchSink) Write(_ context.Context, policyValidations []domain.PolicyValidation) error {
-	// logger.Infow("writing validation results", "sink", "elasticsearch", "count", len(policyValidations))
 	for _, policyValidation := range policyValidations {
 		es.policyValidationChan <- policyValidation
 	}
@@ -97,27 +107,61 @@ func (es *ElasticSearchSink) writeBatch(items []domain.PolicyValidation) {
 	logger.Infow("writing policy validations", "size", len(items), "index", es.indexName)
 
 	for i := 0; i < retries; i++ {
-		var body []byte
-		for _, item := range items {
-			itemBody, err := createIndexBody(item, es.indexName)
-			if err != nil {
-				logger.Errorw("failed to create policy validation elastic search body", item, "error", err)
-			}
-			body = append(body, itemBody...)
+		body, err := createIndexBody(items, es.indexName)
+		if err != nil {
+			logger.Errorw("failed to create policy validation elastic search body", "error", err)
+			continue
 		}
 		res, err := es.elasticClient.Bulk(bytes.NewReader(body))
 		if err != nil || res.StatusCode != 200 {
 			logger.Warnw("failed to write policy validations", "index", es.indexName, "retry", i+1, "error", err)
-		} else {
-			return
+			continue
 		}
 		defer res.Body.Close()
+		return
 	}
 	time.Sleep(retriesInterval)
 	logger.Errorw("failed to write policy validations", "index", es.indexName, "error", err)
 }
 
-func createIndexBody(document interface{}, index string) ([]byte, error) {
+func createIndexSchema(client *elasticsearch.Client, index string) error {
+	response, err := client.Indices.Exists([]string{index})
+	if err != nil {
+		return errors.WithMessagef(err, "failed to check if index exists")
+	}
+	if response.StatusCode == http.StatusNotFound {
+		response, err = client.Indices.Create(index)
+		if err != nil || response.StatusCode != http.StatusOK {
+			return errors.WithMessagef(err, "failed to create index")
+		}
+		logger.Infof("index %s is created", index)
+	}
+	//internal/sink/elastic/
+	schema, err := ioutil.ReadFile(schemaFilePath)
+	if err != nil {
+		return err
+	}
+
+	response, err = client.Indices.PutMapping(bytes.NewReader(schema), client.Indices.PutMapping.WithIndex(index))
+	if err != nil || response.StatusCode != http.StatusOK {
+		return errors.WithMessagef(err, "failed to update schema")
+	}
+	return nil
+}
+
+func createIndexBody(items []domain.PolicyValidation, index string) ([]byte, error) {
+	var body []byte
+	for _, item := range items {
+		itemBody, err := createDocumentBody(item, index)
+		if err != nil {
+			return nil, err
+		}
+		body = append(body, itemBody...)
+	}
+	return body, nil
+}
+
+func createDocumentBody(document interface{}, index string) ([]byte, error) {
 	header, err := json.Marshal(IndexTemplate{Index: Index{IndexName: index, Id: string(uuid.NewUUID())}})
 	if err != nil {
 		return nil, err

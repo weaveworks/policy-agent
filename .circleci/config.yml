@@ -67,7 +67,13 @@ jobs:
       - setup_remote_docker:
           reusable: true
           exclusive: true
-
+      
+      - run:
+          name: Running ElasticSearch
+          command: |
+            docker run -itd --name elasticsearch --network host -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.3.3
+          docker_layer_caching: true
+      
       - run:
           name: Build docker image
           command: |
