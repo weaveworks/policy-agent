@@ -22,9 +22,7 @@ Refer to this [doc](docs/running_agent.md) for the steps needed to run the agent
 
 The agent needs the following arguments to start, they can be specified as command line arguments or as environment variables:
 
-- `kube-config-file` | `AGENT_KUBE_CONFIG_FILE`: path to the kubernetes config file to access the cluster
-- `account-id` | `AGENT_ACCOUNT_ID`: unique identifier that signifies the owner of that agent
-- `cluster-id` | `AGENT_CLUSTER_ID`: unique identifier for the cluster that the agent will run against
+- `config-file` | `AGENT_CONFIG_FILE`: path to the policy agent config file
 
 There are additional arguments that can be specified, refer to the help for more info.
 
@@ -43,22 +41,56 @@ COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --kube-config-file value             path to kubernetes client config file [$AGENT_KUBE_CONFIG_FILE]
-   --account-id value                   Account id, unique per organization [$AGENT_ACCOUNT_ID]
-   --cluster-id value                   Cluster id, cluster identifier [$AGENT_CLUSTER_ID]
-   --webhook-listen value               port for the admission webhook server to listen on (default: 8443) [$AGENT_WEBHOOK_LISTEN]
-   --webhook-cert-dir value             cert directory path for webhook server (default: "/certs") [$AGENT_WEBHOOK_CERT_DIR]
-   --probes-listen value                address for the probes server to run on (default: ":9000") [$AGENT_PROBES_LISTEN]
-   --write-compliance                   enables writing compliance results (default: false) [$AGENT_WRITE_COMPLIANCE]
-   --admission                          enables admission control (default: false) [$AGENT_DISABLE_ADMISSION]
-   --audit                              enables cluster periodical audit (default: false) [$AGENT_DISABLE_AUDIT]
-   --log-level value                    app log level (default: "info") [$AGENT_LOG_LEVEL]
-   --filesystem-sink-file-path value    filesystem sink file path [$AGENT_FILESYSTEM_SINK_FILE_PATH]
-   --flux-notification-sink-addr value  flux notification sink address [$AGENT_FLUX_NOTIFICATION_SINK_ADDR]
-   --enable-k8s-events-sink             enables kubernetes events sink (default: false) [$AGENT_ENABLE_K8S_EVENTS_SINK]
-   --gateway-sink-url value             connection to the saas gateway [$AGENT_GATEWAY_SINK_URL]
-   --gateway-sink-secret value          secret used to authenticate for the saas sink [$AGENT_GATEWAY_SINK_SECRET]
-   --metrics-addr value                 address the metric endpoint binds to (default: ":8080") [$AGENT_METRICS_ADDR]
-   --help, -h                           show help (default: false)
-   --version, -v                        print the version (default: false)
+   --config-file value  path to policy agent configuration file [$AGENT_CONFIG_FILE]
+   --help, -h           show help (default: false)
+   --version, -v        print the version (default: false)
+```
+
+### Policy Agent config File
+The config file is the single entry point for configuring the agent. 
+
+The agent needs the following parameters to be provided in the configuration yaml file: 
+- kubeConfigFile: path to the kubernetes config file to access the cluster
+- accountId: unique identifier that signifies the owner of that agent
+- clusterId: unique identifier for the cluster that the agent will run against
+
+
+There are additional parameters could be provided:
+- logLevel: app log level (default: "info")
+- probesListen: address for the probes server to run on (default: ":9000")
+- metricsAddress: address the metric endpoint binds to (default: ":8080")
+- admission: defines admission control configuration including the supported sinks and webhooks (disabled by default)
+- audit: defines defines cluster periodical audit configuration including configuration including the supported sinks (disabled by default)
+
+Example:
+
+This example provides the expected format for the config file, you can define different sinks configuration for admission control mode and cluster periodical audit mode, such as (File system Sink, Flux notification Controller Sink, K8S events Sink and WeavePolicy SaaS Sink)
+```
+accountId: "76xdx488-a02x-78xc-32xx-8f5574bexxx"
+clusterId: "76xdx488-a02x-78xc-32xx-8f5574bexxx"
+kubeConfigFile: "/.kube/config"
+logLevel: "Info"
+admission:
+   enabled: true
+   sinks:
+      filesystemSink:
+         filePath: ""
+      fluxNotificationSink:
+         address: ""
+      k8sEventsSink:
+         enabled: true
+      saasGatewaySink:
+         url: ""
+audit:
+   enabled: true
+   writeCompliance: true
+   sinks:
+      filesystemSink:
+         filePath: ""
+      fluxNotificationSink:
+         address: ""
+      k8sEventsSink:
+         enabled: true
+      saasGatewaySink:
+         url: ""
 ```
