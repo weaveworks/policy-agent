@@ -3,7 +3,7 @@ name: Release Charts
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   release:
@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          path: main
+          path: master
           fetch-depth: 0
 
       - name: Checkout
@@ -28,7 +28,7 @@ jobs:
       - name: Release
         shell: bash
         run: |
-          helm package main/helm
+          helm package master/helm
           mkdir -p gh-pages/releases
           mv policy-agent-* gh-pages/releases/
           cd gh-pages

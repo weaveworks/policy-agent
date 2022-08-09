@@ -26,3 +26,7 @@ config:
 
 accountId: ""
 clusterId: ""
+
+# Cert manager sub chart configuration set `install` to true to install cert manager
+cert-manager:
+  install: false

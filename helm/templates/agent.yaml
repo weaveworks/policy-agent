@@ -226,12 +226,39 @@ webhooks:
     rules:
       - operations: [ "CREATE", "UPDATE" ]
         apiVersions: ["*"]
-        apiGroups: ["", "extensions", "apps", "batch", "metrics.k8s.io"]
-        resources: ["namespaces", "pods", "limitranges", "deployments", "replicationcontrollers", "statefulsets", "daemonsets", "replicasets", "jobs", "cronjobs", "services"]
-      - operations: [ "CREATE", "UPDATE" ]
-        apiVersions: ["*"]
-        apiGroups: ["", "rbac.authorization.k8s.io", "storage.k8s.io", "source.toolkit.fluxcd.io"]
-        resources: ["clusterrolebindings", "clusterroles", "roles", "rolebindings", "persistentvolumes", "persistentvolumeclaims", "storageclasses", "gitrepositories", "helmrepositories", "buckets"]
+        apiGroups:
+        - ""
+        - extensions
+        - apps
+        - batch
+        - metrics.k8s.io
+        - rbac.authorization.k8s.io
+        - storage.k8s.io
+        - source.toolkit.fluxcd.io
+        - gitops.weave.works
+        resources:
+        - namespaces
+        - pods
+        - limitranges
+        - deployments
+        - replicationcontrollers
+        - statefulsets
+        - daemonsets
+        - replicasets
+        - jobs
+        - cronjobs
+        - services
+        - clusterrolebindings
+        - clusterroles
+        - roles
+        - rolebindings
+        - persistentvolumes
+        - persistentvolumeclaims
+        - storageclasses
+        - gitrepositories
+        - helmrepositories
+        - buckets
+        - gitopsclusters
     timeoutSeconds: 5
     failurePolicy: {{ .Values.failurePolicy }}
     admissionReviewVersions: ["v1", "v1beta1"]
