@@ -28,7 +28,7 @@ func TestWriteElasticsearchSink(t *testing.T) {
 		address, "", "", indexName,
 	)
 	if err != nil {
-		t.Error("Error initializing elasticsearch sink")
+		t.Error("Error initializing elasticsearch sink", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
