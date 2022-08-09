@@ -2,9 +2,9 @@ name: build & push
 
 on:
   push:
-    branches: [ master, dev, 52-replace-circle-ci-with-github-actions ]
+    branches: [ master, dev ]
   pull_request:
-    branches: [ master, dev,  52-replace-circle-ci-with-github-actions ]
+    branches: [ master, dev ]
 
 jobs:
   build:
@@ -17,20 +17,21 @@ jobs:
           go-version: '1.17'
           cache: true
 
+      - name: Get branch name (merge)
+        if: github.event_name != 'pull_request'
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+      - name: Get branch name (pull request)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch -a
+          echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+
       - name: Set up source path directory and checkout code
         run: |
-          echo 'export GO111MODULE=on' >> $GITHUB_ENV
-          echo 'export GOPRIVATE=github.com/MagalixTechnologies' >> $GITHUB_ENV
-          git checkout -q "$GITHUB_REF_NAME"
-
-      - name: Should push?
-        run: |
-          if [[ "$GITHUB_REF_NAME" == "dev" || "$GITHUB_REF_NAME" == "master" ]]
-          then
-            echo 'export SHOULD_PUSH=true' >> $GITHUB_ENV
-          else
-            echo :: will not push
-          fi
+          export GO111MODULE=on
+          export GOPRIVATE=github.com/MagalixTechnologies
+          git checkout -q ${{ env.BRANCH_NAME }}
 
       - name: Build binary
         run: |
@@ -40,13 +41,13 @@ jobs:
         run: |
           COMMIT_COUNT=$(git rev-list --count HEAD)
           SHORT_HASH=$(git rev-parse --short HEAD)
-          VERSION=${GITHUB_REF_NAME}-${COMMIT_COUNT}-${SHORT_HASH}
+          VERSION=${{ env.BRANCH_NAME }}-${COMMIT_COUNT}-${SHORT_HASH}
 
-          if [[ "$GITHUB_REF_NAME" == "master" ]]; then
+          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
             export VERSION=$(<version.txt)
           fi
 
-          if [[ "$GITHUB_REF_NAME" == "dev" ]]; then
+          if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
             export VERSION=dev
           fi
 
@@ -62,11 +63,11 @@ jobs:
           REPO=policy-agent
           COMMIT_COUNT=$(git rev-list --count HEAD)
           SHORT_HASH=$(git rev-parse --short HEAD)
-          VERSION=${GITHUB_REF_NAME}-${COMMIT_COUNT}-${SHORT_HASH}
-          if [[ "$GITHUB_REF_NAME" == "master" ]]; then
+          VERSION=${{ env.BRANCH_NAME }}-${COMMIT_COUNT}-${SHORT_HASH}
+          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
             export VERSION=$(<version.txt)
           fi
-          if [[ "$GITHUB_REF_NAME" == "dev" ]]; then
+          if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
             export VERSION=dev
           fi
 
@@ -75,15 +76,10 @@ jobs:
           grype "${REPO}:${VERSION}" --scope all-layers > /tmp/report.txt #--fail-on high to fail on sev high
 
       - name: Release and push to Docker Registry
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' }}
         run: |
-          if [[ ! "$SHOULD_PUSH" ]]; then
-            echo :: no push
-            exit 0
-          fi
-          echo user ${{ secrets.DOCKERHUB_USERNAME }}
-          echo password ${{ secrets.DOCKERHUB_USERNAME }}
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-          if [[ "$GITHUB_REF_NAME" == "master" ]]; then
+          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
             export VERSION=$(<version.txt)
             git config user.email "release-ci@weave.works"
             git config user.name "release-ci"
@@ -91,7 +87,7 @@ jobs:
             git push -u origin v$VERSION
           fi
 
-          if [[ "$GITHUB_REF_NAME" == "dev" ]]; then
+          if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
             export VERSION=dev
           fi
 
