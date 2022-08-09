@@ -12,7 +12,6 @@ import (
 	"github.com/MagalixTechnologies/policy-core/domain"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/util/uuid"
 )
 
 const (
@@ -152,7 +151,7 @@ func createIndexSchema(client *elasticsearch.Client, index string) error {
 func createIndexBody(items []domain.PolicyValidation, index string) ([]byte, error) {
 	var body []byte
 	for _, item := range items {
-		itemBody, err := createDocumentBody(item, index)
+		itemBody, err := createDocumentBody(item, item.ID, index)
 		if err != nil {
 			return nil, err
 		}
@@ -161,8 +160,8 @@ func createIndexBody(items []domain.PolicyValidation, index string) ([]byte, err
 	return body, nil
 }
 
-func createDocumentBody(document interface{}, index string) ([]byte, error) {
-	header, err := json.Marshal(IndexTemplate{Index: Index{IndexName: index, Id: string(uuid.NewUUID())}})
+func createDocumentBody(document interface{}, id string, index string) ([]byte, error) {
+	header, err := json.Marshal(IndexTemplate{Index: Index{IndexName: index, Id: id}})
 	if err != nil {
 		return nil, err
 	}
