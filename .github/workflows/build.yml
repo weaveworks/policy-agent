@@ -27,12 +27,6 @@ jobs:
           git fetch -a
           echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
 
-      - name: Set up source path directory and checkout code
-        run: |
-          export GO111MODULE=on
-          export GOPRIVATE=github.com/MagalixTechnologies
-          git checkout -q ${{ env.BRANCH_NAME }}
-
       - name: Build binary
         run: |
           make build
