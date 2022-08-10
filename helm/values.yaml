@@ -1,6 +1,5 @@
 
-image: magalixcorp/policy-agent:latest
-namespace: policy-system 
+image: magalixcorp/policy-agent
 failurePolicy: Ignore
 
 # If you don't want to use cert-manager, set useCertManager to false and provide your own certs
@@ -27,3 +26,7 @@ config:
 
 accountId: ""
 clusterId: ""
+
+# Cert manager sub chart configuration set `install` to true to install cert manager
+cert-manager:
+  install: false
