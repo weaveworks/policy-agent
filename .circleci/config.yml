@@ -69,10 +69,20 @@ jobs:
           exclusive: true
       
       - run:
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
+
+      - run:
           name: Running ElasticSearch
           command: |
             docker run -itd --name elasticsearch --network host -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.3.3
           docker_layer_caching: true
+      
+      - run:
+          name: Wait for elasticsearch docker image
+          command: dockerize -wait http://localhost:9200 -timeout 1m
       
       - run:
           name: Build docker image
