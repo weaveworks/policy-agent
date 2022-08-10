@@ -28,6 +28,8 @@ jobs:
       - name: Release
         shell: bash
         run: |
+          helm repo add jetstack https://charts.jetstack.io
+          helm dependency build master/helm
           helm package master/helm
           mkdir -p gh-pages/releases
           mv policy-agent-* gh-pages/releases/
