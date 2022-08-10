@@ -82,7 +82,7 @@ jobs:
       
       - run:
           name: Wait for elasticsearch docker image
-          command: dockerize -wait http://localhost:9200 -timeout 1m
+          command: dockerize -wait http://localhost:9200 -timeout 2m
       
       - run:
           name: Build docker image
