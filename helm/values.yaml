@@ -1,6 +1,5 @@
 
-image: magalixcorp/policy-agent:latest
-namespace: policy-system 
+image: magalixcorp/policy-agent
 failurePolicy: Ignore
 
 # If you don't want to use cert-manager, set useCertManager to false and provide your own certs
@@ -8,6 +7,10 @@ useCertManager: true
 certificate: ""
 key: ""
 caCertificate: ""
+
+# Cert manager sub chart configuration set `install` to true to install cert manager
+cert-manager:
+  install: false
 
 persistence:
   enabled: true
@@ -25,5 +28,3 @@ config:
         filePath: "/tmp/result.json"
       k8sEventsSink:
         enabled: true
-
-configFile: "/config/config.yaml"
