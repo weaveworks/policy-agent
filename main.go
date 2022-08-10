@@ -55,25 +55,16 @@ var (
 const (
 	auditControllerInterval         = 23 * time.Hour
 	eventReportingController string = "policy-agent"
+	configFilePath           string = "/config/config.yaml"
 )
 
 func main() {
-	var configFilePath string
 	var config configuration.Config
 
 	app := cli.NewApp()
 	app.Version = "0.0.1"
 	app.Name = "Policy agent"
 	app.Usage = "Enforces compliance on your kubernetes cluster"
-	app.Flags = []cli.Flag{
-		&cli.StringFlag{
-			Name:        "config-file",
-			Usage:       "path to policy agent configuration file",
-			Destination: &configFilePath,
-			EnvVars:     []string{"AGENT_CONFIG_FILE"},
-			Required:    true,
-		},
-	}
 
 	app.Before = func(c *cli.Context) error {
 		config = configuration.GetAgentConfiguration(configFilePath)
