@@ -28,4 +28,3 @@ config:
         filePath: "/tmp/result.json"
       k8sEventsSink:
         enabled: true
-
