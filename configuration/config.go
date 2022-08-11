@@ -39,10 +39,11 @@ type AdmissionWebhook struct {
 }
 
 type ElasticSink struct {
-	IndexName string
-	Address   string
-	Username  string
-	Password  string
+	IndexName     string
+	Address       string
+	Username      string
+	Password      string
+	InsertionMode string
 }
 
 type AdmissionConfig struct {

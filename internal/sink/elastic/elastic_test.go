@@ -25,7 +25,7 @@ func TestWriteElasticsearchSink(t *testing.T) {
 	}
 
 	sink, err := NewElasticSearchSink(
-		address, "", "", indexName,
+		address, "", "", indexName, "insert",
 	)
 	if err != nil {
 		t.Fatal("Error initializing elasticsearch sink", err)

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -38,10 +39,11 @@ type ElasticSearchSink struct {
 	elasticClient          *elasticsearch.Client
 	indexName              string
 	policyValidationsBatch []domain.PolicyValidation
+	InsertionMode          string
 }
 
 // NewElasticSearchSink returns a sink that sends results to elasticsearch index
-func NewElasticSearchSink(address, username, password, index string) (*ElasticSearchSink, error) {
+func NewElasticSearchSink(address, username, password, index, insertionMode string) (*ElasticSearchSink, error) {
 	client, err := elasticsearch.NewClient(
 		elasticsearch.Config{
 			Addresses: []string{address},
@@ -63,6 +65,7 @@ func NewElasticSearchSink(address, username, password, index string) (*ElasticSe
 		policyValidationsBatch: make([]domain.PolicyValidation, 0, batchSize),
 		elasticClient:          client,
 		indexName:              index,
+		InsertionMode:          insertionMode,
 	}, nil
 }
 
@@ -106,7 +109,7 @@ func (es *ElasticSearchSink) writeBatch(items []domain.PolicyValidation) {
 	logger.Infow("writing policy validations", "size", len(items), "index", es.indexName)
 
 	for i := 0; i < retries; i++ {
-		body, err := createIndexBody(items, es.indexName)
+		body, err := createIndexBody(items, es.indexName, es.InsertionMode)
 		if err != nil {
 			logger.Errorw("failed to create policy validation elastic search body", "error", err)
 			continue
@@ -148,10 +151,14 @@ func createIndexSchema(client *elasticsearch.Client, index string) error {
 	return nil
 }
 
-func createIndexBody(items []domain.PolicyValidation, index string) ([]byte, error) {
+func createIndexBody(items []domain.PolicyValidation, index, insertionMode string) ([]byte, error) {
 	var body []byte
 	for _, item := range items {
-		itemBody, err := createDocumentBody(item, item.ID, index)
+		id := item.ID
+		if insertionMode == "upsert" {
+			id = fmt.Sprintf("%s_%s_%s", item.Policy.ID, item.Entity.ID, item.CreatedAt.Format("2006-02-01"))
+		}
+		itemBody, err := createDocumentBody(item, id, index)
 		if err != nil {
 			return nil, err
 		}

@@ -394,7 +394,10 @@ func initK8sEventSink(mgr manager.Manager, config configuration.Config) (*k8s_ev
 }
 
 func initElasticSearchSink(mgr manager.Manager, elasticsearchSinkConfig configuration.ElasticSink) (*elastic.ElasticSearchSink, error) {
-	sink, err := elastic.NewElasticSearchSink(elasticsearchSinkConfig.Address, elasticsearchSinkConfig.Username, elasticsearchSinkConfig.Password, elasticsearchSinkConfig.IndexName)
+	if elasticsearchSinkConfig.InsertionMode != "insert" && elasticsearchSinkConfig.InsertionMode != "upsert" {
+		return nil, errors.New("failed to initialize elasticsearch sink, insertion mode should be one of two options: insert or upsert")
+	}
+	sink, err := elastic.NewElasticSearchSink(elasticsearchSinkConfig.Address, elasticsearchSinkConfig.Username, elasticsearchSinkConfig.Password, elasticsearchSinkConfig.IndexName, elasticsearchSinkConfig.InsertionMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize elasticsearch sink: %w", err)
 	}
