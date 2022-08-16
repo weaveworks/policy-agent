@@ -79,11 +79,20 @@ jobs:
           command: |
             docker run -itd --name elasticsearch -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.3.3
           docker_layer_caching: true
-      
+
       - run:
           name: Wait for elasticsearch docker image
-          command: dockerize -wait http://localhost:9200 -timeout 2m
+          command: dockerize -wait http://localhost:9200 -timeout 2m || true
       
+      - run:
+          name: docker ps
+          command: |
+            docker ps -a
+
+      - run:
+          name: docker logs
+          command: docker logs elasticsearch
+
       - run:
           name: Build docker image
           command: |

@@ -18,9 +18,9 @@ func TestWriteElasticsearchSink(t *testing.T) {
 	schemaFilePath = "schema.json"
 
 	var auditEvents []domain.PolicyValidation
-	documentsCount := 4
+	expectedCount := 4
 
-	for i := 0; i < documentsCount; i++ {
+	for i := 0; i < expectedCount; i++ {
 		auditEvents = append(auditEvents, GeneratePolicyValidationObject())
 	}
 
@@ -36,9 +36,9 @@ func TestWriteElasticsearchSink(t *testing.T) {
 	sink.Write(ctx, auditEvents)
 	time.Sleep(12 * time.Second)
 
-	got, err := getCount(sink.elasticClient, sink.indexName)
+	actualCount, err := getCount(sink.elasticClient, sink.indexName)
 	if err != nil {
 		t.Error("Error getting index count")
 	}
-	assert.Equal(t, documentsCount, got, "Error getting index count")
+	assert.Equal(t, expectedCount, actualCount, "Error getting index count")
 }

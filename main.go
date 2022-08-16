@@ -235,7 +235,7 @@ func main() {
 				if err != nil {
 					return err
 				}
-				auditSinks = append(auditSinks, elasticsearchSink)
+				admissionSinks = append(admissionSinks, elasticsearchSink)
 			}
 
 			if admissionSinksConfig.SaasGatewaySink != nil {
