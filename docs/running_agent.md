@@ -53,15 +53,19 @@ This will generate a claim from a pre-existing volume and mount those volumes to
 The configmap needs to be configured to configure the agent with the available command line arguments. The following are the required arguements before the agent can start:
 
 ```yaml
-accountId: account-id # unique identifier for the agent owner
-clusterId: cluster-id # unique identifier for the cluster that the agent is running on
+config:
+  accountId: account-id # unique identifier for the agent owner
+  clusterId: cluster-id # unique identifier for the cluster that the agent is running on
 ```
 To configure the agent using argemnts, you need to define a config object in the values file that will be added to the configmap, for example:
 
 ```yaml
 config:
-  AGENT_WRITE_COMPLIANCE: 1 # enables writing compliance results
-  AGENT_ENABLE_ADMISSION: 1 # enbales admission functionality
+  audit:
+    enabled: true # enbales audit functionality
+    writeCompliance: true # enables writing compliance results
+  admission:
+    enabled: true # enbales admission functionality
 ```
 
 ### TLS Certificates
