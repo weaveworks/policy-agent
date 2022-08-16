@@ -77,7 +77,7 @@ jobs:
       - run:
           name: Running ElasticSearch
           command: |
-            docker run -itd --name elasticsearch -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.3.3
+            docker run -itd --name elasticsearch --network host -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.3.3
           docker_layer_caching: true
 
       - run:
