@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  "build & push":
+  build-push:
     docker:
       - image: magalixcorp/circleci-golang-lite:1.17
 
@@ -67,7 +67,7 @@ jobs:
       - setup_remote_docker:
           reusable: true
           exclusive: true
-
+      
       - run:
           name: Build docker image
           command: |
@@ -86,15 +86,6 @@ jobs:
             fi
 
             make image VERSION=$VERSION
-
-      - run:
-          name: run test
-          command: |
-            cd $SOURCE_PATH
-            apk add build-base
-
-            go test -v -cover -covermode=atomic -coverprofile=coverage.txt ./...
-            bash <(curl -s https://codecov.io/bash) -F unit
 
       - run:
           name: Scan The Image
@@ -145,8 +136,45 @@ jobs:
 
             make push@magalixcorp tag-file=new-tag version-file=new-version VERSION=$VERSION
 
+  tests:
+    machine:
+      image: ubuntu-2004:current
+      docker_layer_caching: true
+    steps:
+      - run:
+          name: Set up source path directory
+          command: |
+            echo 'export GO111MODULE=on' >> $BASH_ENV
+            echo 'export GOPRIVATE=github.com/MagalixTechnologies' >> $BASH_ENV
+      
+      - run:
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
+      
+      - run:
+          name: Running ElasticSearch
+          command: |
+            docker run -itd --name elasticsearch -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.3.3
+          docker_layer_caching: true
+
+      - run:
+          name: Wait for elasticsearch docker image
+          command: dockerize -wait http://localhost:9200 -timeout 2m
+      
+      - checkout
+      - run:
+          name: run test
+          command: |
+            go test -v -cover -covermode=atomic -coverprofile=coverage.txt ./...
+            bash <(curl -s https://codecov.io/bash) -F unit
+
 workflows:
   version: 2
-  "build & push":
+  test_build:
     jobs:
-      - "build & push"
+      - tests
+      - build-push:
+          requires:
+            - tests

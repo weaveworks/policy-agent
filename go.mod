@@ -13,10 +13,12 @@ require (
 	github.com/MagalixTechnologies/core/packet v1.0.1
 	github.com/MagalixTechnologies/policy-core v1.1.1
 	github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e
+	github.com/elastic/go-elasticsearch/v7 v7.17.1
 	github.com/fluxcd/pkg/runtime v0.13.1
 	github.com/go-logr/logr v1.2.2
 	github.com/golang/mock v1.6.0
 	github.com/golang/snappy v0.0.4
+	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.10.0
 	github.com/stretchr/testify v1.7.1
 	github.com/urfave/cli/v2 v2.3.0
@@ -57,6 +59,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/kr/pretty v0.2.1 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
@@ -64,7 +67,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/open-policy-agent/opa v0.37.1 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect

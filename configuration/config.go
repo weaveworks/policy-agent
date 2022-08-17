@@ -13,6 +13,7 @@ type SinksConfig struct {
 	FluxNotificationSink *FluxNotificationSink
 	K8sEventsSink        *K8sEventsSink
 	SaasGatewaySink      *SaaSGatewaySink
+	ElasticSink          *ElasticSink
 }
 
 type SaaSGatewaySink struct {
@@ -35,6 +36,14 @@ type FluxNotificationSink struct {
 type AdmissionWebhook struct {
 	Listen  int
 	CertDir string
+}
+
+type ElasticSink struct {
+	IndexName     string
+	Address       string
+	Username      string
+	Password      string
+	InsertionMode string
 }
 
 type AdmissionConfig struct {
@@ -97,17 +106,39 @@ func GetAgentConfiguration(filePath string) Config {
 	}
 
 	if c.Admission.Enabled && c.Admission.Sinks.SaasGatewaySink != nil {
-		c.Admission.Sinks.SaasGatewaySink.URL = viper.Get(
-			"admission.sinks.saasGatewaySink.url").(string)
-		c.Admission.Sinks.SaasGatewaySink.Secret = viper.Get(
-			"admission.sinks.saasGatewaySink.secret").(string)
+		c.Admission.Sinks.SaasGatewaySink.URL = getField(
+			"admission.sinks.saasGatewaySink.url")
+		c.Admission.Sinks.SaasGatewaySink.Secret = getField(
+			"admission.sinks.saasGatewaySink.secret")
 	}
 
 	if c.Audit.Enabled && c.Audit.Sinks.SaasGatewaySink != nil {
-		c.Audit.Sinks.SaasGatewaySink.URL = viper.Get(
-			"audit.sinks.saasGatewaySink.url").(string)
-		c.Audit.Sinks.SaasGatewaySink.Secret = viper.Get(
-			"audit.sinks.saasGatewaySink.secret").(string)
+		c.Audit.Sinks.SaasGatewaySink.URL = getField(
+			"audit.sinks.saasGatewaySink.url")
+		c.Audit.Sinks.SaasGatewaySink.Secret = getField(
+			"audit.sinks.saasGatewaySink.secret")
+	}
+
+	if c.Admission.Enabled && c.Admission.Sinks.ElasticSink != nil {
+		c.Admission.Sinks.ElasticSink.Address = getField(
+			"admission.sinks.elasticSink.address")
+		c.Admission.Sinks.ElasticSink.IndexName = getField(
+			"admission.sinks.elasticSink.indexname")
+		c.Admission.Sinks.ElasticSink.Username = getField(
+			"admission.sinks.elasticSink.username")
+		c.Admission.Sinks.ElasticSink.Password = getField(
+			"admission.sinks.elasticSink.password")
+	}
+
+	if c.Audit.Enabled && c.Audit.Sinks.ElasticSink != nil {
+		c.Audit.Sinks.ElasticSink.Address = getField(
+			"audit.sinks.elasticSink.address")
+		c.Audit.Sinks.ElasticSink.IndexName = getField(
+			"audit.sinks.elasticSink.indexname")
+		c.Audit.Sinks.ElasticSink.Username = getField(
+			"audit.sinks.elasticSink.username")
+		c.Audit.Sinks.ElasticSink.Password = getField(
+			"audit.sinks.elasticSink.password")
 	}
 
 	return c
@@ -127,4 +158,9 @@ func checkRequiredFields() {
 			)
 		}
 	}
+}
+
+func getField(key string) string {
+	value, _ := viper.Get(key).(string)
+	return value
 }
