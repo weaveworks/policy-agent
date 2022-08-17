@@ -15,8 +15,6 @@ const (
 )
 
 func TestWriteElasticsearchSink(t *testing.T) {
-	schemaFilePath = "schema.json"
-
 	var auditEvents []domain.PolicyValidation
 	expectedCount := 4
 

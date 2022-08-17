@@ -3,9 +3,9 @@ package elastic
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -23,7 +23,8 @@ const (
 	retries         int           = 5
 )
 
-var schemaFilePath string = "internal/sink/elastic/schema.json"
+//go:embed schema.json
+var schema []byte
 
 type IndexTemplate struct {
 	Index Index `json:"index"`
@@ -137,11 +138,6 @@ func createIndexSchema(client *elasticsearch.Client, index string) error {
 			return errors.WithMessagef(err, "failed to create index")
 		}
 		logger.Infof("index %s is created", index)
-	}
-	//internal/sink/elastic/
-	schema, err := ioutil.ReadFile(schemaFilePath)
-	if err != nil {
-		return err
 	}
 
 	response, err = client.Indices.PutMapping(bytes.NewReader(schema), client.Indices.PutMapping.WithIndex(index))
