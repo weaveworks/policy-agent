@@ -169,7 +169,7 @@ spec:
             protocol: TCP
           envFrom:
           - configMapRef:
-              name: policy-agent
+              name: policy-agent-config
           volumeMounts:
           - name: cert
             mountPath: /certs
