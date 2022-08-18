@@ -1,6 +1,6 @@
 # ElasticSearch Sink
 The policy agent supports multiple methods to expose this data, one of them is ElasticSearch Sink.
-The results of validating entities against policies would be written in ElasticSearch index with validation objects [schema](schema.json). It could be configured differently in different agent modes: `Audit` or `Admission`
+The results of validating entities against policies would be written in ElasticSearch index with validation objects [schema](https://github.com/weaveworks/policy-agent/blob/dev/internal/sink/elastic/schema.json). It could be configured differently in different agent modes: `Audit` or `Admission`
 
 ## ElasticSearch configuration:
 
@@ -21,24 +21,24 @@ The results of validating entities against policies would be written in ElasticS
 To enable writing validation objects in ElasticSearch for Audit mode:
 ```yaml
 config:
-	audit:
-		sinks:
-			elasticSink:
-				address: ""
-				username: ""
-				password: ""
-				indexName: ""
-				insertionMode: "upsert"
+  audit:
+    sinks:
+      elasticSink:
+        address: ""
+        username: ""
+        password: ""
+        indexName: ""
+        insertionMode: "upsert"
 ```
 To enable writing validation objects in elasticsearch for Admission mode:
 ```yaml
 config:
-	admission:
-		sinks:
-			elasticSink:
-				address: ""
-				username: ""
-				password: ""
-				indexName: ""
-				insertionMode: "upsert"
+  admission:
+    sinks:
+      elasticSink:
+        address: ""
+        username: ""
+        password: ""
+        indexName: ""
+        insertionMode: "upsert"
 ```
