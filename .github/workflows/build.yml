@@ -2,9 +2,9 @@ name: build & push
 
 on:
   push:
-    branches: [ master, dev, 52-replace-circle-ci-with-github-actions ]
+    branches: [ master, dev ]
   pull_request:
-    branches: [ master, dev, 52-replace-circle-ci-with-github-actions ]
+    branches: [ master, dev ]
 
 jobs:
   build:
