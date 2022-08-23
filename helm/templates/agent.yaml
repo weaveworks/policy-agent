@@ -138,6 +138,10 @@ spec:
         - image: {{ .Values.image }}:{{ .Chart.AppVersion }}
           imagePullPolicy: Always
           name: policy-agent
+          args: [
+            "--config-file",
+            "/config/config.yaml"
+          ]
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
