@@ -50,22 +50,29 @@ const (
 var build = "[runtime build]"
 
 var (
-	scheme = runtime.NewScheme()
+	scheme         = runtime.NewScheme()
+	configFilePath string
 )
 
 const (
 	auditControllerInterval         = 23 * time.Hour
 	eventReportingController string = "policy-agent"
-	configFilePath           string = "/config/config.yaml"
 )
 
 func main() {
 	var config configuration.Config
 
 	app := cli.NewApp()
-	app.Version = "0.0.1"
+	app.Version = "1.0.0"
 	app.Name = "Policy agent"
 	app.Usage = "Enforces compliance on your kubernetes cluster"
+	app.Flags = []cli.Flag{
+		&cli.PathFlag{
+			Name:        "config-file",
+			Usage:       "configuration file path",
+			Required:    true,
+			Destination: &configFilePath,
+		}}
 
 	app.Before = func(c *cli.Context) error {
 		config = configuration.GetAgentConfiguration(configFilePath)

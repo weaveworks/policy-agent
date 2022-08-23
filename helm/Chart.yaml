@@ -6,8 +6,3 @@ version: 1.0.0
 maintainers:
   - name: Weaveworks
     email: support@weave.works
-dependencies:
-  - name: cert-manager
-    version: "v1.9.1"
-    repository: "https://charts.jetstack.io"
-    condition: cert-manager.install

@@ -8,10 +8,6 @@ certificate: ""
 key: ""
 caCertificate: ""
 
-# Cert manager sub chart configuration set `install` to true to install cert manager
-cert-manager:
-  install: false
-
 persistence:
   enabled: true
   claimStorage: 1Gi
