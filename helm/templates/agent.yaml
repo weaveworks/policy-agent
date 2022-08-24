@@ -134,6 +134,8 @@ spec:
     spec:
       serviceAccountName: policy-agent
       restartPolicy: Always
+      securityContext:
+        fsGroup: 1000
       containers:
         - image: {{ .Values.image }}:{{ .Chart.AppVersion }}
           imagePullPolicy: Always
