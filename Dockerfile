@@ -2,6 +2,6 @@ FROM alpine:3.15
 
 COPY bin/agent /
 
-RUN chmod -R 777 /var/log/
+RUN mkdir /log/ && chmod -R 777 /log/
 
 ENTRYPOINT ["/agent"]

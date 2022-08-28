@@ -11,7 +11,7 @@ caCertificate: ""
 persistence:
   enabled: true
   claimStorage: 1Gi
-  sinkDir: /var/log
+  sinkDir: /log
   # storageClassName: standard
 
 config:
@@ -21,6 +21,6 @@ config:
     enabled: true
     sinks:
       fileSystemSink:
-        filePath: "/var/log/result.json"
+        filePath: "/log/result.json"
       k8sEventsSink:
         enabled: true
