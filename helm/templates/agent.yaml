@@ -136,6 +136,13 @@ spec:
       restartPolicy: Always
       securityContext:
         fsGroup: 1000
+      initContainers:
+      - name: file-permission
+        image: busybox
+        command: ["sh", "-c", "chown -R 1000:1000 {{ .Values.persistence.sinkDir }}"]
+        volumeMounts:
+        - name: validation-results
+          mountPath: {{ .Values.persistence.sinkDir }}
       containers:
         - image: {{ .Values.image }}:{{ .Chart.AppVersion }}
           imagePullPolicy: Always
@@ -183,10 +190,8 @@ spec:
             readOnly: true
           - name: agent-config-volume
             mountPath: /config
-          {{- if eq .Values.persistence.enabled true }}
           - name: validation-results
-            mountPath: {{.Values.persistence.sinkDir}}
-          {{- end}}
+            mountPath: {{ .Values.persistence.sinkDir }}
       volumes:
       - name: cert
         secret:
@@ -198,7 +203,11 @@ spec:
       - name: validation-results
         persistentVolumeClaim:
           claimName: policy-agent
+      {{ else }}
+      - emptyDir: {}
+        name: validation-results 
       {{- end}}
+      
 ---
 apiVersion: v1
 kind: Service
