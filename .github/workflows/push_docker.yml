@@ -19,8 +19,8 @@ jobs:
 
       - name: Release and push to Docker Registry
         run: |
-          echo "BRANCH_NAME=$(echo ${{ github.ref }} | tr / -)" >> $GITHUB_ENV
-          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
+          BRANCH_NAME=$(echo ${{ github.ref }} | tr / -)
+          if [[ ${BRANCH_NAME} == "master" ]]; then
             export VERSION=$(<version.txt)
             git config user.email "release-ci@weave.works"
             git config user.name "release-ci"
@@ -28,7 +28,7 @@ jobs:
             git push -u origin v$VERSION
           fi
 
-          if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
+          if [[ ${BRANCH_NAME} == "dev" ]]; then
             export VERSION=dev
           fi
 
