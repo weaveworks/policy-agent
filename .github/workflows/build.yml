@@ -1,0 +1,77 @@
+name: build
+
+on:
+  push:
+    branches: [ master, dev ]
+  pull_request:
+    branches: [ master, dev ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.17'
+          cache: true
+
+      - name: Get branch name (merge)
+        if: github.event_name != 'pull_request'
+        run: echo "BRANCH_NAME=$(echo ${{ github.ref }} | tr / -)" >> $GITHUB_ENV
+
+      - name: Get branch name (pull request)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch -a
+          echo "BRANCH_NAME=$(echo ${{ github.head_ref }} | tr / -)" >> $GITHUB_ENV
+
+      - name: Build binary
+        run: |
+          make build
+
+      - name: Running ElasticSearch
+        run: |
+          docker run -itd --name elasticsearch -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.3.3
+          sleep 20
+          timeout 120 sh -c 'until nc -z $0 $1; do echo "waiting for elasticsearch to start on port 9200"; sleep 5; done' localhost 9200
+
+      - name: run test    
+        run: |
+          go test -v -cover -covermode=atomic -coverprofile=coverage.txt ./...
+          bash <(curl -s https://codecov.io/bash) -F unit
+
+      - name: Build docker image
+        run: |
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          VERSION=${{ env.BRANCH_NAME }}-${COMMIT_COUNT}-${SHORT_HASH}
+
+          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
+            export VERSION=$(<version.txt)
+          fi
+
+          if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
+            export VERSION=dev
+          fi
+
+          make image VERSION=$VERSION
+
+
+      - name: Scan The Image
+        run: |
+          REPO=policy-agent
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          VERSION=${{ env.BRANCH_NAME }}-${COMMIT_COUNT}-${SHORT_HASH}
+          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
+            export VERSION=$(<version.txt)
+          fi
+          if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
+            export VERSION=dev
+          fi
+
+          echo scanning ${REPO}:${VERSION}
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
+          grype "${REPO}:${VERSION}" --scope all-layers > /tmp/report.txt #--fail-on high to fail on sev high
