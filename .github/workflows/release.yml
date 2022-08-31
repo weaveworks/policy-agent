@@ -2,7 +2,7 @@ name: Release Charts
 
 on:
   workflow_run:
-    workflows: ["build", "push_docker"]
+    workflows: ["build"]
     branches: [master]
     types: 
       - completed

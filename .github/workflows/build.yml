@@ -19,13 +19,13 @@ jobs:
 
       - name: Get branch name (merge)
         if: github.event_name != 'pull_request'
-        run: echo "BRANCH_NAME=$(echo ${{ github.ref }} | tr / -)" >> $GITHUB_ENV
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
 
       - name: Get branch name (pull request)
         if: github.event_name == 'pull_request'
         run: |
           git fetch -a
-          echo "BRANCH_NAME=$(echo ${{ github.head_ref }} | tr / -)" >> $GITHUB_ENV
+          echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
 
       - name: Build binary
         run: |
@@ -75,3 +75,28 @@ jobs:
           echo scanning ${REPO}:${VERSION}
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
           grype "${REPO}:${VERSION}" --scope all-layers > /tmp/report.txt #--fail-on high to fail on sev high
+
+      - name: Login to Docker Hub
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Release and push to Docker Registry
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
+        run: |
+          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
+            export VERSION=$(<version.txt)
+            git config user.email "release-ci@weave.works"
+            git config user.name "release-ci"
+            git tag -a v$VERSION -m "Policy Agent v$VERSION release"
+            git push -u origin v$VERSION
+          fi
+
+          if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
+            export VERSION=dev
+          fi
+
+          make push@weaveworks tag-file=new-tag version-file=new-version VERSION=$VERSION
