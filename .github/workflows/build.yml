@@ -1,10 +1,10 @@
-name: build & push
+name: build
 
 on:
   push:
-    branches: [ master, dev ]
+    branches: *
   pull_request:
-    branches: [ master, dev ]
+    branches: *
 
 jobs:
   build:
@@ -19,17 +19,27 @@ jobs:
 
       - name: Get branch name (merge)
         if: github.event_name != 'pull_request'
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+        run: echo "BRANCH_NAME=$(echo ${{ github.ref }} | tr / -)" >> $GITHUB_ENV
 
       - name: Get branch name (pull request)
         if: github.event_name == 'pull_request'
         run: |
           git fetch -a
-          echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+          echo "BRANCH_NAME=$(echo ${{ github.head_ref }} | tr / -)" >> $GITHUB_ENV
 
       - name: Build binary
         run: |
           make build
+
+      - name: Running ElasticSearch
+        run: |
+          docker run -itd --name elasticsearch -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.3.3
+          timeout 120 sh -c 'until nc -z $0 $1; do echo "waiting for elasticsearch to start on port 9200"; sleep 15; done' localhost 9200
+
+      - name: run test    
+        run: |
+          go test -v -cover -covermode=atomic -coverprofile=coverage.txt ./...
+          bash <(curl -s https://codecov.io/bash) -F unit
 
       - name: Build docker image
         run: |
@@ -47,10 +57,6 @@ jobs:
 
           make image VERSION=$VERSION
 
-      - name: run test    
-        run: |
-          go test -v -cover -covermode=atomic -coverprofile=coverage.txt ./...
-          bash <(curl -s https://codecov.io/bash) -F unit
 
       - name: Scan The Image
         run: |
@@ -68,21 +74,3 @@ jobs:
           echo scanning ${REPO}:${VERSION}
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
           grype "${REPO}:${VERSION}" --scope all-layers > /tmp/report.txt #--fail-on high to fail on sev high
-
-      - name: Release and push to Docker Registry
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' }}
-        run: |
-          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
-            export VERSION=$(<version.txt)
-            git config user.email "release-ci@weave.works"
-            git config user.name "release-ci"
-            git tag -a v$VERSION -m "Policy Agent v$VERSION release" 
-            git push -u origin v$VERSION
-          fi
-
-          if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
-            export VERSION=dev
-          fi
-
-          make push@magalixcorp tag-file=new-tag version-file=new-version VERSION=$VERSION
