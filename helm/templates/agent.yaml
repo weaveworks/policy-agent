@@ -136,23 +136,27 @@ spec:
       restartPolicy: Always
       securityContext:
         fsGroup: 1000
+      {{- if eq .Values.persistence.enabled false }}
+      {{- if or (eq (include "isAuditFileSystemSinkEnabled" .) "true") (eq (include "isAdmissionFileSystemSinkEnabled" .) "true") }}
       initContainers:
-      {{- if .Values.config.audit.sinks.fileSystemSink.filePath }}
+      {{- if eq (include "isAuditFileSystemSinkEnabled" .) "true" }}
       - name: audit-file-permission
         image: busybox
         command: ["sh", "-c", "chown -R 1000:1000 $(dirname {{ .Values.config.audit.sinks.fileSystemSink.filePath }})"]
         volumeMounts:
         - name: audit-validation-results
           mountPath: {{ dir .Values.config.audit.sinks.fileSystemSink.filePath }}
-      {{- end}}
-      {{- if .Values.config.admission.sinks.fileSystemSink.filePath }}
+      {{- end }}
+      {{- if eq (include "isAdmissionFileSystemSinkEnabled" .) "true" }}
       - name: admission-file-permission
         image: busybox
         command: ["sh", "-c", "chown -R 1000:1000 $(dirname {{ .Values.config.admission.sinks.fileSystemSink.filePath }})"]
         volumeMounts:
         - name: admission-validation-results
           mountPath: {{ dir .Values.config.admission.sinks.fileSystemSink.filePath }}
-      {{- end}}
+      {{- end }}
+      {{- end }}
+      {{- end }}
       containers:
         - image: {{ .Values.image }}:{{ .Chart.AppVersion }}
           imagePullPolicy: Always
@@ -200,14 +204,18 @@ spec:
             readOnly: true
           - name: agent-config-volume
             mountPath: /config
-          {{- if .Values.config.audit.sinks.fileSystemSink.filePath }}
-          - name: audit-validation-results
+          {{- if eq .Values.persistence.enabled true }}
+          {{- if eq (include "isAuditFileSystemSinkEnabled" .) "true" }}
+          - name: validation-results
             mountPath: {{ dir .Values.config.audit.sinks.fileSystemSink.filePath }}
-          {{- end}}
-          {{- if .Values.config.admission.sinks.fileSystemSink.filePath }}
-          - name: admission-validation-results
+            subPath: audit
+          {{- end }}
+          {{- if eq (include "isAdmissionFileSystemSinkEnabled" .) "true" }}
+          - name: validation-results
             mountPath: {{ dir .Values.config.admission.sinks.fileSystemSink.filePath }}
-          {{- end}}
+            subPath: admission
+          {{- end }}
+          {{- end }}
       volumes:
       - name: cert
         secret:
@@ -215,27 +223,16 @@ spec:
       - name: agent-config-volume
         configMap:
           name: policy-agent-config
-      {{- if dir .Values.config.audit.sinks.fileSystemSink.filePath }}
       {{- if eq .Values.persistence.enabled true }}
-      - name: audit-validation-results
+      - name: validation-results
         persistentVolumeClaim:
           claimName: policy-agent
       {{ else }}
+      {{- if or (eq (include "isAuditFileSystemSinkEnabled" .) "true") (eq (include "isAdmissionFileSystemSinkEnabled" .) "true") }}
       - emptyDir: {}
-        name: audit-validation-results 
-      {{- end}}
-      {{- end}}
-      {{- if dir .Values.config.admission.sinks.fileSystemSink.filePath }}
-      {{- if eq .Values.persistence.enabled true }}
-      - name: admission-validation-results
-        persistentVolumeClaim:
-          claimName: policy-agent
-      {{ else }}
-      - emptyDir: {}
-        name: admission-validation-results 
-      {{- end}}
-      {{- end}}
-      
+        name: validation-results 
+      {{- end }}
+      {{- end }}
 ---
 apiVersion: v1
 kind: Service
