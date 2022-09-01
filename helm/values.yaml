@@ -11,7 +11,6 @@ caCertificate: ""
 persistence:
   enabled: false
   # claimStorage: 1Gi
-  # sinkDir: /var/log
   # storageClassName: standard
 
 config:
