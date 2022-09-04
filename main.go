@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/MagalixTechnologies/core/logger"
@@ -354,7 +355,8 @@ func main() {
 	}
 }
 
-func initFileSystemSink(mgr manager.Manager, filePath string) (*filesystem.FileSystemSink, error) {
+func initFileSystemSink(mgr manager.Manager, filename string) (*filesystem.FileSystemSink, error) {
+	filePath := filepath.Join("/logs", filename)
 	sink, err := filesystem.NewFileSystemSink(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize filesystem sink: %w", err)
