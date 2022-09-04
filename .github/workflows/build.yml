@@ -37,7 +37,9 @@ jobs:
           sleep 20
           timeout 120 sh -c 'until nc -z $0 $1; do echo "waiting for elasticsearch to start on port 9200"; sleep 5; done' localhost 9200
 
-      - name: run test    
+      - name: run test
+        env:
+          CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
         run: |
           go test -v -cover -covermode=atomic -coverprofile=coverage.txt ./...
           bash <(curl -s https://codecov.io/bash) -F unit
