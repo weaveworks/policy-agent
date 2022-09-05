@@ -233,7 +233,7 @@ spec:
   selector:
     name:  policy-agent
 ---
-{{- if eq .Values.config.admission.enabled true }}
+{{- if eq .Values.config.admissionMode.enabled true }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:

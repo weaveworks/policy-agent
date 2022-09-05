@@ -64,7 +64,7 @@ func main() {
 	var config configuration.Config
 
 	app := cli.NewApp()
-	app.Version = "1.0.0"
+	app.Version = "1.0.1"
 	app.Name = "Policy agent"
 	app.Usage = "Enforces compliance on your kubernetes cluster"
 	app.Flags = []cli.Flag{
@@ -78,7 +78,7 @@ func main() {
 	app.Before = func(c *cli.Context) error {
 		config = configuration.GetAgentConfiguration(configFilePath)
 
-		if !config.Admission.Enabled && !config.Audit.Enabled {
+		if !config.AdmissionMode.Enabled && !config.AuditMode.Enabled {
 			return errors.New("agent needs to be run with at least one mode of operation")
 		}
 
@@ -123,8 +123,8 @@ func main() {
 		mgr, err := ctrl.NewManager(kubeConfig, ctrl.Options{
 			Scheme:                 scheme,
 			MetricsBindAddress:     config.MetricsAddress,
-			Port:                   config.Admission.Webhook.Listen,
-			CertDir:                config.Admission.Webhook.CertDir,
+			Port:                   config.AdmissionMode.Webhook.Listen,
+			CertDir:                config.AdmissionMode.Webhook.CertDir,
 			HealthProbeBindAddress: config.ProbesListen,
 			Logger:                 lg,
 		})
@@ -162,8 +162,8 @@ func main() {
 
 		var auditSaaSGatewaySink, admissionSaaSGatewaySink *configuration.SaaSGatewaySink
 
-		if config.Audit.Enabled {
-			auditSinksConfig := config.Audit.Sinks
+		if config.AuditMode.Enabled {
+			auditSinksConfig := config.AuditMode.ValidationSinks
 			if auditSinksConfig.FilesystemSink != nil {
 				fileName := auditSinksConfig.FilesystemSink.FileName
 				logger.Infow("initializing filesystem audit sink ...", "file", fileName)
@@ -206,8 +206,8 @@ func main() {
 			}
 		}
 
-		if config.Admission.Enabled {
-			admissionSinksConfig := config.Admission.Sinks
+		if config.AdmissionMode.Enabled {
+			admissionSinksConfig := config.AdmissionMode.ValidationSinks
 			if admissionSinksConfig.FilesystemSink != nil {
 				fileName := admissionSinksConfig.FilesystemSink.FileName
 				logger.Infow("initializing filesystem admission sink ...", "file", fileName)
@@ -285,7 +285,7 @@ func main() {
 			}
 		}
 
-		if config.Audit.Enabled {
+		if config.AuditMode.Enabled {
 			logger.Info("starting audit policies watcher")
 
 			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
@@ -293,13 +293,13 @@ func main() {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
 			}
 
-			if config.Audit.PolicySet != "" {
-				policiesSource.SetPolicySet(config.Audit.PolicySet)
+			if config.AuditMode.PolicySet != "" {
+				policiesSource.SetPolicySet(config.AuditMode.PolicySet)
 			}
 
 			validator := validation.NewOPAValidator(
 				policiesSource,
-				config.Audit.WriteCompliance,
+				config.AuditMode.WriteCompliance,
 				auditor.TypeAudit,
 				config.AccountID,
 				config.ClusterID,
@@ -311,7 +311,7 @@ func main() {
 			auditController.Audit(auditor.AuditEventTypeInitial, nil)
 		}
 
-		if config.Admission.Enabled {
+		if config.AdmissionMode.Enabled {
 			logger.Info("starting admission policies watcher")
 
 			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
@@ -319,8 +319,8 @@ func main() {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
 			}
 
-			if config.Admission.PolicySet != "" {
-				policiesSource.SetPolicySet(config.Admission.PolicySet)
+			if config.AdmissionMode.PolicySet != "" {
+				policiesSource.SetPolicySet(config.AdmissionMode.PolicySet)
 			}
 
 			validator := validation.NewOPAValidator(

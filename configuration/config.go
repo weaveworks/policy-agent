@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type SinksConfig struct {
+type ValidationSinksConfig struct {
 	FilesystemSink       *FileSystemSink
 	FluxNotificationSink *FluxNotificationSink
 	K8sEventsSink        *K8sEventsSink
@@ -46,17 +46,17 @@ type ElasticSink struct {
 	InsertionMode string
 }
 
-type AdmissionConfig struct {
-	Enabled   bool
-	Webhook   AdmissionWebhook
-	Sinks     SinksConfig
-	PolicySet string
+type AdmissionModeConfig struct {
+	Enabled         bool
+	Webhook         AdmissionWebhook
+	ValidationSinks ValidationSinksConfig
+	PolicySet       string
 }
 
-type AuditConfig struct {
+type AuditModeConfig struct {
 	WriteCompliance bool
 	Enabled         bool
-	Sinks           SinksConfig
+	ValidationSinks ValidationSinksConfig
 	PolicySet       string
 }
 
@@ -70,8 +70,8 @@ type Config struct {
 	ProbesListen   string
 	MetricsAddress string
 
-	Admission AdmissionConfig
-	Audit     AuditConfig
+	AdmissionMode AdmissionModeConfig
+	AuditMode     AuditModeConfig
 }
 
 func GetAgentConfiguration(filePath string) Config {
@@ -93,8 +93,8 @@ func GetAgentConfiguration(filePath string) Config {
 	viper.SetDefault("metricsAddress", ":8080")
 	viper.SetDefault("probesListen", ":9000")
 	viper.SetDefault("logLevel", "info")
-	viper.SetDefault("admission.webhook.listen", 8443)
-	viper.SetDefault("admission.webhook.certDir", "/certs")
+	viper.SetDefault("admissionMode.webhook.listen", 8443)
+	viper.SetDefault("admissionMode.webhook.certDir", "/certs")
 
 	checkRequiredFields()
 
@@ -105,40 +105,40 @@ func GetAgentConfiguration(filePath string) Config {
 		logger.Fatal(err)
 	}
 
-	if c.Admission.Enabled && c.Admission.Sinks.SaasGatewaySink != nil {
-		c.Admission.Sinks.SaasGatewaySink.URL = getField(
-			"admission.sinks.saasGatewaySink.url")
-		c.Admission.Sinks.SaasGatewaySink.Secret = getField(
-			"admission.sinks.saasGatewaySink.secret")
+	if c.AdmissionMode.Enabled && c.AdmissionMode.ValidationSinks.SaasGatewaySink != nil {
+		c.AdmissionMode.ValidationSinks.SaasGatewaySink.URL = getField(
+			"admissionMode.validationSinks.saasGatewaySink.url")
+		c.AdmissionMode.ValidationSinks.SaasGatewaySink.Secret = getField(
+			"admissionMode.validationSinks.saasGatewaySink.secret")
 	}
 
-	if c.Audit.Enabled && c.Audit.Sinks.SaasGatewaySink != nil {
-		c.Audit.Sinks.SaasGatewaySink.URL = getField(
-			"audit.sinks.saasGatewaySink.url")
-		c.Audit.Sinks.SaasGatewaySink.Secret = getField(
-			"audit.sinks.saasGatewaySink.secret")
+	if c.AuditMode.Enabled && c.AuditMode.ValidationSinks.SaasGatewaySink != nil {
+		c.AuditMode.ValidationSinks.SaasGatewaySink.URL = getField(
+			"auditMode.validationSinks.saasGatewaySink.url")
+		c.AuditMode.ValidationSinks.SaasGatewaySink.Secret = getField(
+			"auditMode.validationSinks.saasGatewaySink.secret")
 	}
 
-	if c.Admission.Enabled && c.Admission.Sinks.ElasticSink != nil {
-		c.Admission.Sinks.ElasticSink.Address = getField(
-			"admission.sinks.elasticSink.address")
-		c.Admission.Sinks.ElasticSink.IndexName = getField(
-			"admission.sinks.elasticSink.indexname")
-		c.Admission.Sinks.ElasticSink.Username = getField(
-			"admission.sinks.elasticSink.username")
-		c.Admission.Sinks.ElasticSink.Password = getField(
-			"admission.sinks.elasticSink.password")
+	if c.AdmissionMode.Enabled && c.AdmissionMode.ValidationSinks.ElasticSink != nil {
+		c.AdmissionMode.ValidationSinks.ElasticSink.Address = getField(
+			"admissionMode.validationSinks.elasticSink.address")
+		c.AdmissionMode.ValidationSinks.ElasticSink.IndexName = getField(
+			"admissionMode.validationSinks.elasticSink.indexname")
+		c.AdmissionMode.ValidationSinks.ElasticSink.Username = getField(
+			"admissionMode.validationSinks.elasticSink.username")
+		c.AdmissionMode.ValidationSinks.ElasticSink.Password = getField(
+			"admissionMode.validationSinks.elasticSink.password")
 	}
 
-	if c.Audit.Enabled && c.Audit.Sinks.ElasticSink != nil {
-		c.Audit.Sinks.ElasticSink.Address = getField(
-			"audit.sinks.elasticSink.address")
-		c.Audit.Sinks.ElasticSink.IndexName = getField(
-			"audit.sinks.elasticSink.indexname")
-		c.Audit.Sinks.ElasticSink.Username = getField(
-			"audit.sinks.elasticSink.username")
-		c.Audit.Sinks.ElasticSink.Password = getField(
-			"audit.sinks.elasticSink.password")
+	if c.AuditMode.Enabled && c.AuditMode.ValidationSinks.ElasticSink != nil {
+		c.AuditMode.ValidationSinks.ElasticSink.Address = getField(
+			"auditMode.validationSinks.elasticSink.address")
+		c.AuditMode.ValidationSinks.ElasticSink.IndexName = getField(
+			"auditMode.validationSinks.elasticSink.indexname")
+		c.AuditMode.ValidationSinks.ElasticSink.Username = getField(
+			"auditMode.validationSinks.elasticSink.username")
+		c.AuditMode.ValidationSinks.ElasticSink.Password = getField(
+			"auditMode.validationSinks.elasticSink.password")
 	}
 
 	return c

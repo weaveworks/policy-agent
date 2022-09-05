@@ -21,8 +21,8 @@ The results of validating entities against policies would be written in ElasticS
 To enable writing validation objects in ElasticSearch for Audit mode:
 ```yaml
 config:
-  audit:
-    sinks:
+  auditMode:
+    validationSinks:
       elasticSink:
         address: ""
         username: ""
@@ -33,8 +33,8 @@ config:
 To enable writing validation objects in elasticsearch for Admission mode:
 ```yaml
 config:
-  admission:
-    sinks:
+  admissionMode:
+    validationSinks:
       elasticSink:
         address: ""
         username: ""

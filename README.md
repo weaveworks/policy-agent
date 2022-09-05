@@ -59,8 +59,8 @@ There are additional parameters could be provided:
 - logLevel: app log level (default: "info")
 - probesListen: address for the probes server to run on (default: ":9000")
 - metricsAddress: address the metric endpoint binds to (default: ":8080")
-- admission: defines admission control configuration including the supported sinks and webhooks (disabled by default)
-- audit: defines defines cluster periodical audit configuration including configuration including the supported sinks (disabled by default)
+- admissionMode: defines admission control configuration including the supported sinks and webhooks (disabled by default)
+- auditMode: defines defines cluster periodical audit configuration including configuration including the supported sinks (disabled by default)
 
 Example:
 
@@ -70,9 +70,9 @@ accountId: "76xdx488-a02x-78xc-32xx-8f5574bexxx"
 clusterId: "76xdx488-a02x-78xc-32xx-8f5574bexxx"
 kubeConfigFile: "/.kube/config"
 logLevel: "Info"
-admission:
+admissionMode:
    enabled: true
-   sinks:
+   validationSinks:
       filesystemSink:
          fileName: ""
       fluxNotificationSink:
@@ -81,10 +81,10 @@ admission:
          enabled: true
       saasGatewaySink:
          url: ""
-audit:
+auditMode:
    enabled: true
    writeCompliance: true
-   sinks:
+   validationSinks:
       filesystemSink:
          fileName: ""
       fluxNotificationSink:

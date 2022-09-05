@@ -16,8 +16,8 @@ persistence:
 config:
   accountId: ""
   clusterId: ""
-  admission:
+  admissionMode:
     enabled: true
-    sinks:
+    validationSinks:
       k8sEventsSink:
         enabled: true

@@ -43,7 +43,6 @@ To use a persistent volume you need to set the following values in your helm val
 storageClassName: example # storage class for the persistent volume
 usePersistence: true # flag to add claim configuration to yaml and mounts to the deployment
 claimStorage: xGi # claim size, optional
-sinkDir: /dir # location of mount, optional
 ```
 
 This will generate a claim from a pre-existing volume and mount those volumes to the agent with the specified configuration.
@@ -61,10 +60,10 @@ To configure the agent using argemnts, you need to define a config object in the
 
 ```yaml
 config:
-  audit:
+  auditMode:
     enabled: true # enbales audit functionality
     writeCompliance: true # enables writing compliance results
-  admission:
+  admissionMode:
     enabled: true # enbales admission functionality
 ```
 
