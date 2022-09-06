@@ -50,9 +50,8 @@ const (
 var build = "[runtime build]"
 
 var (
-	scheme                  = runtime.NewScheme()
-	configFilePath          string
-	auditControllerInterval time.Duration
+	scheme         = runtime.NewScheme()
+	configFilePath string
 )
 
 const (
@@ -162,7 +161,6 @@ func main() {
 		var auditSaaSGatewaySink, admissionSaaSGatewaySink *configuration.SaaSGatewaySink
 
 		if config.Audit.Enabled {
-			auditControllerInterval = time.Duration(config.Audit.Interval) * time.Hour
 			auditSinksConfig := config.Audit.Sinks
 			if auditSinksConfig.FilesystemSink != nil {
 				filePath := auditSinksConfig.FilesystemSink.FilePath
@@ -305,7 +303,7 @@ func main() {
 				config.ClusterID,
 				auditSinks...,
 			)
-
+			auditControllerInterval := time.Duration(config.Audit.Interval) * time.Hour
 			auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
 			mgr.Add(auditController)
 			auditController.Audit(auditor.AuditEventTypeInitial, nil)
