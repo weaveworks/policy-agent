@@ -166,7 +166,6 @@ func main() {
 			auditSinksConfig := config.Audit.Sinks
 			if auditSinksConfig.FilesystemSink != nil {
 				fileName := auditSinksConfig.FilesystemSink.FileName
-				logger.Infow("initializing filesystem audit sink ...", "file", fileName)
 				fileSystemSink, err := initFileSystemSink(mgr, fileName)
 				if err != nil {
 					return err
@@ -210,7 +209,6 @@ func main() {
 			admissionSinksConfig := config.Admission.Sinks
 			if admissionSinksConfig.FilesystemSink != nil {
 				fileName := admissionSinksConfig.FilesystemSink.FileName
-				logger.Infow("initializing filesystem admission sink ...", "file", fileName)
 				fileSystemSink, err := initFileSystemSink(mgr, fileName)
 				if err != nil {
 					return err
@@ -357,6 +355,8 @@ func main() {
 
 func initFileSystemSink(mgr manager.Manager, filename string) (*filesystem.FileSystemSink, error) {
 	filePath := filepath.Join("/logs", filename)
+	logger.Infow("initializing filesystem sink ...", "file", filePath)
+
 	sink, err := filesystem.NewFileSystemSink(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize filesystem sink: %w", err)
