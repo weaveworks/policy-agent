@@ -304,6 +304,9 @@ func main() {
 				auditSinks...,
 			)
 			auditControllerInterval := time.Duration(config.Audit.Interval) * time.Hour
+			if config.Audit.Interval < 1 {
+				logger.Fatal("audit interval can not be less than 1 hour, current interval: ", auditControllerInterval)
+			}
 			auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
 			mgr.Add(auditController)
 			auditController.Audit(auditor.AuditEventTypeInitial, nil)
