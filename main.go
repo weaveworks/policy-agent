@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/MagalixTechnologies/core/logger"
@@ -164,9 +165,8 @@ func main() {
 		if config.Audit.Enabled {
 			auditSinksConfig := config.Audit.Sinks
 			if auditSinksConfig.FilesystemSink != nil {
-				filePath := auditSinksConfig.FilesystemSink.FilePath
-				logger.Infow("initializing filesystem audit sink ...", "file", filePath)
-				fileSystemSink, err := initFileSystemSink(mgr, filePath)
+				fileName := auditSinksConfig.FilesystemSink.FileName
+				fileSystemSink, err := initFileSystemSink(mgr, fileName)
 				if err != nil {
 					return err
 				}
@@ -208,9 +208,8 @@ func main() {
 		if config.Admission.Enabled {
 			admissionSinksConfig := config.Admission.Sinks
 			if admissionSinksConfig.FilesystemSink != nil {
-				filePath := admissionSinksConfig.FilesystemSink.FilePath
-				logger.Infow("initializing filesystem admission sink ...", "file", filePath)
-				fileSystemSink, err := initFileSystemSink(mgr, filePath)
+				fileName := admissionSinksConfig.FilesystemSink.FileName
+				fileSystemSink, err := initFileSystemSink(mgr, fileName)
 				if err != nil {
 					return err
 				}
@@ -354,7 +353,10 @@ func main() {
 	}
 }
 
-func initFileSystemSink(mgr manager.Manager, filePath string) (*filesystem.FileSystemSink, error) {
+func initFileSystemSink(mgr manager.Manager, filename string) (*filesystem.FileSystemSink, error) {
+	filePath := filepath.Join("/logs", filename)
+	logger.Infow("initializing filesystem sink ...", "file", filePath)
+
 	sink, err := filesystem.NewFileSystemSink(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize filesystem sink: %w", err)

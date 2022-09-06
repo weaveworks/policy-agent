@@ -74,7 +74,7 @@ admission:
    enabled: true
    sinks:
       filesystemSink:
-         filePath: ""
+         fileName: ""
       fluxNotificationSink:
          address: ""
       k8sEventsSink:
@@ -86,7 +86,7 @@ audit:
    writeCompliance: true
    sinks:
       filesystemSink:
-         filePath: ""
+         fileName: ""
       fluxNotificationSink:
          address: ""
       k8sEventsSink:

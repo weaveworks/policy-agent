@@ -91,6 +91,7 @@ type PolicySpec struct {
 	Controls []string `json:"controls,omitempty"`
 }
 
+// +kubebuilder:unservedversion
 //+kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Cluster
 

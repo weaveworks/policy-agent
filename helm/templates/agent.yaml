@@ -34,6 +34,27 @@ rules:
   - create
   - patch
   - update
+- apiGroups:
+  - ""
+  - apps
+  - batch
+  - rbac.authorization.k8s.io
+  resources: 
+  - pods
+  - deployments
+  - replicationcontrollers
+  - statefulsets
+  - daemonsets
+  - replicasets
+  - jobs
+  - cronjobs
+  - clusterrolebindings
+  - serviceaccounts
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -185,8 +206,8 @@ spec:
             mountPath: /config
           {{- if eq .Values.persistence.enabled true }}
           - name: validation-results
-            mountPath: {{.Values.persistence.sinkDir}}
-          {{- end}}
+            mountPath: /logs
+          {{- end }}
       volumes:
       - name: cert
         secret:
@@ -198,7 +219,7 @@ spec:
       - name: validation-results
         persistentVolumeClaim:
           claimName: policy-agent
-      {{- end}}
+      {{- end }}
 ---
 apiVersion: v1
 kind: Service

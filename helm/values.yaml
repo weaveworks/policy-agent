@@ -1,5 +1,5 @@
 
-image: magalixcorp/policy-agent
+image: weaveworks/policy-agent
 failurePolicy: Ignore
 
 # If you don't want to use cert-manager, set useCertManager to false and provide your own certs
@@ -11,7 +11,6 @@ caCertificate: ""
 persistence:
   enabled: false
   # claimStorage: 1Gi
-  # sinkDir: /var/log
   # storageClassName: standard
 
 config:
