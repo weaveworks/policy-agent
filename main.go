@@ -50,12 +50,13 @@ const (
 var build = "[runtime build]"
 
 var (
-	scheme         = runtime.NewScheme()
-	configFilePath string
+	scheme                  = runtime.NewScheme()
+	configFilePath          string
+	auditIntervalFlag       uint
+	auditControllerInterval time.Duration
 )
 
 const (
-	auditControllerInterval         = 23 * time.Hour
 	eventReportingController string = "policy-agent"
 )
 
@@ -72,7 +73,15 @@ func main() {
 			Usage:       "configuration file path",
 			Required:    true,
 			Destination: &configFilePath,
-		}}
+		},
+		&cli.UintFlag{
+			Name:        "audit-interval",
+			Usage:       "frequency of the audit operation in the policy agent in hours",
+			Required:    false,
+			Value:       24,
+			Destination: &auditIntervalFlag,
+		},
+	}
 
 	app.Before = func(c *cli.Context) error {
 		config = configuration.GetAgentConfiguration(configFilePath)
@@ -100,7 +109,7 @@ func main() {
 	app.Action = func(contextCli *cli.Context) error {
 		logger.Infow("initializing Policy Agent", "build", build)
 		logger.Infof("config: %+v", config)
-
+		auditControllerInterval = time.Duration(auditIntervalFlag) * time.Hour
 		var kubeConfig *rest.Config
 		var err error
 		if config.KubeConfigFile == "" {

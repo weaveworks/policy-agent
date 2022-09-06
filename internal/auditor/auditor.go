@@ -20,6 +20,9 @@ type AuditorController struct {
 
 // NewAuditController returns a new instance of AuditController with an audit event listener
 func NewAuditController(validator validation.Validator, auditInterval time.Duration, entitiesSources ...domain.EntitiesSource) *AuditorController {
+	if auditInterval < 1 {
+		logger.Fatal("audit interval must positive number, current interval: ", auditInterval)
+	}
 	auditController := &AuditorController{
 		entitiesSources: entitiesSources,
 		auditEvent:      make(chan AuditEvent, 1),
