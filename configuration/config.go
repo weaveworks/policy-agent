@@ -26,7 +26,7 @@ type K8sEventsSink struct {
 }
 
 type FileSystemSink struct {
-	FilePath string
+	FileName string
 }
 
 type FluxNotificationSink struct {
