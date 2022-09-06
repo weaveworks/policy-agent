@@ -25,6 +25,14 @@ jobs:
           ref: gh-pages
           fetch-depth: 0
       
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v2
+        with:
+          configuration: "${{ github.workspace }}/.github/workflows/changelog_configuration.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Install Helm
         uses: azure/setup-helm@v1
 

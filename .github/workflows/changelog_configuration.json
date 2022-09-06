@@ -1,0 +1,23 @@
+{
+    "categories": [
+      {
+        "title": "## 🚀 Enhancements",
+        "labels": ["enhancement"]
+      },
+      {
+        "title": "## 🐛 Bugs",
+        "labels": ["bug"]
+      },
+      {
+        "title": "## 🧪 Tests",
+        "labels": ["test"]
+      }
+    ],
+    "ignore_labels": [
+      "null"
+    ],
+    "template": "${{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n${{UNCATEGORIZED}}\n</details>",
+    "pr_template": "- PR: #${{NUMBER}} - ${{TITLE}}",
+    "empty_template": "- no changes"
+  }
+  
