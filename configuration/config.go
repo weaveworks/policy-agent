@@ -58,6 +58,7 @@ type AuditConfig struct {
 	Enabled         bool
 	Sinks           SinksConfig
 	PolicySet       string
+	Interval        uint
 }
 
 type Config struct {
@@ -95,6 +96,7 @@ func GetAgentConfiguration(filePath string) Config {
 	viper.SetDefault("logLevel", "info")
 	viper.SetDefault("admission.webhook.listen", 8443)
 	viper.SetDefault("admission.webhook.certDir", "/certs")
+	viper.SetDefault("audit.interval", 24)
 
 	checkRequiredFields()
 
