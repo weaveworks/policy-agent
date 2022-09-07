@@ -3,9 +3,9 @@ entries:
   policy-agent:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2022-09-06T10:32:41.763108873Z"
+    created: "2022-09-07T12:42:51.647955898Z"
     description: A Helm chart for Kubernetes to configure the policy agent
-    digest: 6fe2e2413919143773bd7e0966b15806dfe3c63be46dccef0e50348172be0c62
+    digest: 252e3d187baee19b820ecc20fa7c50d458d1be8c1c435bce4f560bd8d09e5837
     maintainers:
     - email: support@weave.works
       name: Weaveworks
@@ -15,7 +15,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: 0.4.3
-    created: "2022-09-06T10:32:41.762746769Z"
+    created: "2022-09-07T12:42:51.647596796Z"
     dependencies:
     - condition: cert-manager.install
       name: cert-manager
@@ -32,7 +32,7 @@ entries:
     version: 0.4.3
   - apiVersion: v1
     appVersion: 0.4.2
-    created: "2022-09-06T10:32:41.759206928Z"
+    created: "2022-09-07T12:42:51.642562068Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: 427aff0c8638cac00068ce81f3058e5a33555153652d793d1049dfad4acaa752
     maintainers:
@@ -42,4 +42,4 @@ entries:
     urls:
     - https://weaveworks.github.io/policy-agent/releases/policy-agent-0.4.2.tgz
     version: 0.4.2
-generated: "2022-09-06T10:32:41.758660421Z"
+generated: "2022-09-07T12:42:51.642064465Z"
