@@ -3,11 +3,11 @@ name: Release Charts
 on:
   pull_request:
     branches: [ master, dev, release-notes ]
-  workflow_run:
-    workflows: ["build"]
-    branches: [master, release-notes]
-    types: 
-      - completed
+  # workflow_run:
+  #   workflows: ["build"]
+  #   branches: [master, release-notes]
+  #   types: 
+  #     - completed
 
 jobs:
   release:
