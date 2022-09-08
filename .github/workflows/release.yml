@@ -3,7 +3,7 @@ name: Release Charts
 on:
   workflow_run:
     workflows: ["build"]
-    branches: [master, release-notes]
+    branches: [master]
     types: 
       - completed
 
@@ -25,28 +25,12 @@ jobs:
           ref: gh-pages
           fetch-depth: 0
       
-      - name: Build Changelog
-        id: github_release
-        uses: mikepenz/release-changelog-builder-action@v2
-        with:
-          configuration: "${{ github.workspace }}/.github/workflows/changelog_configuration.json"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          prerelease: true
-          body: ${{steps.build_changelog.outputs.changelog}}
-      
       - name: Install Helm
         uses: azure/setup-helm@v1
 
       - name: Release
         shell: bash
         run: |
-          echo heyyyy ${{steps.build_changelog.outputs.changelog}}
           helm package master/helm
           mkdir -p gh-pages/releases
           mv policy-agent-* gh-pages/releases/

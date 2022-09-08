@@ -20,4 +20,3 @@
   "pr_template": "- PR: #${{NUMBER}} - ${{TITLE}}",
     "empty_template": "- no changes"
 }
-  

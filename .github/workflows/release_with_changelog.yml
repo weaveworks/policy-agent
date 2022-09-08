@@ -1,0 +1,29 @@
+name: Build Changelog and Github Release
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  releaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+      - name: Build Changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v2
+        with:
+          configuration: "${{ github.workspace }}/.github/workflows/changelog_configuration.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          body: ${{steps.github_release.outputs.changelog}}
