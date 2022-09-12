@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/gh/weaveworks/policy-agent/branch/dev/graph/badge.svg?token=5HALYBWEIQ)](https://codecov.io/gh/weaveworks/policy-agent) [![CircleCI](https://circleci.com/gh/weaveworks/policy-agent.svg?style=shield&circle-token=1d1e7616349e46a7338b44d58c950b0eff08efa7)](https://app.circleci.com/pipelines/github/weaveworks/policy-agent?branch=dev)
+[![codecov](https://codecov.io/gh/weaveworks/policy-agent/branch/dev/graph/badge.svg?token=5HALYBWEIQ)](https://codecov.io/gh/weaveworks/policy-agent) ![build](https://github.com/weaveworks/policy-agent/actions/workflows/build.yml/badge.svg?branch=main)
 
 
 # Policy Agent
@@ -47,9 +47,9 @@ GLOBAL OPTIONS:
 ```
 
 ### Policy Agent config File
-The config file is the single entry point for configuring the agent. 
+The config file is the single entry point for configuring the agent.
 
-The agent needs the following parameters to be provided in the configuration yaml file: 
+The agent needs the following parameters to be provided in the configuration yaml file:
 - kubeConfigFile: path to the kubernetes config file to access the cluster
 - accountId: unique identifier that signifies the owner of that agent
 - clusterId: unique identifier for the cluster that the agent will run against
