@@ -265,6 +265,8 @@ webhooks:
         - storage.k8s.io
         - source.toolkit.fluxcd.io
         - gitops.weave.works
+        - kustomize.toolkit.fluxcd.io
+        - helm.toolkit.fluxcd.io
         resources:
         - namespaces
         - pods
@@ -288,6 +290,9 @@ webhooks:
         - helmrepositories
         - buckets
         - gitopsclusters
+        - kustomizations
+        - helmreleases
+        - ocirepositories
     timeoutSeconds: 5
     failurePolicy: {{ .Values.failurePolicy }}
     admissionReviewVersions: ["v1", "v1beta1"]
