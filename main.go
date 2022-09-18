@@ -63,7 +63,7 @@ func main() {
 	var config configuration.Config
 
 	app := cli.NewApp()
-	app.Version = "1.0.0"
+	app.Version = "1.1.0"
 	app.Name = "Policy agent"
 	app.Usage = "Enforces compliance on your kubernetes cluster"
 	app.Flags = []cli.Flag{
