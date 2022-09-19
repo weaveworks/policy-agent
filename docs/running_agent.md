@@ -64,6 +64,7 @@ config:
   audit:
     enabled: true # enbales audit functionality
     writeCompliance: true # enables writing compliance results
+    interval: 24 # configuring the frequent of audit operations running in hours (default is 24 hour)
   admission:
     enabled: true # enbales admission functionality
 ```

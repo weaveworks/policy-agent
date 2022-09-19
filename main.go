@@ -56,7 +56,6 @@ var (
 )
 
 const (
-	auditControllerInterval         = 23 * time.Hour
 	eventReportingController string = "policy-agent"
 )
 
@@ -64,7 +63,7 @@ func main() {
 	var config configuration.Config
 
 	app := cli.NewApp()
-	app.Version = "1.0.0"
+	app.Version = "1.1.0"
 	app.Name = "Policy agent"
 	app.Usage = "Enforces compliance on your kubernetes cluster"
 	app.Flags = []cli.Flag{
@@ -73,7 +72,8 @@ func main() {
 			Usage:       "configuration file path",
 			Required:    true,
 			Destination: &configFilePath,
-		}}
+		},
+	}
 
 	app.Before = func(c *cli.Context) error {
 		config = configuration.GetAgentConfiguration(configFilePath)
@@ -101,7 +101,6 @@ func main() {
 	app.Action = func(contextCli *cli.Context) error {
 		logger.Infow("initializing Policy Agent", "build", build)
 		logger.Infof("config: %+v", config)
-
 		var kubeConfig *rest.Config
 		var err error
 		if config.KubeConfigFile == "" {
@@ -303,7 +302,10 @@ func main() {
 				config.ClusterID,
 				auditSinks...,
 			)
-
+			auditControllerInterval := time.Duration(config.Audit.Interval) * time.Hour
+			if config.Audit.Interval < 1 {
+				logger.Fatal("audit interval can not be less than 1 hour, current interval: ", auditControllerInterval)
+			}
 			auditController := auditor.NewAuditController(validator, auditControllerInterval, entitiesSources...)
 			mgr.Add(auditController)
 			auditController.Audit(auditor.AuditEventTypeInitial, nil)

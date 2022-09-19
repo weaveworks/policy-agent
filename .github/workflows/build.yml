@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT }}
       - name: setup go
         uses: actions/setup-go@v3
         with:
@@ -85,6 +87,12 @@ jobs:
           registry: docker.io
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
 
       - name: Release and push to Docker Registry
         if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
