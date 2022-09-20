@@ -25,5 +25,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          prerelease: true
           body: ${{steps.github_release.outputs.changelog}}
