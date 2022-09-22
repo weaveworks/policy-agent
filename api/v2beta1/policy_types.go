@@ -101,6 +101,11 @@ type PolicySpec struct {
 	// +optional
 	// Standards is a list of policy standards that this policy falls under
 	Standards []PolicyStandard `json:"standards"`
+	//+optional
+	//+kubebuilder:default:=kubernetes
+	//+kubebuilder:validation:Enum=kubernetes;terraform
+	// Provider policy provider, can be kubernetes, terraform
+	Provider string `json:"provider"`
 }
 
 type PolicySetFilters struct {

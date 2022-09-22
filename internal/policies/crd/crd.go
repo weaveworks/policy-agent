@@ -14,18 +14,22 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type Config struct {
+	Provider  string
+	PolicySet string
+}
+
 type PoliciesWatcher struct {
-	cache     ctrlCache.Cache
-	policySet *string
+	cache  ctrlCache.Cache
+	config Config
 }
 
 // NewPoliciesWatcher returns a policies source that fetches them from Kubernetes API
-func NewPoliciesWatcher(ctx context.Context, mgr ctrl.Manager) (*PoliciesWatcher, error) {
-	return &PoliciesWatcher{cache: mgr.GetCache()}, nil
-}
-
-func (p *PoliciesWatcher) SetPolicySet(name string) {
-	p.policySet = &name
+func NewPoliciesWatcher(ctx context.Context, mgr ctrl.Manager, config Config) (*PoliciesWatcher, error) {
+	return &PoliciesWatcher{
+		cache:  mgr.GetCache(),
+		config: config,
+	}, nil
 }
 
 // GetAll returns all policies, implements github.com/MagalixTechnologies/policy-core/domain.PoliciesSource
@@ -38,8 +42,8 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 	}
 
 	var policySet *domain.PolicySet
-	if p.policySet != nil {
-		policySet, err = p.GetPolicySet(ctx, *p.policySet)
+	if p.config.PolicySet != "" {
+		policySet, err = p.GetPolicySet(ctx, p.config.PolicySet)
 		if err != nil {
 			return nil, err
 		}
@@ -49,6 +53,10 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 
 	var policies []domain.Policy
 	for i := range policiesCRD.Items {
+		if policiesCRD.Items[i].Spec.Provider != p.config.Provider {
+			continue
+		}
+
 		policyCRD := policiesCRD.Items[i].Spec
 		policy := domain.Policy{
 			Name:    policyCRD.Name,

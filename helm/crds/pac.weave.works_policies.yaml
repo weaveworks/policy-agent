@@ -214,6 +214,13 @@ spec:
                   - type
                   type: object
                 type: array
+              provider:
+                default: kubernetes
+                description: Provider policy provider, can be kubernetes, terraform
+                enum:
+                - kubernetes
+                - terraform
+                type: string
               severity:
                 description: Severity is a measure of the impact of that policy, can
                   be low, medium or high
