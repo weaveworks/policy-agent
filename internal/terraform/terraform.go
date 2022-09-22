@@ -36,8 +36,6 @@ func NewTerraformHandler(logLevel string, validator validation.Validator) *Terra
 
 // Handle validates terraform validation requests
 func (a *TerraformHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	logger.Info("received request", "payload", req)
-
 	var entitySpec map[string]interface{}
 	err := json.NewDecoder(req.Body).Decode(&entitySpec)
 	if err != nil {
@@ -50,6 +48,8 @@ func (a *TerraformHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 	}
 
 	entity := domain.NewEntityFromSpec(entitySpec)
+	logger.Infow("received valid request", "namespace", entity.Namespace, "name", entity.Name)
+
 	result, err := a.validator.Validate(req.Context(), entity, "terraform")
 	if err != nil {
 		http.Error(
@@ -71,6 +71,16 @@ func (a *TerraformHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 	} else {
 		response.Passed = true
 	}
+
+	logger.Infow(
+		"resource is validated",
+		"namespace", entity.Namespace,
+		"name", entity.Name,
+		"passed",
+		response.Passed,
+		"violations",
+		len(response.Violations),
+	)
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)

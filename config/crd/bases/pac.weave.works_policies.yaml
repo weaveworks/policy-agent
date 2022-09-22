@@ -215,6 +215,7 @@ spec:
                   type: object
                 type: array
               provider:
+                default: kubernetes
                 description: Provider policy provider, can be kubernetes, terraform
                 enum:
                 - kubernetes
