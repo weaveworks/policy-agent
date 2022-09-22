@@ -21,3 +21,5 @@ config:
     sinks:
       k8sEventsSink:
         enabled: true
+  audit:
+    enabled: false

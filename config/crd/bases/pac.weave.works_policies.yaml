@@ -288,7 +288,6 @@ spec:
             - how_to_solve
             - id
             - name
-            - provider
             - severity
             type: object
         type: object
