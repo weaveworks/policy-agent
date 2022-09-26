@@ -39,6 +39,7 @@ rules:
   - apps
   - batch
   - rbac.authorization.k8s.io
+  - autoscaling
   resources: 
   - pods
   - deployments
@@ -51,6 +52,7 @@ rules:
   - clusterrolebindings
   - serviceaccounts
   - nodes
+  - horizontalpodautoscalers
   verbs:
   - get
   - list
@@ -267,6 +269,7 @@ webhooks:
         - gitops.weave.works
         - kustomize.toolkit.fluxcd.io
         - helm.toolkit.fluxcd.io
+        - autoscaling
         resources:
         - namespaces
         - pods
@@ -293,6 +296,7 @@ webhooks:
         - kustomizations
         - helmreleases
         - ocirepositories
+        - horizontalpodautoscalers
     timeoutSeconds: 5
     failurePolicy: {{ .Values.failurePolicy }}
     admissionReviewVersions: ["v1", "v1beta1"]
