@@ -32,6 +32,7 @@ import (
 	flux_notification "github.com/weaveworks/policy-agent/internal/sink/flux-notification"
 	k8s_event "github.com/weaveworks/policy-agent/internal/sink/k8s-event"
 	"github.com/weaveworks/policy-agent/internal/sink/saas"
+	"github.com/weaveworks/policy-agent/internal/terraform"
 	"github.com/weaveworks/policy-agent/pkg/log"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -158,6 +159,7 @@ func main() {
 
 		auditSinks := []domain.PolicyValidationSink{}
 		admissionSinks := []domain.PolicyValidationSink{}
+		terraformSinks := []domain.PolicyValidationSink{}
 
 		var auditSaaSGatewaySink, admissionSaaSGatewaySink *configuration.SaaSGatewaySink
 
@@ -248,6 +250,46 @@ func main() {
 			}
 		}
 
+		if config.Terraform.Enabled {
+			terraformSinksConfig := config.Terraform.Sinks
+			if terraformSinksConfig.FilesystemSink != nil {
+				fileName := terraformSinksConfig.FilesystemSink.FileName
+				fileSystemSink, err := initFileSystemSink(mgr, fileName)
+				if err != nil {
+					return err
+				}
+				defer fileSystemSink.Stop()
+				terraformSinks = append(terraformSinks, fileSystemSink)
+			}
+			if terraformSinksConfig.K8sEventsSink != nil && terraformSinksConfig.K8sEventsSink.Enabled {
+				logger.Info("initializing kubernetes events terraform sink ...")
+				k8sEventSink, err := initK8sEventSink(mgr, config)
+				if err != nil {
+					return err
+				}
+				defer k8sEventSink.Stop()
+				terraformSinks = append(terraformSinks, k8sEventSink)
+			}
+			if terraformSinksConfig.FluxNotificationSink != nil {
+				fluxControllerAddress := terraformSinksConfig.FluxNotificationSink.Address
+				logger.Info("initializing flux notification controller terraform sink ...", "address", fluxControllerAddress)
+				fluxNotificationSink, err := initFluxNotificationSink(mgr, config, fluxControllerAddress)
+				if err != nil {
+					return err
+				}
+				defer fluxNotificationSink.Stop()
+				terraformSinks = append(terraformSinks, fluxNotificationSink)
+			}
+			if terraformSinksConfig.ElasticSink != nil {
+				elasticsearchSinkConfig := terraformSinksConfig.ElasticSink
+				elasticsearchSink, err := initElasticSearchSink(mgr, *elasticsearchSinkConfig)
+				if err != nil {
+					return err
+				}
+				terraformSinks = append(terraformSinks, elasticsearchSink)
+			}
+		}
+
 		if auditSaaSGatewaySink != nil && admissionSaaSGatewaySink != nil &&
 			auditSaaSGatewaySink.URL != admissionSaaSGatewaySink.URL {
 			return errors.New("failed to initialize SaaS gateway sink: different saas gateway sink url in admission and audit sinks configuration")
@@ -285,13 +327,13 @@ func main() {
 		if config.Audit.Enabled {
 			logger.Info("starting audit policies watcher")
 
-			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.Config{
+				Provider:  "kubernetes",
+				PolicySet: config.Audit.PolicySet,
+			})
+
 			if err != nil {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
-			}
-
-			if config.Audit.PolicySet != "" {
-				policiesSource.SetPolicySet(config.Audit.PolicySet)
 			}
 
 			validator := validation.NewOPAValidator(
@@ -314,13 +356,12 @@ func main() {
 		if config.Admission.Enabled {
 			logger.Info("starting admission policies watcher")
 
-			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr)
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.Config{
+				Provider:  "kubernetes",
+				PolicySet: config.Admission.PolicySet,
+			})
 			if err != nil {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
-			}
-
-			if config.Admission.PolicySet != "" {
-				policiesSource.SetPolicySet(config.Admission.PolicySet)
 			}
 
 			validator := validation.NewOPAValidator(
@@ -339,6 +380,37 @@ func main() {
 			err = admissionServer.Run(mgr)
 			if err != nil {
 				return fmt.Errorf("failed to start admission server: %w", err)
+			}
+		}
+
+		if config.Terraform.Enabled {
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.Config{
+				Provider:  "terraform",
+				PolicySet: config.Terraform.PolicySet,
+			})
+
+			if err != nil {
+				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
+			}
+
+			validator := validation.NewOPAValidator(
+				policiesSource,
+				false,
+				terraform.TypeTerraform,
+				config.AccountID,
+				config.ClusterID,
+				terraformSinks...,
+			)
+
+			terraformHandler := terraform.NewTerraformHandler(
+				config.LogLevel,
+				validator,
+			)
+
+			logger.Info("starting terraform webhook ...")
+			err = terraformHandler.Run(mgr)
+			if err != nil {
+				return fmt.Errorf("failed to start terraform webhook, error: %w", err)
 			}
 		}
 

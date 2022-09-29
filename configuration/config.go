@@ -61,6 +61,12 @@ type AuditConfig struct {
 	Interval        uint
 }
 
+type TerraformConfig struct {
+	Enabled   bool
+	Sinks     SinksConfig
+	PolicySet string
+}
+
 type Config struct {
 	KubeConfigFile string
 	AccountID      string
@@ -73,6 +79,7 @@ type Config struct {
 
 	Admission AdmissionConfig
 	Audit     AuditConfig
+	Terraform TerraformConfig
 }
 
 func GetAgentConfiguration(filePath string) Config {
