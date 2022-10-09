@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v2beta1
+package v2beta2
 
 import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -22,15 +22,18 @@ import (
 )
 
 const (
-	PolicyResourceName    = "policies"
-	PolicyKind            = "Policy"
-	PolicySetResourceName = "policysets"
-	PolicySetKind         = "PolicySet"
+	PolicyResourceName       = "policies"
+	PolicyKind               = "Policy"
+	PolicySetResourceName    = "policysets"
+	PolicySetKind            = "PolicySet"
+	PolicyConfigResourceName = "policyconfigs"
+	PolicyConfigKind         = "PolicyConfig"
 )
 
 var (
-	PolicyGroupVersionResource    = GroupVersion.WithResource(PolicyResourceName)
-	PolicySetGroupVersionResource = GroupVersion.WithResource(PolicySetResourceName)
+	PolicyGroupVersionResource       = GroupVersion.WithResource(PolicyResourceName)
+	PolicySetGroupVersionResource    = GroupVersion.WithResource(PolicySetResourceName)
+	PolicyConfigGroupVersionResource = GroupVersion.WithResource(PolicyConfigResourceName)
 )
 
 // PolicyParameters defines a needed input in a policy
@@ -124,6 +127,10 @@ type PolicySetSpec struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:resource:scope=Cluster
+//+kubebuilder:storageversion
+//+kubebuilder:printcolumn:name="Severity",type=string,JSONPath=`.spec.severity`
+//+kubebuilder:printcolumn:name="Category",type=string,JSONPath=`.spec.category`
+//+kubebuilder:printcolumn:name="Provider",type=string,JSONPath=`.spec.provider`
 
 // Policy is the Schema for the policies API
 type Policy struct {
@@ -144,6 +151,7 @@ type PolicyList struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Cluster
+// +kubebuilder:storageversion
 
 // PolicySet is the Schema for the policysets API
 type PolicySet struct {
@@ -163,6 +171,42 @@ type PolicySetList struct {
 	Items           []PolicySet `json:"items"`
 }
 
+type Config struct {
+	Parameters map[string]apiextensionsv1.JSON `json:"parameters"`
+}
+
+type PolicyConfigSpec struct {
+	Config map[string]Config `json:"config"`
+}
+
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:storageversion
+
+// PolicyConfig is the Schema for the policyconfigs API
+type PolicyConfig struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              PolicyConfigSpec `json:"spec,omitempty"`
+}
+
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:scope=Cluster
+
+// PolicyConfigList contains a list of PolicyConfig
+type PolicyConfigList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []PolicyConfig `json:"items"`
+}
+
 func init() {
-	SchemeBuilder.Register(&Policy{}, &PolicyList{}, &PolicySet{}, &PolicySetList{})
+	SchemeBuilder.Register(
+		&Policy{},
+		&PolicyList{},
+		&PolicySet{},
+		&PolicySetList{},
+		&PolicyConfig{},
+		&PolicyConfigList{},
+	)
 }
