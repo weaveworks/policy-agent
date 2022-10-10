@@ -90,6 +90,7 @@ func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation
 			Namespace:       fluxObject.GetNamespace(),
 			ResourceVersion: fluxObject.GetResourceVersion(),
 		}
+		event.Namespace = fluxObject.GetNamespace()
 	}
 
 	if err != nil {
