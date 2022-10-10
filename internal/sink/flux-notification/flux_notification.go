@@ -6,6 +6,7 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
+	"github.com/weaveworks/policy-agent/internal/utils"
 	"k8s.io/client-go/tools/record"
 )
 
@@ -65,7 +66,7 @@ func (f *FluxNotificationSink) writeWorker(ctx context.Context) error {
 }
 
 func (f *FluxNotificationSink) write(result domain.PolicyValidation) {
-	fluxObject := getFluxObject(result.Entity.Labels)
+	fluxObject := utils.GetFluxObject(result.Entity.Labels)
 	if fluxObject == nil {
 		logger.Debugw(
 			fmt.Sprintf("discarding %s result for orphan entity", result.Type),
