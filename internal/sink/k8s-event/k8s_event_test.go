@@ -57,13 +57,41 @@ func TestK8sEventSink(t *testing.T) {
 		Labels:          map[string]string{},
 	}
 
+	fluxHelmViolatingEntity := domain.Entity{
+		ID:              uuid.NewV4().String(),
+		APIVersion:      "v1",
+		Kind:            "Deployment",
+		Name:            "my-helm-violating-entity",
+		Namespace:       "default",
+		Manifest:        map[string]interface{}{},
+		ResourceVersion: "1",
+		Labels: map[string]string{
+			"helm.toolkit.fluxcd.io/name":      "my-helm-app-name",
+			"helm.toolkit.fluxcd.io/namespace": "my-helm-app-namespace",
+		},
+	}
+
+	fluxKustomizeViolatingEntity := domain.Entity{
+		ID:              uuid.NewV4().String(),
+		APIVersion:      "v1",
+		Kind:            "Deployment",
+		Name:            "my-kustomize-violating-entity",
+		Namespace:       "default",
+		Manifest:        map[string]interface{}{},
+		ResourceVersion: "1",
+		Labels: map[string]string{
+			"kustomize.toolkit.fluxcd.io/name":      "my-kustomize-app-name",
+			"kustomize.toolkit.fluxcd.io/namespace": "my-kustomize-app-namespace",
+		},
+	}
+
 	results := []domain.PolicyValidation{
 		{
 			ID:        uuid.NewV4().String(),
 			Policy:    policy,
 			Entity:    violatingEntity,
 			Status:    domain.PolicyValidationStatusViolating,
-			Message:   "message",
+			Message:   "violating-entity",
 			Type:      "Admission",
 			Trigger:   "Admission",
 			CreatedAt: time.Now(),
@@ -73,7 +101,27 @@ func TestK8sEventSink(t *testing.T) {
 			Policy:    policy,
 			Entity:    compliantEntity,
 			Status:    domain.PolicyValidationStatusCompliant,
-			Message:   "message",
+			Message:   "compliant-entity",
+			Type:      "Admission",
+			Trigger:   "Admission",
+			CreatedAt: time.Now(),
+		},
+		{
+			ID:        uuid.NewV4().String(),
+			Policy:    policy,
+			Entity:    fluxHelmViolatingEntity,
+			Status:    domain.PolicyValidationStatusViolating,
+			Message:   "flux-helm-entity",
+			Type:      "Admission",
+			Trigger:   "Admission",
+			CreatedAt: time.Now(),
+		},
+		{
+			ID:        uuid.NewV4().String(),
+			Policy:    policy,
+			Entity:    fluxKustomizeViolatingEntity,
+			Status:    domain.PolicyValidationStatusViolating,
+			Message:   "flux-kustomize-entity",
 			Type:      "Admission",
 			Trigger:   "Admission",
 			CreatedAt: time.Now(),
@@ -93,35 +141,49 @@ func TestK8sEventSink(t *testing.T) {
 		t.Error(err)
 	}
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(4 * time.Second)
 
 	events, err := sink.kubeClient.CoreV1().Events("").List(ctx, metav1.ListOptions{})
 	if err != nil {
 		t.Error(err)
 	}
 
-	assert.Equal(t, len(events.Items), 2, "did not receive expected events")
+	assert.Equal(t, len(events.Items), 4, "did not receive expected events")
 
 	for _, event := range events.Items {
-		if event.Type == v1.EventTypeWarning {
+		if event.Message == "violating-entity" {
 			assert.Equal(t, event.Reason, domain.EventReasonPolicyViolation)
 			assert.Equal(t, event.Action, domain.EventActionRejected)
-
 			// verify involved object holds entity info
 			assert.Equal(t, event.InvolvedObject.APIVersion, violatingEntity.APIVersion)
 			assert.Equal(t, event.InvolvedObject.Kind, violatingEntity.Kind)
 			assert.Equal(t, event.InvolvedObject.Name, violatingEntity.Name)
 			assert.Equal(t, event.InvolvedObject.Namespace, violatingEntity.Namespace)
 
-		} else if event.Type == v1.EventTypeNormal {
+		} else if event.Message == "compliant-entity" {
 			assert.Equal(t, event.Reason, domain.EventReasonPolicyCompliance)
 			assert.Equal(t, event.Action, domain.EventActionAllowed)
-
 			// verify involved object holds entity info
 			assert.Equal(t, event.InvolvedObject.APIVersion, compliantEntity.APIVersion)
 			assert.Equal(t, event.InvolvedObject.Kind, compliantEntity.Kind)
 			assert.Equal(t, event.InvolvedObject.Name, compliantEntity.Name)
 			assert.Equal(t, event.InvolvedObject.Namespace, compliantEntity.Namespace)
+		} else if event.Message == "flux-helm-entity" {
+			assert.Equal(t, event.Reason, domain.EventReasonPolicyViolation)
+			assert.Equal(t, event.Action, domain.EventActionRejected)
+			// verify involved object holds entity info
+			assert.Equal(t, event.InvolvedObject.APIVersion, "helm.toolkit.fluxcd.io")
+			assert.Equal(t, event.InvolvedObject.Kind, "HelmRelease")
+			assert.Equal(t, event.InvolvedObject.Name, "my-helm-app-name")
+			assert.Equal(t, event.InvolvedObject.Namespace, "my-helm-app-namespace")
+		} else if event.Message == "compliant-entity" {
+			assert.Equal(t, event.Reason, domain.EventReasonPolicyViolation)
+			assert.Equal(t, event.Action, domain.EventActionRejected)
+			// verify involved object holds entity info
+			assert.Equal(t, event.InvolvedObject.APIVersion, "kustomize.toolkit.fluxcd.io")
+			assert.Equal(t, event.InvolvedObject.Kind, "Kustomization")
+			assert.Equal(t, event.InvolvedObject.Name, "my-kustomize-app-name")
+			assert.Equal(t, event.InvolvedObject.Namespace, "my-kustomize-app-namespace")
 		}
 
 		// verify involved object holds entity info
