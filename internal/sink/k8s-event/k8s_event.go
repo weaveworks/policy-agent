@@ -79,6 +79,18 @@ func (f *K8sEventSink) writeWorker(ctx context.Context) error {
 
 func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation) {
 	event, err := domain.NewK8sEventFromPolicyValidation(result)
+	if err != nil {
+		logger.Errorw(
+			"failed to create event from policy validation",
+			"error",
+			err,
+			"entity_kind", result.Entity.Kind,
+			"entity_name", result.Entity.Name,
+			"entity_namespace", result.Entity.Namespace,
+			"policy", result.Policy.ID,
+		)
+		return
+	}
 
 	fluxObject := utils.GetFluxObject(result.Entity.Labels)
 	if fluxObject != nil {
@@ -93,18 +105,6 @@ func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation
 		event.Namespace = fluxObject.GetNamespace()
 	}
 
-	if err != nil {
-		logger.Errorw(
-			"failed to create event from policy validation",
-			"error",
-			err,
-			"entity_kind", result.Entity.Kind,
-			"entity_name", result.Entity.Name,
-			"entity_namespace", result.Entity.Namespace,
-			"policy", result.Policy.ID,
-		)
-		return
-	}
 	event.ReportingController = k.reportingController
 	event.ReportingInstance = k.reportingInstance
 	event.Source = v1.EventSource{Component: k.reportingController}
