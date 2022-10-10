@@ -6,6 +6,7 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
+	"github.com/weaveworks/policy-agent/internal/utils"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -90,6 +91,20 @@ func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation
 		)
 		return
 	}
+
+	fluxObject := utils.GetFluxObject(result.Entity.Labels)
+	if fluxObject != nil {
+		event.InvolvedObject = v1.ObjectReference{
+			UID:             fluxObject.GetUID(),
+			APIVersion:      fluxObject.GetAPIVersion(),
+			Kind:            fluxObject.GetKind(),
+			Name:            fluxObject.GetName(),
+			Namespace:       fluxObject.GetNamespace(),
+			ResourceVersion: fluxObject.GetResourceVersion(),
+		}
+		event.Namespace = fluxObject.GetNamespace()
+	}
+
 	event.ReportingController = k.reportingController
 	event.ReportingInstance = k.reportingInstance
 	event.Source = v1.EventSource{Component: k.reportingController}

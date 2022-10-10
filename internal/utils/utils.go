@@ -1,10 +1,9 @@
-package flux_notification
+package utils
 
 import (
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 var fluxControllerKindMap = map[string]string{
@@ -12,7 +11,7 @@ var fluxControllerKindMap = map[string]string{
 	"kustomize.toolkit.fluxcd.io": "Kustomization",
 }
 
-func getFluxObject(labels map[string]string) runtime.Object {
+func GetFluxObject(labels map[string]string) *unstructured.Unstructured {
 	for apiVersion, kind := range fluxControllerKindMap {
 		name, ok := labels[fmt.Sprintf("%s/name", apiVersion)]
 		if !ok {
