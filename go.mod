@@ -5,6 +5,7 @@ go 1.17
 replace (
 	github.com/dgrijalva/jwt-go v3.2.2+incompatible => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/weaveworks/policy-agent/api => ./api
+	// github.com/MagalixTechnologies/policy-core => /home/ahsayde/code/policy-core
 )
 
 require (
