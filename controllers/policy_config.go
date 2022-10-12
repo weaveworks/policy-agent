@@ -41,40 +41,7 @@ func (pc *PolicyConfigReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, err
 	}
 
-	labels := obj.Labels
-
-	if obj.Spec.Target.Kind == "" {
-		delete(labels, TargetKindLabel)
-	} else {
-		labels[TargetKindLabel] = obj.Spec.Target.Kind
-	}
-
-	if obj.Spec.Target.Name == "" {
-		delete(labels, TargetNameLabel)
-	} else {
-		labels[TargetNameLabel] = obj.Spec.Target.Name
-	}
-
-	if obj.Spec.Target.Namespace == "" {
-		delete(labels, TargetNamespaceLabel)
-	} else {
-		labels[TargetNamespaceLabel] = obj.Spec.Target.Namespace
-	}
-
-	if obj.Spec.Target.Labels == nil {
-		for k := range labels {
-			if strings.HasPrefix(k, TargetLablesLabel) {
-				delete(labels, k)
-			}
-		}
-	} else {
-		for k, v := range obj.Spec.Target.Labels {
-			labels[fmt.Sprintf("%s/%s", TargetLablesLabel, k)] = v
-		}
-	}
-
-	labels[TargetScopeLabel] = obj.Spec.Target.Type()
-
+	labels := getLabels(obj)
 	obj.SetLabels(labels)
 
 	if err := pc.Update(ctx, &obj); err != nil {
@@ -93,15 +60,61 @@ func (pc *PolicyConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		WithEventFilter(
 			predicate.Funcs{
 				CreateFunc: func(e event.CreateEvent) bool {
+					// err := e.Object.(*pacv2.PolicyConfig).Spec.Target.Validate()
+					// if err != nil {
+					// 	pc.Logger.Error(err, "failed to create policy config")
+					// 	return false
+					// }
 					return true
 				},
 				UpdateFunc: func(e event.UpdateEvent) bool {
+					// err := e.ObjectNew.(*pacv2.PolicyConfig).Spec.Target.Validate()
+					// if err != nil {
+					// 	pc.Logger.Error(err, "failed to create policy config")
+					// 	return false
+					// }
 					return true
 				},
 			},
 		).
 		For(&v2beta2.PolicyConfig{}).
 		Complete(pc)
+}
+
+func getLabels(config pacv2.PolicyConfig) map[string]string {
+	labels := config.Labels
+	labels[TargetScopeLabel] = config.Spec.Target.Type()
+
+	if config.Spec.Target.Kind == "" {
+		delete(labels, TargetKindLabel)
+	} else {
+		labels[TargetKindLabel] = config.Spec.Target.Kind
+	}
+
+	if config.Spec.Target.Name == "" {
+		delete(labels, TargetNameLabel)
+	} else {
+		labels[TargetNameLabel] = config.Spec.Target.Name
+	}
+
+	if config.Spec.Target.Namespace == "" {
+		delete(labels, TargetNamespaceLabel)
+	} else {
+		labels[TargetNamespaceLabel] = config.Spec.Target.Namespace
+	}
+
+	if config.Spec.Target.Labels == nil {
+		for k := range labels {
+			if strings.HasPrefix(k, TargetLablesLabel) {
+				delete(labels, k)
+			}
+		}
+	} else {
+		for k, v := range config.Spec.Target.Labels {
+			labels[fmt.Sprintf("%s.%s", TargetLablesLabel, k)] = v
+		}
+	}
+	return labels
 }
 
 // func (pc *PolicyConfigReconciler) labelInjector(obj pacv2.PolicyConfig) client.Object {

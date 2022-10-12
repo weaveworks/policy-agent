@@ -3,9 +3,9 @@ module github.com/weaveworks/policy-agent
 go 1.17
 
 replace (
+	github.com/MagalixTechnologies/policy-core => /home/ahsayde/code/policy-core
 	github.com/dgrijalva/jwt-go v3.2.2+incompatible => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/weaveworks/policy-agent/api => ./api
-	github.com/MagalixTechnologies/policy-core => /home/ahsayde/code/policy-core
 )
 
 require (
@@ -27,6 +27,7 @@ require (
 	go.uber.org/zap v1.19.1
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	k8s.io/api v0.23.5
+	k8s.io/apiextensions-apiserver v0.23.4
 	k8s.io/apimachinery v0.23.5
 	k8s.io/client-go v0.23.4
 	sigs.k8s.io/controller-runtime v0.11.1
@@ -100,7 +101,6 @@ require (
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.23.4 // indirect
 	k8s.io/component-base v0.23.4 // indirect
 	k8s.io/klog/v2 v2.30.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect

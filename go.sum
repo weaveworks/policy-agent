@@ -82,9 +82,6 @@ github.com/MagalixTechnologies/core/packet v1.0.1 h1:1OGTRcrKKPP23LOq6QEqPOLXw6A
 github.com/MagalixTechnologies/core/packet v1.0.1/go.mod h1:419K/Uaw6PeeTcEF+HVLhqcWZTtOBS/HTTezWE1fpy8=
 github.com/MagalixTechnologies/opa-core v1.0.12 h1:v9fwq+fwXBnKT7LXK7Ynbb5AkXym+GPEUX5wpdovRu8=
 github.com/MagalixTechnologies/opa-core v1.0.12/go.mod h1:OOvF4AcJEQ1fAcelaC10CCnn4w4AxoJYvRAJi5yFGgo=
-github.com/MagalixTechnologies/policy-core v1.0.8/go.mod h1:gM6cocm6aDq7c1DW+JbQlzv1RMM6iwiJojBufSXPUfU=
-github.com/MagalixTechnologies/policy-core v1.1.4-0.20220905094853-05b9bb3e692f h1:T6Rzw/JgjcTQNUsOBw5cHq1jrWAPXsVmSVEbPClx/q0=
-github.com/MagalixTechnologies/policy-core v1.1.4-0.20220905094853-05b9bb3e692f/go.mod h1:RbahYwsnnuXltrFjcey3nVYmkheHjulMYpy70wJ4Iss=
 github.com/MagalixTechnologies/uuid-go v0.0.0-20200102125057-aa0bb55c403a/go.mod h1:O74c5ywMyRjVPErmn6fQ8Z3narXcQE+0Qf5vzWQ9HLU=
 github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e h1:l/ci+0/7XVCFdnLSIvgTM9femU75hXpoCBgVX+w1XTA=
 github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e/go.mod h1:/ZuJrsOm2BFLXkKN6zBuQ5L35llSU1x40U5eo4Aa6Dg=
