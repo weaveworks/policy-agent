@@ -1,0 +1,10 @@
+kubeConfigFile: /home/ahsayde/.kube/config
+accountId: "account-id"
+clusterId: "cluster-id"
+audit:
+  enabled: true
+  sinks:
+    k8sEvenSinkt:
+      enabled: true
+admission:
+  enabled: false

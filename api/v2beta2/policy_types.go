@@ -179,13 +179,13 @@ type PolicyConfigConfig struct {
 
 type PolicyConfigTarget struct {
 	// +optional
-	Kind string `json:"kind"`
+	Kind string `json:"kind,omitempty"`
 	// +optional
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 	// +optional
-	Namespace string `json:"namespace"`
+	Namespace string `json:"namespace,omitempty"`
 	// +optional
-	Labels map[string]string `json:"labels"`
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 func (t *PolicyConfigTarget) Validate() error {

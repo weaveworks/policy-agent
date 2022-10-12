@@ -8,7 +8,9 @@ import (
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	"github.com/weaveworks/policy-agent/controllers"
 	v1 "k8s.io/api/core/v1"
+	k8sLabels "k8s.io/apimachinery/pkg/labels"
 	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlCache "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -24,9 +26,42 @@ type PoliciesWatcher struct {
 	config Config
 }
 
-// type PolicyConfigs struct {
-// 	NamespaceScoped []domain.PolicyConfig
-// 	ResourceScoped  []domain.PolicyConfig
+type PolicyConfigs struct {
+	ClusterScoped   []domain.PolicyConfig
+	NamespaceScoped []domain.PolicyConfig
+	ResourceScoped  []domain.PolicyConfig
+}
+
+// func (pc *PolicyConfigs) Config() domain.PolicyConfig {
+// 	config := domain.PolicyConfig{}
+// 	for i := range pc.ClusterScoped {
+// 		for policyID, policyConfig := range pc.ClusterScoped[i].Config {
+// 			config.Config[policyID] = domain.PolicyConfigConfig{}
+// 			for k, v := range policyConfig.Parameters {
+// 				config.Config[policyID].Parameters[k] = v
+// 			}
+// 		}
+// 	}
+
+// 	for i := range pc.NamespaceScoped {
+// 		for policyID, policyConfig := range pc.NamespaceScoped[i].Config {
+// 			config.Config[policyID] = domain.PolicyConfigConfig{}
+// 			for k, v := range policyConfig.Parameters {
+// 				config.Config[policyID].Parameters[k] = v
+// 			}
+// 		}
+// 	}
+
+// 	for i := range pc.ResourceScoped {
+// 		for policyID, policyConfig := range pc.ResourceScoped[i].Config {
+// 			config.Config[policyID] = domain.PolicyConfigConfig{}
+// 			for k, v := range policyConfig.Parameters {
+// 				config.Config[policyID].Parameters[k] = v
+// 			}
+// 		}
+// 	}
+
+// 	return config
 // }
 
 // NewPoliciesWatcher returns a policies source that fetches them from Kubernetes API
@@ -134,4 +169,101 @@ func (p *PoliciesWatcher) GetPolicySet(ctx context.Context, id string) (*domain.
 		Name:    policySet.Spec.Name,
 		Filters: domain.PolicySetFilters(policySet.Spec.Filters),
 	}, nil
+}
+
+func (p *PoliciesWatcher) GetPolicyConfig(ctx context.Context, target domain.PolicyConfigTarget) (*domain.PolicyConfig, error) {
+	clusterConfigs := pacv2.PolicyConfigList{}
+	labels := target.Labels
+
+	labels[controllers.TargetScopeLabel] = "cluster"
+	fmt.Println("========================", "cluster", labels)
+
+	err := p.cache.List(ctx, &clusterConfigs, &client.ListOptions{
+		LabelSelector: k8sLabels.SelectorFromValidatedSet(labels),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Infow("cluster configs", "count", len(clusterConfigs.Items))
+
+	namespaceConfigs := pacv2.PolicyConfigList{}
+	labels = target.Labels
+	labels[controllers.TargetNamespaceLabel] = target.Namespace
+	labels[controllers.TargetScopeLabel] = "namespace"
+	fmt.Println("========================", "namespace", labels)
+
+	err = p.cache.List(ctx, &namespaceConfigs, &client.ListOptions{
+		LabelSelector: k8sLabels.SelectorFromValidatedSet(labels),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Infow("namespace configs", "count", len(namespaceConfigs.Items))
+
+	resourceConfig := pacv2.PolicyConfigList{}
+	labels = target.Labels
+	labels[controllers.TargetKindLabel] = target.Kind
+	labels[controllers.TargetNameLabel] = target.Name
+	labels[controllers.TargetNamespaceLabel] = target.Namespace
+	labels[controllers.TargetScopeLabel] = "resource"
+	fmt.Println("========================", "resource", labels)
+
+	err = p.cache.List(ctx, &resourceConfig, &client.ListOptions{
+		LabelSelector: k8sLabels.SelectorFromValidatedSet(labels),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Infow("resource configs", "count", len(resourceConfig.Items))
+
+	return override(clusterConfigs, namespaceConfigs, resourceConfig)
+}
+
+func override(cluster, namespace, resource pacv2.PolicyConfigList) (*domain.PolicyConfig, error) {
+	configCRD := pacv2.PolicyConfig{}
+	for i := range cluster.Items {
+		for policyID, policyConfig := range cluster.Items[i].Spec.Config {
+			configCRD.Spec.Config[policyID] = pacv2.PolicyConfigConfig{}
+			for k, v := range policyConfig.Parameters {
+				configCRD.Spec.Config[policyID].Parameters[k] = v
+			}
+		}
+	}
+
+	for i := range namespace.Items {
+		for policyID, policyConfig := range namespace.Items[i].Spec.Config {
+			configCRD.Spec.Config[policyID] = pacv2.PolicyConfigConfig{}
+			for k, v := range policyConfig.Parameters {
+				configCRD.Spec.Config[policyID].Parameters[k] = v
+			}
+		}
+	}
+
+	for i := range resource.Items {
+		for policyID, policyConfig := range resource.Items[i].Spec.Config {
+			configCRD.Spec.Config[policyID] = pacv2.PolicyConfigConfig{}
+			for k, v := range policyConfig.Parameters {
+				configCRD.Spec.Config[policyID].Parameters[k] = v
+			}
+		}
+	}
+
+	config := domain.PolicyConfig{}
+	for policyID, policyConfig := range configCRD.Spec.Config {
+		config.Config[policyID] = domain.PolicyConfigConfig{}
+		for k, v := range policyConfig.Parameters {
+			var value interface{}
+			err := json.Unmarshal(v.Raw, &value)
+			if err != nil {
+				return nil, err
+			}
+			logger.Infow("overriding parameter", "policy", policyID, "param", k, "oldValue", v, "newValue", value)
+			config.Config[policyID].Parameters[k] = value
+		}
+	}
+
+	return &config, nil
 }
