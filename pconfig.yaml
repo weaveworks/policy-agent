@@ -1,0 +1,18 @@
+apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  name: my-app-config
+  labels:
+    scope: resource
+spec:
+  target:
+    name: my-app
+    namespace: my-app-namespace
+    kind: HelmRelease
+    labels:
+      group: my-group
+      owner: my-owner
+  config:
+    weave.policies.policy-1:
+      parameters:
+        replica_count: 3

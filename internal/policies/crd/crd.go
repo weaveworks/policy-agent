@@ -24,10 +24,10 @@ type PoliciesWatcher struct {
 	config Config
 }
 
-type PolicyConfigs struct {
-	NamespaceScoped []domain.PolicyConfig
-	ResourceScoped  []domain.PolicyConfig
-}
+// type PolicyConfigs struct {
+// 	NamespaceScoped []domain.PolicyConfig
+// 	ResourceScoped  []domain.PolicyConfig
+// }
 
 // NewPoliciesWatcher returns a policies source that fetches them from Kubernetes API
 func NewPoliciesWatcher(ctx context.Context, mgr ctrl.Manager, config Config) (*PoliciesWatcher, error) {
