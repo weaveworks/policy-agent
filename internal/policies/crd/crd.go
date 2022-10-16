@@ -26,38 +26,6 @@ type PoliciesWatcher struct {
 	config Config
 }
 
-// func (pc *PolicyConfigs) Config() domain.PolicyConfig {
-// 	config := domain.PolicyConfig{}
-// 	for i := range pc.ClusterScoped {
-// 		for policyID, policyConfig := range pc.ClusterScoped[i].Config {
-// 			config.Config[policyID] = domain.PolicyConfigConfig{}
-// 			for k, v := range policyConfig.Parameters {
-// 				config.Config[policyID].Parameters[k] = v
-// 			}
-// 		}
-// 	}
-
-// 	for i := range pc.NamespaceScoped {
-// 		for policyID, policyConfig := range pc.NamespaceScoped[i].Config {
-// 			config.Config[policyID] = domain.PolicyConfigConfig{}
-// 			for k, v := range policyConfig.Parameters {
-// 				config.Config[policyID].Parameters[k] = v
-// 			}
-// 		}
-// 	}
-
-// 	for i := range pc.ResourceScoped {
-// 		for policyID, policyConfig := range pc.ResourceScoped[i].Config {
-// 			config.Config[policyID] = domain.PolicyConfigConfig{}
-// 			for k, v := range policyConfig.Parameters {
-// 				config.Config[policyID].Parameters[k] = v
-// 			}
-// 		}
-// 	}
-
-// 	return config
-// }
-
 // NewPoliciesWatcher returns a policies source that fetches them from Kubernetes API
 func NewPoliciesWatcher(ctx context.Context, mgr ctrl.Manager, config Config) (*PoliciesWatcher, error) {
 	return &PoliciesWatcher{
