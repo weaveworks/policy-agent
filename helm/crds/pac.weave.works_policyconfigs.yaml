@@ -13,7 +13,7 @@ spec:
     listKind: PolicyConfigList
     plural: policyconfigs
     singular: policyconfig
-  scope: Cluster
+  scope: Namespaced
   versions:
   - name: v2beta2
     schema:
@@ -45,22 +45,19 @@ spec:
                   - parameters
                   type: object
                 type: object
-              target:
-                properties:
-                  kind:
-                    type: string
-                  labels:
-                    additionalProperties:
+              match:
+                items:
+                  properties:
+                    appKind:
+                      description: Application kind either HelmRelease or Kustomization
                       type: string
-                    type: object
-                  name:
-                    type: string
-                  namespace:
-                    type: string
-                type: object
+                    appName:
+                      description: Application name
+                      type: string
+                  type: object
+                type: array
             required:
             - config
-            - target
             type: object
         type: object
     served: true

@@ -17,8 +17,6 @@ limitations under the License.
 package v2beta2
 
 import (
-	"fmt"
-
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -159,8 +157,7 @@ type PolicyList struct {
 type PolicySet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec PolicySetSpec `json:"spec,omitempty"`
+	Spec              PolicySetSpec `json:"spec,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -178,33 +175,20 @@ type PolicyConfigConfig struct {
 }
 
 type PolicyConfigTarget struct {
-	// +optional
-	Kind string `json:"kind,omitempty"`
-	// +optional
-	Name string `json:"name,omitempty"`
-	// +optional
-	Namespace string `json:"namespace,omitempty"`
-	// +optional
-	Labels map[string]string `json:"labels,omitempty"`
-}
-
-func (t *PolicyConfigTarget) Type() string {
-	if t.Name != "" && t.Kind != "" && t.Namespace != "" {
-		return "resource"
-	}
-	if t.Namespace != "" {
-		return "namespace"
-	}
-	return "cluster"
+	// Application kind either HelmRelease or Kustomization
+	Kind string `json:"appKind,omitempty"`
+	// Application name
+	Name string `json:"appName,omitempty"`
 }
 
 type PolicyConfigSpec struct {
 	Config map[string]PolicyConfigConfig `json:"config"`
-	Target PolicyConfigTarget            `json:"target"`
+	//+optional
+	Match []PolicyConfigTarget `json:"match"`
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:scope=Namespaced
 // +kubebuilder:storageversion
 
 // PolicyConfig is the Schema for the policyconfigs API
@@ -214,34 +198,8 @@ type PolicyConfig struct {
 	Spec              PolicyConfigSpec `json:"spec,omitempty"`
 }
 
-func (pc *PolicyConfig) Validate() error {
-	if pc.Spec.Target.Name != "" {
-		if pc.Spec.Target.Kind == "" {
-			return fmt.Errorf("kind is required when targeting specific resource")
-		}
-		if pc.Spec.Target.Namespace == "" {
-			return fmt.Errorf("namespace is required when targeting specific resource")
-		}
-	}
-	if pc.Spec.Target.Kind != "" {
-		if pc.Spec.Target.Name == "" {
-			return fmt.Errorf("name is required when targeting specific resource")
-		}
-		if pc.Spec.Target.Namespace == "" {
-			return fmt.Errorf("namespace is required when targeting specific resource")
-		}
-	}
-
-	if pc.Spec.Target.Name != "" && pc.Spec.Target.Kind != "" {
-		if pc.Spec.Target.Labels != nil {
-			return fmt.Errorf("cannot use labels when targeting specific resource")
-		}
-	}
-	return nil
-}
-
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:scope=Namespaced
 
 // PolicyConfigList contains a list of PolicyConfig
 type PolicyConfigList struct {

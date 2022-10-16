@@ -415,15 +415,6 @@ func main() {
 			}
 		}
 
-		if err = (&controllers.PolicyConfigReconciler{
-			Client: mgr.GetClient(),
-			Logger: mgr.GetLogger(),
-			Scheme: scheme,
-		}).SetupWithManager(mgr); err != nil {
-			logger.Errorw("unable to create controller", "controller", "policyconfig-controller", "err", err)
-			os.Exit(1)
-		}
-
 		if err = (&controllers.PolicyConfigValidator{
 			Client: mgr.GetClient(),
 		}).SetupWithManager(mgr); err != nil {

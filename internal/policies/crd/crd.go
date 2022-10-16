@@ -8,6 +8,7 @@ import (
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	"github.com/weaveworks/policy-agent/internal/utils"
 	v1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -164,89 +165,78 @@ func (p *PoliciesWatcher) GetPolicySet(ctx context.Context, id string) (*domain.
 	}, nil
 }
 
-type policyConfigs struct {
-	clusterScoped   []pacv2.PolicyConfig
-	namespaceScoped []pacv2.PolicyConfig
-	resourceScoped  []pacv2.PolicyConfig
-}
-
 func (p *PoliciesWatcher) GetPolicyConfig(ctx context.Context, entity domain.Entity) (*domain.PolicyConfig, error) {
+	kind := entity.Kind
+	name := entity.Name
+	namespace := entity.Namespace
+
+	app := utils.GetFluxObject(entity.Labels)
+	if app != nil {
+		kind = app.GetKind()
+		name = app.GetName()
+		namespace = app.GetNamespace()
+	}
+
 	configs := pacv2.PolicyConfigList{}
-	err := p.cache.List(ctx, &configs)
+	err := p.cache.List(ctx, &configs, &client.ListOptions{Namespace: namespace})
 	if err != nil {
 		return nil, err
 	}
 
-	clusterConfigs := []pacv2.PolicyConfig{}
 	namespaceConfigs := []pacv2.PolicyConfig{}
-	resourceConfig := []pacv2.PolicyConfig{}
+	appConfigs := []pacv2.PolicyConfig{}
 
 	for _, config := range configs.Items {
-		if config.Spec.Target.Labels != nil {
-			for k, v := range config.Spec.Target.Labels {
-				if value, ok := entity.Labels[k]; ok {
-					if value != v {
-						continue
-					}
-				} else {
-					continue
-				}
-			}
+		if config.Spec.Match == nil {
+			namespaceConfigs = append(namespaceConfigs, config)
+			continue
 		}
-		if config.Spec.Target.Type() == "cluster" {
-			clusterConfigs = append(clusterConfigs, config)
-		} else if config.Spec.Target.Type() == "namespace" {
-			if config.Spec.Target.Namespace == entity.Namespace {
-				namespaceConfigs = append(namespaceConfigs, config)
-			}
-		} else if config.Spec.Target.Type() == "resource" {
-			if config.Spec.Target.Kind == entity.Kind &&
-				config.Spec.Target.Name == entity.Name &&
-				config.Spec.Target.Namespace == entity.Namespace {
-				resourceConfig = append(resourceConfig, config)
+		for _, target := range config.Spec.Match {
+			if target.Kind == kind && target.Name == name {
+				appConfigs = append(appConfigs, config)
+				break
 			}
 		}
 	}
 
-	return override(clusterConfigs, namespaceConfigs, resourceConfig)
+	return override(namespaceConfigs, appConfigs)
 }
 
-func override(cluster, namespace, resource []pacv2.PolicyConfig) (*domain.PolicyConfig, error) {
+func override(namespaceConfigs, appConfigs []pacv2.PolicyConfig) (*domain.PolicyConfig, error) {
 	configCRD := pacv2.PolicyConfig{
 		Spec: pacv2.PolicyConfigSpec{
 			Config: make(map[string]pacv2.PolicyConfigConfig),
 		},
 	}
 
-	for i := range cluster {
-		for policyID, policyConfig := range cluster[i].Spec.Config {
+	confHistory := map[string]map[string]string{}
+
+	for _, config := range namespaceConfigs {
+		for policyID, policyConfig := range config.Spec.Config {
 			configCRD.Spec.Config[policyID] = pacv2.PolicyConfigConfig{
 				Parameters: make(map[string]apiextensionsv1.JSON),
 			}
 			for k, v := range policyConfig.Parameters {
 				configCRD.Spec.Config[policyID].Parameters[k] = v
+				if _, ok := confHistory[policyID]; !ok {
+					confHistory[policyID] = make(map[string]string)
+				}
+				confHistory[policyID][k] = fmt.Sprintf("%s/%s", config.GetNamespace(), config.GetName())
 			}
 		}
 	}
 
-	for i := range namespace {
-		for policyID, policyConfig := range namespace[i].Spec.Config {
+	for _, config := range appConfigs {
+		for policyID, policyConfig := range config.Spec.Config {
 			configCRD.Spec.Config[policyID] = pacv2.PolicyConfigConfig{
 				Parameters: make(map[string]apiextensionsv1.JSON),
 			}
 			for k, v := range policyConfig.Parameters {
 				configCRD.Spec.Config[policyID].Parameters[k] = v
-			}
-		}
-	}
-
-	for i := range resource {
-		for policyID, policyConfig := range resource[i].Spec.Config {
-			configCRD.Spec.Config[policyID] = pacv2.PolicyConfigConfig{
-				Parameters: make(map[string]apiextensionsv1.JSON),
-			}
-			for k, v := range policyConfig.Parameters {
-				configCRD.Spec.Config[policyID].Parameters[k] = v
+				if _, ok := confHistory[policyID]; !ok {
+					confHistory[policyID] = make(map[string]string)
+				}
+				confHistory[policyID][k] = fmt.Sprintf("%s/%s", config.GetNamespace(), config.GetName())
 			}
 		}
 	}
@@ -256,7 +246,7 @@ func override(cluster, namespace, resource []pacv2.PolicyConfig) (*domain.Policy
 	}
 	for policyID, policyConfig := range configCRD.Spec.Config {
 		config.Config[policyID] = domain.PolicyConfigConfig{
-			Parameters: make(map[string]interface{}),
+			Parameters: make(map[string]domain.PolicyConfigParameter),
 		}
 		for k, v := range policyConfig.Parameters {
 			var value interface{}
@@ -264,7 +254,11 @@ func override(cluster, namespace, resource []pacv2.PolicyConfig) (*domain.Policy
 			if err != nil {
 				return nil, err
 			}
-			config.Config[policyID].Parameters[k] = value
+
+			config.Config[policyID].Parameters[k] = domain.PolicyConfigParameter{
+				Value:     value,
+				ConfigRef: confHistory[policyID][k],
+			}
 		}
 	}
 

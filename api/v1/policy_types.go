@@ -56,7 +56,7 @@ type PolicyTargets struct {
 
 // PolicySpec defines the desired state of Policy
 // It describes all that is needed to evaluate a resource against a rego code
-//+kubebuilder:object:generate:true
+// +kubebuilder:object:generate:true
 type PolicySpec struct {
 	// Name is the policy name
 	Name string `json:"name"`
