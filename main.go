@@ -424,6 +424,13 @@ func main() {
 			os.Exit(1)
 		}
 
+		if err = (&controllers.PolicyConfigValidator{
+			Client: mgr.GetClient(),
+		}).SetupWithManager(mgr); err != nil {
+			logger.Errorw("unable to create controller", "controller", "policyconfig-controller", "err", err)
+			os.Exit(1)
+		}
+
 		err = mgr.Start(ctrl.SetupSignalHandler())
 		if err != nil {
 			return fmt.Errorf("failed to run agent: %w", err)

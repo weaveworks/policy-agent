@@ -3,18 +3,20 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/policy-agent/api/v2beta2"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	k8sLabels "k8s.io/apimachinery/pkg/labels"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 var (
@@ -56,27 +58,16 @@ func (pc *PolicyConfigReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 }
 
 func (pc *PolicyConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	// if err := mgr.GetFieldIndexer().IndexField(
+	// 	context.Background(),
+	// 	&pacv2.PolicyConfig{},
+	// 	"metadata.name",
+	// 	func(obj client.Object) []string {
+	// 		return []string{obj.GetName()}
+	// 	}); err != nil {
+	// 	return err
+	// }
 	return ctrl.NewControllerManagedBy(mgr).
-		WithEventFilter(
-			predicate.Funcs{
-				CreateFunc: func(e event.CreateEvent) bool {
-					// err := e.Object.(*pacv2.PolicyConfig).Spec.Target.Validate()
-					// if err != nil {
-					// 	pc.Logger.Error(err, "failed to create policy config")
-					// 	return false
-					// }
-					return true
-				},
-				UpdateFunc: func(e event.UpdateEvent) bool {
-					// err := e.ObjectNew.(*pacv2.PolicyConfig).Spec.Target.Validate()
-					// if err != nil {
-					// 	pc.Logger.Error(err, "failed to create policy config")
-					// 	return false
-					// }
-					return true
-				},
-			},
-		).
 		For(&v2beta2.PolicyConfig{}).
 		Complete(pc)
 }
@@ -117,30 +108,74 @@ func getLabels(config pacv2.PolicyConfig) map[string]string {
 	return labels
 }
 
-// func (pc *PolicyConfigReconciler) labelInjector(obj pacv2.PolicyConfig) client.Object {
+type PolicyConfigValidator struct {
+	Client  client.Client
+	decoder *admission.Decoder
+}
 
-// 	return obj
-// }
+func (pc *PolicyConfigValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
+	config := &pacv2.PolicyConfig{}
+	err := pc.decoder.Decode(req, config)
+	if err != nil {
+		return admission.Errored(http.StatusBadRequest, err)
+	}
+	if err := config.Validate(); err != nil {
+		return admission.Denied(err.Error())
+	}
 
-// func (pc *PolicyReconciler) listPolicies() (v2beta2.PolicyList, error) {
-// 	var policies v2beta2.PolicyList
-// 	err := pc.List(context.Background(), &policies)
-// 	if err != nil {
-// 		return v2beta2.PolicyList{}, err
-// 	}
-// 	return policies, nil
-// }
+	if err := pc.checkTargetConfict(ctx, *config); err != nil {
+		return admission.Denied(err.Error())
+	}
 
-// func (pc *PolicyReconciler) listPolicySets() (v2beta2.PolicySetList, error) {
-// 	var policySets v2beta2.PolicySetList
-// 	err := pc.List(context.Background(), &policySets)
-// 	if err != nil {
-// 		return v2beta2.PolicySetList{}, err
-// 	}
+	return admission.Allowed("")
+}
 
-// 	// pc.Status().Update()
+// InjectDecoder injects the decoder.
+func (pc *PolicyConfigValidator) InjectDecoder(d *admission.Decoder) error {
+	pc.decoder = d
+	return nil
+}
 
-// 	return policySets, nil
-// }
+func (pc *PolicyConfigValidator) SetupWithManager(mgr ctrl.Manager) error {
+	mgr.GetWebhookServer().Register(
+		"/validate-v2beta2-policyconfig",
+		&webhook.Admission{Handler: pc},
+	)
+	return nil
+}
 
-// prefix/labels/key: value
+func (pc *PolicyConfigValidator) checkTargetConfict(ctx context.Context, config pacv2.PolicyConfig) error {
+	var configs pacv2.PolicyConfigList
+
+	labels := make(map[string]string)
+
+	switch config.Spec.Target.Type() {
+	case "cluster":
+		labels = config.Spec.Target.Labels
+		labels[TargetScopeLabel] = "cluster"
+	case "namespace":
+		labels[TargetNamespaceLabel] = config.Spec.Target.Namespace
+		labels[TargetScopeLabel] = "namespace"
+	case "resource":
+		labels[TargetKindLabel] = config.Spec.Target.Kind
+		labels[TargetNameLabel] = config.Spec.Target.Name
+		labels[TargetNamespaceLabel] = config.Spec.Target.Namespace
+		labels[TargetScopeLabel] = "resource"
+	}
+
+	if err := pc.Client.List(ctx, &configs, &client.ListOptions{
+		LabelSelector: k8sLabels.SelectorFromSet(labels),
+	}); err != nil {
+		return fmt.Errorf("failed to list policy configs, error: %v", err)
+	}
+
+	if len(configs.Items) > 0 {
+		for i := range configs.Items {
+			if configs.Items[i].GetName() == config.GetName() {
+				continue
+			}
+			return fmt.Errorf("found policy config '%s' which already targets same targets", configs.Items[i].GetName())
+		}
+	}
+	return nil
+}

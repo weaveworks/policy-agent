@@ -17,9 +17,10 @@ limitations under the License.
 package v2beta2
 
 import (
+	"fmt"
+
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
 const (
@@ -35,7 +36,6 @@ var (
 	PolicyGroupVersionResource       = GroupVersion.WithResource(PolicyResourceName)
 	PolicySetGroupVersionResource    = GroupVersion.WithResource(PolicySetResourceName)
 	PolicyConfigGroupVersionResource = GroupVersion.WithResource(PolicyConfigResourceName)
-	// _                                webhook.Validator = &PolicyConfig{}
 )
 
 // PolicyParameters defines a needed input in a policy
@@ -73,7 +73,7 @@ type PolicyStandard struct {
 
 // PolicySpec defines the desired state of Policy
 // It describes all that is needed to evaluate a resource against a rego code
-//+kubebuilder:object:generate:true
+// +kubebuilder:object:generate:true
 type PolicySpec struct {
 	// Name is the policy name
 	Name string `json:"name"`
@@ -188,11 +188,6 @@ type PolicyConfigTarget struct {
 	Labels map[string]string `json:"labels,omitempty"`
 }
 
-// func (t *PolicyConfigTarget) Validate() error {
-
-// 	return nil
-// }
-
 func (t *PolicyConfigTarget) Type() string {
 	if t.Name != "" && t.Kind != "" && t.Namespace != "" {
 		return "resource"
@@ -211,7 +206,7 @@ type PolicyConfigSpec struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Cluster
 // +kubebuilder:storageversion
-// +kubebuilder:webhook:path=/validate-v2beta2-policyconfig,mutating=false,failurePolicy=fail,groups="pac.weave.works",resources=policyconfig,verbs=create;update,versions=v2beta2,name=policyconfig-validating-webhook.pac.weave.works
+
 // PolicyConfig is the Schema for the policyconfigs API
 type PolicyConfig struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -219,74 +214,31 @@ type PolicyConfig struct {
 	Spec              PolicyConfigSpec `json:"spec,omitempty"`
 }
 
-func (pc *PolicyConfig) validateCreate() *field.Error {
+func (pc *PolicyConfig) Validate() error {
 	if pc.Spec.Target.Name != "" {
 		if pc.Spec.Target.Kind == "" {
-			return &field.Error{
-				Type:   field.ErrorTypeRequired,
-				Field:  "spec.target.kind",
-				Detail: "kind is required when targeting specific resource",
-			}
+			return fmt.Errorf("kind is required when targeting specific resource")
 		}
 		if pc.Spec.Target.Namespace == "" {
-			return &field.Error{
-				Type:   field.ErrorTypeRequired,
-				Field:  "spec.target.namespace",
-				Detail: "namespace is required when targeting specific resource",
-			}
+			return fmt.Errorf("namespace is required when targeting specific resource")
 		}
 	}
 	if pc.Spec.Target.Kind != "" {
 		if pc.Spec.Target.Name == "" {
-			return &field.Error{
-				Type:   field.ErrorTypeRequired,
-				Field:  "spec.target.name",
-				Detail: "name is required when targeting specific resource",
-			}
+			return fmt.Errorf("name is required when targeting specific resource")
 		}
 		if pc.Spec.Target.Namespace == "" {
-			return &field.Error{
-				Type:   field.ErrorTypeRequired,
-				Field:  "spec.target.namespace",
-				Detail: "namespace is required when targeting specific resource",
-			}
+			return fmt.Errorf("namespace is required when targeting specific resource")
 		}
 	}
 
 	if pc.Spec.Target.Name != "" && pc.Spec.Target.Kind != "" {
 		if pc.Spec.Target.Labels != nil {
-			return &field.Error{
-				Type:   field.ErrorTypeInvalid,
-				Field:  "spec.target.labels",
-				Detail: "cannot use labels when targeting specific resource",
-			}
+			return fmt.Errorf("cannot use labels when targeting specific resource")
 		}
 	}
 	return nil
 }
-
-// func (pc *PolicyConfig) ValidateCreate() error {
-// 	err := pc.validateCreate()
-// 	if err != nil {
-// 		return apierrors.NewInvalid(
-// 			schema.GroupKind{
-// 				Group: pc.GroupVersionKind().Group,
-// 				Kind:  pc.Kind,
-// 			},
-// 			pc.Name, field.ErrorList{err},
-// 		)
-// 	}
-// 	return nil
-// }
-
-// func (pc *PolicyConfig) ValidateUpdate(old runtime.Object) error {
-// 	return nil
-// }
-// func (pc *PolicyConfig) ValidateDelete() error {
-// 	return nil
-// }
-
-// func (pc *PolicyConfig) Default() {}
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Cluster

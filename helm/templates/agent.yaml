@@ -308,4 +308,25 @@ webhooks:
       - key: kubernetes.io/metadata.name
         operator: NotIn
         values: [{{ .Release.Namespace }}]
+  - name: policyconfigs.pac.weave.works
+    admissionReviewVersions:
+    - v1
+    clientConfig:
+      service:
+        name: policy-agent
+        namespace: policy-system
+        path: /validate-v2beta2-policyconfig
+    failurePolicy: Fail
+    rules:
+    - apiGroups:
+      - pac.weave.works
+      apiVersions:
+      - v2beta2
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - policyconfigs
+    sideEffects: None
+
 {{- end}}
