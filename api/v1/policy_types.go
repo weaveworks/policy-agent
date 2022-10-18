@@ -91,9 +91,9 @@ type PolicySpec struct {
 	Controls []string `json:"controls,omitempty"`
 }
 
-// +kubebuilder:unservedversion
+//+kubebuilder:unservedversion
 //+kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
+//+kubebuilder:resource:scope=Cluster
 
 // Policy is the Schema for the policies API
 type Policy struct {
@@ -103,7 +103,9 @@ type Policy struct {
 	Spec PolicySpec `json:"spec,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:unservedversion
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:scope=Cluster
 
 // PolicyList contains a list of Policy
 type PolicyList struct {

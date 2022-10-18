@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
@@ -19,26 +18,28 @@ type PolicyConfigValidator struct {
 }
 
 func (pc *PolicyConfigValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
-	config := &pacv2.PolicyConfig{}
-	err := pc.decoder.Decode(req, config)
+	newConfig := &pacv2.PolicyConfig{}
+	err := pc.decoder.Decode(req, newConfig)
 	if err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
 	}
-	if config.Spec.Match == nil {
-		configs := &pacv2.PolicyConfigList{}
-		err = pc.Client.List(ctx, configs, &client.ListOptions{Namespace: config.Namespace})
-		if err != nil {
-			return admission.Errored(http.StatusInternalServerError, err)
+
+	if err = newConfig.Validate(); err != nil {
+		return admission.Denied(err.Error())
+	}
+
+	configs := &pacv2.PolicyConfigList{}
+	err = pc.Client.List(ctx, configs)
+	if err != nil {
+		return admission.Errored(http.StatusInternalServerError, err)
+	}
+
+	for _, config := range configs.Items {
+		if config.GetName() == newConfig.GetName() {
+			continue
 		}
-		for i := range configs.Items {
-			if configs.Items[i].Spec.Match == nil && configs.Items[i].GetName() != config.GetName() {
-				return admission.Denied(fmt.Sprintf(
-					"failed to create policy config '%s'. namespace '%s' already has policy config '%s' with namespace scope ",
-					config.GetName(),
-					config.GetName(),
-					configs.Items[i].GetName(),
-				))
-			}
+		if err := config.CheckTargetOverlap(newConfig); err != nil {
+			return admission.Denied(err.Error())
 		}
 	}
 	return admission.Allowed("")
