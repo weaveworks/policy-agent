@@ -93,53 +93,6 @@ func (c *PolicyConfig) Validate() error {
 	return nil
 }
 
-func (c *PolicyConfig) CheckTargetOverlap(config *PolicyConfig) error {
-	if c.Spec.Match.Namespaces != nil {
-		if config.Spec.Match.Namespaces == nil {
-			return nil
-		}
-		namespaces := map[string]struct{}{}
-		for _, namespace := range c.Spec.Match.Namespaces {
-			namespaces[namespace] = struct{}{}
-		}
-
-		for _, namespace := range config.Spec.Match.Namespaces {
-			if _, ok := namespaces[namespace]; ok {
-				return fmt.Errorf("found policy config '%s' already targets namespace '%s'", c.GetName(), namespace)
-			}
-		}
-	} else if c.Spec.Match.Applications != nil {
-		if config.Spec.Match.Applications == nil {
-			return nil
-		}
-		apps := map[string]struct{}{}
-		for _, app := range c.Spec.Match.Applications {
-			apps[app.ID()] = struct{}{}
-		}
-
-		for _, app := range config.Spec.Match.Applications {
-			if _, ok := apps[app.ID()]; ok {
-				return fmt.Errorf("found policy config '%s' already targets application '%s'", c.GetName(), app.ID())
-			}
-		}
-	} else if c.Spec.Match.Resources != nil {
-		if config.Spec.Match.Resources == nil {
-			return nil
-		}
-		resources := map[string]struct{}{}
-		for _, resource := range c.Spec.Match.Resources {
-			resources[resource.ID()] = struct{}{}
-		}
-
-		for _, resource := range config.Spec.Match.Resources {
-			if _, ok := resources[resource.ID()]; ok {
-				return fmt.Errorf("found policy config '%s' already targets resource '%s'", c.GetName(), resource.ID())
-			}
-		}
-	}
-	return nil
-}
-
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Cluster
 // +kubebuilder:storageversion

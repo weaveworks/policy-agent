@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
@@ -15,6 +16,53 @@ import (
 type PolicyConfigValidator struct {
 	Client  client.Client
 	decoder *admission.Decoder
+}
+
+func checkTargetOverlap(config, newConfig pacv2.PolicyConfig) error {
+	if config.Spec.Match.Namespaces != nil {
+		if newConfig.Spec.Match.Namespaces == nil {
+			return nil
+		}
+		namespaces := map[string]struct{}{}
+		for _, namespace := range config.Spec.Match.Namespaces {
+			namespaces[namespace] = struct{}{}
+		}
+
+		for _, namespace := range newConfig.Spec.Match.Namespaces {
+			if _, ok := namespaces[namespace]; ok {
+				return fmt.Errorf("found policy config '%s' already targets namespace '%s'", config.GetName(), namespace)
+			}
+		}
+	} else if config.Spec.Match.Applications != nil {
+		if newConfig.Spec.Match.Applications == nil {
+			return nil
+		}
+		apps := map[string]struct{}{}
+		for _, app := range config.Spec.Match.Applications {
+			apps[app.ID()] = struct{}{}
+		}
+
+		for _, app := range newConfig.Spec.Match.Applications {
+			if _, ok := apps[app.ID()]; ok {
+				return fmt.Errorf("found policy config '%s' already targets application '%s'", config.GetName(), app.ID())
+			}
+		}
+	} else if config.Spec.Match.Resources != nil {
+		if newConfig.Spec.Match.Resources == nil {
+			return nil
+		}
+		resources := map[string]struct{}{}
+		for _, resource := range config.Spec.Match.Resources {
+			resources[resource.ID()] = struct{}{}
+		}
+
+		for _, resource := range newConfig.Spec.Match.Resources {
+			if _, ok := resources[resource.ID()]; ok {
+				return fmt.Errorf("found policy config '%s' already targets resource '%s'", config.GetName(), resource.ID())
+			}
+		}
+	}
+	return nil
 }
 
 func (pc *PolicyConfigValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
@@ -38,7 +86,7 @@ func (pc *PolicyConfigValidator) Handle(ctx context.Context, req admission.Reque
 		if config.GetName() == newConfig.GetName() {
 			continue
 		}
-		if err := config.CheckTargetOverlap(newConfig); err != nil {
+		if err := checkTargetOverlap(config, *newConfig); err != nil {
 			return admission.Denied(err.Error())
 		}
 	}
