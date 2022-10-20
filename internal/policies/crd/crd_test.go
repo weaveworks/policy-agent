@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/cache/informertest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -18,7 +19,14 @@ func TestGetAllPolicies(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, 4, len(policies), "mismatch number of policies")
+	assert.Equal(t, 3, len(policies), "mismatch number of policies")
+
+	setWatcher := PoliciesWatcher{cache: &policyCache{}, config: Config{Provider: "policyset", PolicySet: "my-policyset"}}
+	policieWithSet, err := setWatcher.GetAll(context.Background())
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 2, len(policieWithSet), "mismatch number of policies")
 }
 
 type policyCache struct {
@@ -109,7 +117,7 @@ func (c *policyCache) List(ctx context.Context, list client.ObjectList, opts ...
 					ID:       "id-4",
 					Name:     "policy-4",
 					Severity: "low",
-					Provider: "testing",
+					Provider: "policyset",
 					Parameters: []pacv2.PolicyParameters{
 						{
 							Name: "param1",
@@ -134,7 +142,7 @@ func (c *policyCache) List(ctx context.Context, list client.ObjectList, opts ...
 					ID:       "id-5",
 					Name:     "policy-5",
 					Severity: "low",
-					Provider: "not-testing",
+					Provider: "policyset",
 					Parameters: []pacv2.PolicyParameters{
 						{
 							Name: "param1",
@@ -157,5 +165,23 @@ func (c *policyCache) List(ctx context.Context, list client.ObjectList, opts ...
 		},
 	}
 	reflect.ValueOf(list).Elem().Set(reflect.ValueOf(policies))
+	return nil
+}
+
+func (c *policyCache) Get(ctx context.Context, key types.NamespacedName, obj client.Object) error {
+
+	policySet := pacv2.PolicySet{
+		Spec: pacv2.PolicySetSpec{
+			ID:   "my-policyset",
+			Name: "my-policyset",
+			Filters: pacv2.PolicySetFilters{
+				Severities: []string{
+					"low",
+				},
+			},
+		},
+	}
+
+	reflect.ValueOf(obj).Elem().Set(reflect.ValueOf(policySet))
 	return nil
 }
