@@ -161,7 +161,7 @@ spec:
         fsGroup: 1000
       containers:
         - image: {{ .Values.image }}:{{ .Chart.AppVersion }}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           name: policy-agent
           args: [
             "--config-file",
