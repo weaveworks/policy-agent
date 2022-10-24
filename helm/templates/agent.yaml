@@ -236,7 +236,6 @@ spec:
   selector:
     name:  policy-agent
 ---
-{{- if eq .Values.config.admission.enabled true }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
@@ -248,6 +247,7 @@ metadata:
     cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/agent-certificate
   {{- end }}
 webhooks:
+{{- if eq .Values.config.admission.enabled true }}
   - name: admission.agent.weaveworks
     clientConfig:
       service:
@@ -308,6 +308,7 @@ webhooks:
       - key: kubernetes.io/metadata.name
         operator: NotIn
         values: [{{ .Release.Namespace }}]
+{{- end}}
   - name: policyconfigs.pac.weave.works
     admissionReviewVersions:
     - v1
@@ -328,5 +329,3 @@ webhooks:
       resources:
       - policyconfigs
     sideEffects: None
-
-{{- end}}

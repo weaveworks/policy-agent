@@ -40,7 +40,7 @@ func (p *PoliciesWatcher) GetPolicyConfig(ctx context.Context, entity domain.Ent
 			}
 		}
 		for _, resource := range config.Spec.Match.Resources {
-			if resource.Name == entity.Name {
+			if resource.Name == entity.Name && resource.Kind == entity.Kind {
 				if resource.Namespace != "" {
 					if resource.Namespace == entity.Namespace {
 						resourcesWithNamespace = append(resourcesWithNamespace, config)
