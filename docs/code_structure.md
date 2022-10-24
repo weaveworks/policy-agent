@@ -57,4 +57,4 @@ Contains the implementations of `PolicyValidationSink`, responsible of writing t
 
 ### terraform
 
-Contains the terraform server that is used by the `terraform controller`.
+Contains the terraform server that is used by the `terraform controller` to validate terraform plans against terraform policies
