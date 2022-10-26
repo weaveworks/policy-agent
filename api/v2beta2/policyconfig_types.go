@@ -11,6 +11,7 @@ import (
 const (
 	PolicyConfigResourceName = "policyconfigs"
 	PolicyConfigKind         = "PolicyConfig"
+	PolicyConfigListKind     = "PolicyListConfig"
 )
 
 var (
@@ -59,6 +60,7 @@ type PolicyConfigSpec struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:printcolumn:name="Scope",type=string,JSONPath=`.metadata.labels.scope`
 // +kubebuilder:resource:scope=Cluster
 // +kubebuilder:storageversion
 

@@ -22,13 +22,23 @@ import (
 )
 
 const (
-	PolicyResourceName = "policies"
-	PolicyKind         = "Policy"
+	PolicyResourceName       = "policies"
+	PolicyKind               = "Policy"
+	PolicyListKind           = "PolicyList"
+	TenancyTag               = "tenancy"
+	PolicyKubernetesProvider = "kubernetes"
+	PolicyTerraformProvider  = "terraform"
 )
 
 var (
 	PolicyGroupVersionResource = GroupVersion.WithResource(PolicyResourceName)
 )
+
+type PolicyStatus struct {
+	Conditions  []metav1.Condition `json:"conditions,omitempty"`
+	Modes       []string           `json:"modes"`
+	ModesString string             `json:"modes_str"`
+}
 
 // PolicyParameters defines a needed input in a policy
 type PolicyParameters struct {
@@ -105,19 +115,22 @@ type PolicySpec struct {
 	Provider string `json:"provider"`
 }
 
+//+kubebuilder:object:root=true
 //+kubebuilder:printcolumn:name="Severity",type=string,JSONPath=`.spec.severity`
 //+kubebuilder:printcolumn:name="Category",type=string,JSONPath=`.spec.category`
 //+kubebuilder:printcolumn:name="Provider",type=string,JSONPath=`.spec.provider`
-
-//+kubebuilder:object:root=true
+//+kubebuilder:printcolumn:name="Modes",type=string,JSONPath=`.status.modes_str`
 //+kubebuilder:resource:scope=Cluster
 //+kubebuilder:storageversion
+//+kubebuilder:subresource:status
 
 // Policy is the Schema for the policies API
 type Policy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	Spec              PolicySpec `json:"spec,omitempty"`
+	//+optional
+	Status PolicyStatus `json:"status"`
 }
 
 // +kubebuilder:object:root=true
