@@ -293,7 +293,20 @@ spec:
         type: object
     served: true
     storage: false
-  - name: v2beta2
+  - additionalPrinterColumns:
+    - jsonPath: .spec.severity
+      name: Severity
+      type: string
+    - jsonPath: .spec.category
+      name: Category
+      type: string
+    - jsonPath: .spec.provider
+      name: Provider
+      type: string
+    - jsonPath: .status.modes_str
+      name: Modes
+      type: string
+    name: v2beta2
     schema:
       openAPIV3Schema:
         description: Policy is the Schema for the policies API
@@ -364,7 +377,7 @@ spec:
                 type: array
               provider:
                 default: kubernetes
-                description: Provider policy provider, can be kubernetes, terraform
+                description: Provider is policy provider, can be kubernetes, terraform
                 enum:
                 - kubernetes
                 - terraform
@@ -438,9 +451,23 @@ spec:
             - name
             - severity
             type: object
+          status:
+            properties:
+              modes:
+                items:
+                  type: string
+                type: array
+              modes_str:
+                type: string
+            required:
+            - modes
+            - modes_str
+            type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

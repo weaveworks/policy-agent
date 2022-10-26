@@ -24,6 +24,7 @@ rules:
   - 'policies'
   - 'policysets'
   - 'policyconfigs'
+  - 'policies/status'
   verbs:
   - '*'
 - apiGroups:

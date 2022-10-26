@@ -5,10 +5,14 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 const (
 	PolicySetResourceName = "policysets"
 	PolicySetKind         = "PolicySet"
+	PolicySetListKind     = "PolicySetList"
 )
 
 var (
 	PolicySetGroupVersionResource = GroupVersion.WithResource(PolicySetResourceName)
+	PolicySetAuditMode            = "audit"
+	PolicySetAdmissionMode        = "admission"
+	PolicySetTFAdmissionMode      = "tf-admission"
 )
 
 type PolicySetFilters struct {
@@ -20,20 +24,70 @@ type PolicySetFilters struct {
 }
 
 type PolicySetSpec struct {
-	ID      string           `json:"id"`
-	Name    string           `json:"name"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	//+kubebuilder:validation:Enum=audit;admission;tf-admission
+	Mode    string           `json:"mode"`
 	Filters PolicySetFilters `json:"filters"`
 }
 
-// +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
-// +kubebuilder:storageversion
+//+kubebuilder:object:root=true
+//+kubebuilder:printcolumn:name="Mode",type=string,JSONPath=`.spec.mode`
+//+kubebuilder:resource:scope=Cluster
+//+kubebuilder:storageversion
 
 // PolicySet is the Schema for the policysets API
 type PolicySet struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	Spec              PolicySetSpec `json:"spec,omitempty"`
+}
+
+func (ps *PolicySet) Match(policy Policy) bool {
+	if len(ps.Spec.Filters.IDs) > 0 {
+		for _, id := range ps.Spec.Filters.IDs {
+			if policy.Name == id {
+				return true
+			}
+		}
+	}
+	if len(ps.Spec.Filters.Categories) > 0 {
+		for _, category := range ps.Spec.Filters.Categories {
+			if policy.Spec.Category == category {
+				return true
+			}
+		}
+	}
+	if len(ps.Spec.Filters.Severities) > 0 {
+		for _, severity := range ps.Spec.Filters.Severities {
+			if policy.Spec.Severity == severity {
+				return true
+			}
+		}
+	}
+	if len(ps.Spec.Filters.Standards) > 0 {
+		standards := map[string]struct{}{}
+		for _, standard := range ps.Spec.Filters.Standards {
+			standards[standard] = struct{}{}
+		}
+		for _, standard := range policy.Spec.Standards {
+			if _, ok := standards[standard.ID]; ok {
+				return true
+			}
+		}
+	}
+	if len(ps.Spec.Filters.Tags) > 0 {
+		tags := map[string]struct{}{}
+		for _, tag := range ps.Spec.Filters.Tags {
+			tags[tag] = struct{}{}
+		}
+		for _, tag := range policy.Spec.Tags {
+			if _, ok := tags[tag]; ok {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // +kubebuilder:object:root=true

@@ -47,24 +47,21 @@ type ElasticSink struct {
 }
 
 type AdmissionConfig struct {
-	Enabled   bool
-	Webhook   AdmissionWebhook
-	Sinks     SinksConfig
-	PolicySet string
+	Enabled bool
+	Webhook AdmissionWebhook
+	Sinks   SinksConfig
 }
 
 type AuditConfig struct {
 	WriteCompliance bool
 	Enabled         bool
 	Sinks           SinksConfig
-	PolicySet       string
 	Interval        uint
 }
 
-type TerraformConfig struct {
-	Enabled   bool
-	Sinks     SinksConfig
-	PolicySet string
+type TFAdmissionConfig struct {
+	Enabled bool
+	Sinks   SinksConfig
 }
 
 type Config struct {
@@ -77,9 +74,9 @@ type Config struct {
 	ProbesListen   string
 	MetricsAddress string
 
-	Admission AdmissionConfig
-	Audit     AuditConfig
-	Terraform TerraformConfig
+	Admission   AdmissionConfig
+	Audit       AuditConfig
+	TFAdmission TFAdmissionConfig
 }
 
 func GetAgentConfiguration(filePath string) Config {
