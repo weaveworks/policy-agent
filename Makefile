@@ -56,6 +56,8 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 	cd api && $(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=../config/crd/bases
 	cp config/crd/bases/pac.weave.works_policies.yaml helm/crds
 	cp config/crd/bases/pac.weave.works_policysets.yaml helm/crds
+	cp config/crd/bases/pac.weave.works_policyconfigs.yaml helm/crds
+
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.

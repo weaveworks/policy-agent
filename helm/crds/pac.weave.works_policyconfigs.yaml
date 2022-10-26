@@ -1,0 +1,98 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.8.0
+  creationTimestamp: null
+  name: policyconfigs.pac.weave.works
+spec:
+  group: pac.weave.works
+  names:
+    kind: PolicyConfig
+    listKind: PolicyConfigList
+    plural: policyconfigs
+    singular: policyconfig
+  scope: Cluster
+  versions:
+  - name: v2beta2
+    schema:
+      openAPIV3Schema:
+        description: PolicyConfig is the Schema for the policyconfigs API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              config:
+                additionalProperties:
+                  properties:
+                    parameters:
+                      additionalProperties:
+                        x-kubernetes-preserve-unknown-fields: true
+                      type: object
+                  required:
+                  - parameters
+                  type: object
+                type: object
+              match:
+                properties:
+                  apps:
+                    items:
+                      properties:
+                        kind:
+                          enum:
+                          - HelmRelease
+                          - Kustomization
+                          type: string
+                        name:
+                          type: string
+                        namespace:
+                          type: string
+                      required:
+                      - kind
+                      - name
+                      type: object
+                    type: array
+                  namespaces:
+                    items:
+                      type: string
+                    type: array
+                  resources:
+                    items:
+                      properties:
+                        kind:
+                          type: string
+                        name:
+                          type: string
+                        namespace:
+                          type: string
+                      required:
+                      - kind
+                      - name
+                      type: object
+                    type: array
+                type: object
+            required:
+            - config
+            - match
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

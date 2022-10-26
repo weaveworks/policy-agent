@@ -19,8 +19,9 @@ import (
 	"github.com/MagalixTechnologies/uuid-go"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	"github.com/weaveworks/policy-agent/configuration"
+	"github.com/weaveworks/policy-agent/controllers"
 	"github.com/weaveworks/policy-agent/internal/admission"
 	"github.com/weaveworks/policy-agent/internal/auditor"
 	"github.com/weaveworks/policy-agent/internal/clients/gateway"
@@ -412,6 +413,13 @@ func main() {
 			if err != nil {
 				return fmt.Errorf("failed to start terraform webhook, error: %w", err)
 			}
+		}
+
+		if err = (&controllers.PolicyConfigValidator{
+			Client: mgr.GetClient(),
+		}).SetupWithManager(mgr); err != nil {
+			logger.Errorw("unable to create controller", "controller", "policyconfig-controller", "err", err)
+			os.Exit(1)
 		}
 
 		err = mgr.Start(ctrl.SetupSignalHandler())

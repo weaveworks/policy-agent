@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v2beta1
+package v2beta2
 
 import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -22,15 +22,12 @@ import (
 )
 
 const (
-	PolicyResourceName    = "policies"
-	PolicyKind            = "Policy"
-	PolicySetResourceName = "policysets"
-	PolicySetKind         = "PolicySet"
+	PolicyResourceName = "policies"
+	PolicyKind         = "Policy"
 )
 
 var (
-	PolicyGroupVersionResource    = GroupVersion.WithResource(PolicyResourceName)
-	PolicySetGroupVersionResource = GroupVersion.WithResource(PolicySetResourceName)
+	PolicyGroupVersionResource = GroupVersion.WithResource(PolicyResourceName)
 )
 
 // PolicyParameters defines a needed input in a policy
@@ -68,7 +65,7 @@ type PolicyStandard struct {
 
 // PolicySpec defines the desired state of Policy
 // It describes all that is needed to evaluate a resource against a rego code
-//+kubebuilder:object:generate:true
+// +kubebuilder:object:generate:true
 type PolicySpec struct {
 	// Name is the policy name
 	Name string `json:"name"`
@@ -104,26 +101,17 @@ type PolicySpec struct {
 	//+optional
 	//+kubebuilder:default:=kubernetes
 	//+kubebuilder:validation:Enum=kubernetes;terraform
-	// Provider policy provider, can be kubernetes, terraform
+	// Provider is policy provider, can be kubernetes, terraform
 	Provider string `json:"provider"`
 }
 
-type PolicySetFilters struct {
-	IDs        []string `json:"ids,omitempty"`
-	Categories []string `json:"categories,omitempty"`
-	Severities []string `json:"severities,omitempty"`
-	Standards  []string `json:"standards,omitempty"`
-	Tags       []string `json:"tags,omitempty"`
-}
-
-type PolicySetSpec struct {
-	ID      string           `json:"id"`
-	Name    string           `json:"name"`
-	Filters PolicySetFilters `json:"filters"`
-}
+//+kubebuilder:printcolumn:name="Severity",type=string,JSONPath=`.spec.severity`
+//+kubebuilder:printcolumn:name="Category",type=string,JSONPath=`.spec.category`
+//+kubebuilder:printcolumn:name="Provider",type=string,JSONPath=`.spec.provider`
 
 //+kubebuilder:object:root=true
 //+kubebuilder:resource:scope=Cluster
+//+kubebuilder:storageversion
 
 // Policy is the Schema for the policies API
 type Policy struct {
@@ -134,6 +122,7 @@ type Policy struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Cluster
+// +kubebuilder:storageversion
 
 // PolicyList contains a list of Policy
 type PolicyList struct {
@@ -142,27 +131,9 @@ type PolicyList struct {
 	Items           []Policy `json:"items"`
 }
 
-// +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
-
-// PolicySet is the Schema for the policysets API
-type PolicySet struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec PolicySetSpec `json:"spec,omitempty"`
-}
-
-// +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
-
-// PolicySetList contains a list of PolicySet
-type PolicySetList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []PolicySet `json:"items"`
-}
-
 func init() {
-	SchemeBuilder.Register(&Policy{}, &PolicyList{}, &PolicySet{}, &PolicySetList{})
+	SchemeBuilder.Register(
+		&Policy{},
+		&PolicyList{},
+	)
 }

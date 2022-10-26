@@ -7,7 +7,7 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlCache "sigs.k8s.io/controller-runtime/pkg/cache"
