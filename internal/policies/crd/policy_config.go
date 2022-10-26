@@ -70,17 +70,23 @@ func override(configs []pacv2.PolicyConfig) (*domain.PolicyConfig, error) {
 		},
 	}
 
+	// store last policy config used to bind parameters
 	confHistory := map[string]map[string]string{}
 	for _, config := range configs {
 		for policyID, policyConfig := range config.Spec.Config {
-			configCRD.Spec.Config[policyID] = pacv2.PolicyConfigConfig{
-				Parameters: make(map[string]apiextensionsv1.JSON),
+			// if no policy config exists, initialize a new one
+			if _, ok := configCRD.Spec.Config[policyID]; !ok {
+				configCRD.Spec.Config[policyID] = pacv2.PolicyConfigConfig{
+					Parameters: make(map[string]apiextensionsv1.JSON),
+				}
 			}
 			for k, v := range policyConfig.Parameters {
+				// override policy parameter value
 				configCRD.Spec.Config[policyID].Parameters[k] = v
 				if _, ok := confHistory[policyID]; !ok {
 					confHistory[policyID] = make(map[string]string)
 				}
+				// store policy config name to config hisotry
 				confHistory[policyID][k] = config.GetName()
 			}
 		}

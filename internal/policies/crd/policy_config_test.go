@@ -34,6 +34,10 @@ func TestGetPolicyConfig(t *testing.T) {
 								Value:     float64(1),
 								ConfigRef: "config-1",
 							},
+							"param-2": {
+								Value:     float64(3),
+								ConfigRef: "config-1",
+							},
 						},
 					},
 				},
@@ -56,6 +60,10 @@ func TestGetPolicyConfig(t *testing.T) {
 								Value:     float64(2),
 								ConfigRef: "config-2",
 							},
+							"param-2": {
+								Value:     float64(3),
+								ConfigRef: "config-1",
+							},
 						},
 					},
 				},
@@ -77,6 +85,10 @@ func TestGetPolicyConfig(t *testing.T) {
 							"param-1": {
 								Value:     float64(3),
 								ConfigRef: "config-3",
+							},
+							"param-2": {
+								Value:     float64(3),
+								ConfigRef: "config-1",
 							},
 						},
 					},
@@ -124,6 +136,10 @@ func TestGetPolicyConfig(t *testing.T) {
 								Value:     float64(5),
 								ConfigRef: "config-5",
 							},
+							"param-2": {
+								Value:     float64(3),
+								ConfigRef: "config-1",
+							},
 						},
 					},
 				},
@@ -165,6 +181,7 @@ func (c *cacheMock) List(ctx context.Context, list client.ObjectList, opts ...cl
 						"policy-1": {
 							Parameters: map[string]apiextensionsv1.JSON{
 								"param-1": {Raw: []byte("1")},
+								"param-2": {Raw: []byte("3")},
 							},
 						},
 					},

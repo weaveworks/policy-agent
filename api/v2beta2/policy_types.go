@@ -101,7 +101,7 @@ type PolicySpec struct {
 	//+optional
 	//+kubebuilder:default:=kubernetes
 	//+kubebuilder:validation:Enum=kubernetes;terraform
-	// Provider policy provider, can be kubernetes, terraform
+	// Provider is policy provider, can be kubernetes, terraform
 	Provider string `json:"provider"`
 }
 
@@ -135,9 +135,5 @@ func init() {
 	SchemeBuilder.Register(
 		&Policy{},
 		&PolicyList{},
-		// &PolicyConfig{},
-		// &PolicyConfigList{},
-		// &PolicySet{},
-		// &PolicySetList{},
 	)
 }

@@ -30,7 +30,7 @@ func checkTargetOverlap(config, newConfig pacv2.PolicyConfig) error {
 
 		for _, namespace := range newConfig.Spec.Match.Namespaces {
 			if _, ok := namespaces[namespace]; ok {
-				return fmt.Errorf("found policy config '%s' already targets namespace '%s'", config.GetName(), namespace)
+				return fmt.Errorf("policy config '%s' already targets namespace '%s'", config.GetName(), namespace)
 			}
 		}
 	} else if config.Spec.Match.Applications != nil {
@@ -44,7 +44,7 @@ func checkTargetOverlap(config, newConfig pacv2.PolicyConfig) error {
 
 		for _, app := range newConfig.Spec.Match.Applications {
 			if _, ok := apps[app.ID()]; ok {
-				return fmt.Errorf("found policy config '%s' already targets application '%s'", config.GetName(), app.ID())
+				return fmt.Errorf("policy config '%s' already targets application '%s'", config.GetName(), app.ID())
 			}
 		}
 	} else if config.Spec.Match.Resources != nil {
@@ -58,7 +58,7 @@ func checkTargetOverlap(config, newConfig pacv2.PolicyConfig) error {
 
 		for _, resource := range newConfig.Spec.Match.Resources {
 			if _, ok := resources[resource.ID()]; ok {
-				return fmt.Errorf("found policy config '%s' already targets resource '%s'", config.GetName(), resource.ID())
+				return fmt.Errorf("policy config '%s' already targets resource '%s'", config.GetName(), resource.ID())
 			}
 		}
 	}
@@ -83,6 +83,7 @@ func (pc *PolicyConfigValidator) Handle(ctx context.Context, req admission.Reque
 	}
 
 	for _, config := range configs.Items {
+		// in case of update event, skip new config
 		if config.GetName() == newConfig.GetName() {
 			continue
 		}

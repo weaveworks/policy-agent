@@ -90,6 +90,10 @@ func (c *PolicyConfig) Validate() error {
 		target = "resources"
 	}
 
+	if target == "" {
+		return fmt.Errorf("policy config must target namespace, application or resource")
+	}
+
 	return nil
 }
 
