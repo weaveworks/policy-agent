@@ -459,9 +459,6 @@ spec:
                 type: array
               modes_str:
                 type: string
-            required:
-            - modes
-            - modes_str
             type: object
         type: object
     served: true

@@ -35,8 +35,10 @@ var (
 )
 
 type PolicyStatus struct {
-	Modes       []string `json:"modes"`
-	ModesString string   `json:"modes_str"`
+	// +optional
+	Modes []string `json:"modes"`
+	// +optional
+	ModesString string `json:"modes_str"`
 }
 
 // PolicyParameters defines a needed input in a policy
@@ -130,6 +132,15 @@ type Policy struct {
 	Spec              PolicySpec `json:"spec,omitempty"`
 	//+optional
 	Status PolicyStatus `json:"status"`
+}
+
+func (p *Policy) IsTenant() bool {
+	for _, tag := range p.Spec.Tags {
+		if tag == TenancyTag {
+			return true
+		}
+	}
+	return false
 }
 
 // +kubebuilder:object:root=true
