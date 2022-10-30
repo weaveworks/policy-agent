@@ -34,10 +34,13 @@ var (
 	PolicyGroupVersionResource = GroupVersion.WithResource(PolicyResourceName)
 )
 
+// PolicyStatus Policy Status object
 type PolicyStatus struct {
 	// +optional
+	// Modes list of modes the policy will be evaluated
 	Modes []string `json:"modes"`
 	// +optional
+	// ModesString string format for modes field to be displayed
 	ModesString string `json:"modes_str"`
 }
 
@@ -132,15 +135,6 @@ type Policy struct {
 	Spec              PolicySpec `json:"spec,omitempty"`
 	//+optional
 	Status PolicyStatus `json:"status"`
-}
-
-func (p *Policy) IsTenant() bool {
-	for _, tag := range p.Spec.Tags {
-		if tag == TenancyTag {
-			return true
-		}
-	}
-	return false
 }
 
 // +kubebuilder:object:root=true

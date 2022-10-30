@@ -27,6 +27,7 @@ type PolicySetSpec struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	//+kubebuilder:validation:Enum=audit;admission;tf-admission
+	// Mode policy set mode
 	Mode    string           `json:"mode"`
 	Filters PolicySetFilters `json:"filters"`
 }
@@ -43,6 +44,7 @@ type PolicySet struct {
 	Spec              PolicySetSpec `json:"spec,omitempty"`
 }
 
+// Match check if policy matches the policyset or not
 func (ps *PolicySet) Match(policy Policy) bool {
 	if len(ps.Spec.Filters.IDs) > 0 {
 		for _, id := range ps.Spec.Filters.IDs {

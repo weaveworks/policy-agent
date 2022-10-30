@@ -33,6 +33,7 @@ type PolicyReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+// Reconcile policy reconcile handler
 func (p *PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger.Infow("reconciling policy", "policy", req.Name)
 
@@ -56,8 +57,8 @@ func (p *PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	modes := map[string]struct {
-		count   int
-		matched bool
+		count   int  // total policy sets of this mode
+		matched bool // set to true if the policy matches any policy set of this mode
 	}{
 		pacv2.PolicySetAuditMode:       {},
 		pacv2.PolicySetAdmissionMode:   {},
