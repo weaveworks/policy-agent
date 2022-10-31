@@ -38,10 +38,10 @@ var (
 type PolicyStatus struct {
 	// +optional
 	// Modes list of modes the policy will be evaluated
-	Modes []string `json:"modes"`
+	Modes []string `json:"modes,omitempty"`
 	// +optional
 	// ModesString string format for modes field to be displayed
-	ModesString string `json:"modes_str"`
+	ModesString string `json:"modes_str,omitempty"`
 }
 
 // PolicyParameters defines a needed input in a policy
@@ -134,7 +134,7 @@ type Policy struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	Spec              PolicySpec `json:"spec,omitempty"`
 	//+optional
-	Status PolicyStatus `json:"status"`
+	Status PolicyStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true

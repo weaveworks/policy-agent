@@ -291,7 +291,7 @@ spec:
             - severity
             type: object
         type: object
-    served: true
+    served: false
     storage: false
   - additionalPrinterColumns:
     - jsonPath: .spec.severity
@@ -452,12 +452,15 @@ spec:
             - severity
             type: object
           status:
+            description: PolicyStatus Policy Status object
             properties:
               modes:
+                description: Modes list of modes the policy will be evaluated
                 items:
                   type: string
                 type: array
               modes_str:
+                description: ModesString string format for modes field to be displayed
                 type: string
             type: object
         type: object

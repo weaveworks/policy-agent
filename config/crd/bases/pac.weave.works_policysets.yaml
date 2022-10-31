@@ -67,7 +67,7 @@ spec:
             - name
             type: object
         type: object
-    served: true
+    served: false
     storage: false
   - additionalPrinterColumns:
     - jsonPath: .spec.mode
@@ -118,6 +118,7 @@ spec:
               id:
                 type: string
               mode:
+                description: Mode policy set mode
                 enum:
                 - audit
                 - admission
