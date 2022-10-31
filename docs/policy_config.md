@@ -8,7 +8,7 @@ Users sometimes need to enforce the same policy(s) with different configurations
 
 A new `PolicyConfig` CRD allows using policies with multiple configurations by configuring policy parameters based on a certain match on applications or resources with Schema and match with one of the following
 
-- Match by namespace
+- Match by namespaces
 
   ```yaml
   apiVersion: pac.weave.works/v2beta2 
@@ -64,7 +64,7 @@ A new `PolicyConfig` CRD allows using policies with multiple configurations by c
           replica_count: 3
   ```
 
-## Priority of enforcing multiple configs for the same target [from low to high]
+## Priority of enforcing multiple configs with overlapping targets [from low to high]
 
 - Policy configs which targets the namespace.
 - Policy config which targets an application in all namespaces.
@@ -171,7 +171,7 @@ spec:
   - <em>Also it will be affected by `my-config-4` for `owner` configuration parameter `owner: owner-4`</em>
 
 
-**In the previous example when you apply the `my-config-1`, `my-config-2`, `my-config-3` and `my-config-4`**
+**In the previous example when you apply `my-config-1`, `my-config-2`, `my-config-3` and `my-config-4`**
 
 - `my-config-4` will be applied on the policies defined in it. which will affect deployment `deployment-1` in all namespaces as it matches the kind and name only.
 
@@ -188,7 +188,7 @@ spec:
   - <em>Deployment `deployment-1` in all namespaces replica_count must be `>= 5`</em>
   - <em>Also it will be affected by `my-config-4` for `owner` configuration parameter `owner: owner-4`</em>
 
-**In the previous example when you apply the `my-config-1`, `my-config-2` and `my-config-3`**
+**In the previous example when you apply `my-config-1`, `my-config-2` and `my-config-3`**
 
 - `my-config-3` will be applied on the policies defined in it. which will affect application `app-a` and all the resources in it in namespace `flux-system` as it matches the kind, name and namespace.
 
@@ -205,7 +205,7 @@ spec:
   - <em>Application `app-a` and all the resources in it in namespaces `flux-system` replica_count must be `>= 4`</em>
   - <em>Also it will be affected by `my-config-1` for `owner` configuration parameter `owner: owner-1`</em>
 
-**In the previous example when you apply the `my-config-1` and `my-config-2`**
+**In the previous example when you apply `my-config-1` and `my-config-2`**
 
 - `my-config-2` will be applied on the policies defined in it. which will affect application `app-a` and all the resources in it in all namespaces as it matches the kind and name only.
 
@@ -222,7 +222,7 @@ spec:
   - <em>Application `app-a` and all the resources in it in all namespaces replica_count must be `>= 3`</em>
   - <em>Also it will be affected by `my-config-1` for `owner` configuration parameter `owner: owner-1`</em>
 
-**In the previous example when you apply the `my-config-1`**
+**In the previous example when you apply `my-config-1`**
 
 - `my-config-1` will be applied on the policies defined in it. which will affect the namespace `flux-system` with all applications and resources in it as it matches by namespace only.
 
