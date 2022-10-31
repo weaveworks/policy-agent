@@ -78,6 +78,8 @@ A new `PolicyConfig` CRD allows using policies with multiple configurations by c
 
 ### Example
 
+- We have Kustomization application `app-a` and deployment `deployment-1` part of this application
+
 ```yaml
 apiVersion: pac.weave.works/v2beta2
 kind: PolicyConfig
@@ -158,14 +160,17 @@ spec:
 
 - `app-a` will be affected by `my-config-5`. It will be applied on the policies defined in it, which will affect deployment `deployment-1` in namespace `flux-system` as it matches the kind, name and namespace. 
 
+**Note**: 
+Deploying `deployment-1` in another namespace other than `flux-system` won't be affected by this configuration
+
   Final config values will be as the following:
 
     ```yaml
       config:
         weave.policies.containers-minimum-replica-count:
           parameters:
-            replica_count: 6
-            owner: owner-4
+            replica_count: 6 # from my-config-5
+            owner: owner-4   # from my-config-4
     ```
   - <em>Deployment `deployment-1` in namespace `flux-system` replica_count must be `>= 6`</em>
   - <em>Also it will be affected by `my-config-4` for `owner` configuration parameter `owner: owner-4`</em>
@@ -181,8 +186,8 @@ spec:
       config:
         weave.policies.containers-minimum-replica-count:
           parameters:
-            replica_count: 5
-            owner: owner-4
+            replica_count: 5  # from my-config-4
+            owner: owner-4    # from my-config-4
     ```
 
   - <em>Deployment `deployment-1` in all namespaces replica_count must be `>= 5`</em>
@@ -192,14 +197,17 @@ spec:
 
 - `my-config-3` will be applied on the policies defined in it. which will affect application `app-a` and all the resources in it in namespace `flux-system` as it matches the kind, name and namespace.
 
+**Note**:
+Deploying `app-a` in another namespace other than `flux-system` won't be affected by this configuration
+
   Final config values will be as the following:
 
     ```yaml
       config:
         weave.policies.containers-minimum-replica-count:
           parameters:
-            replica_count: 4
-            owner: owner-1
+            replica_count: 4    # from my-config-3
+            owner: owner-1      # from my-config-1
     ```
 
   - <em>Application `app-a` and all the resources in it in namespaces `flux-system` replica_count must be `>= 4`</em>
@@ -215,8 +223,8 @@ spec:
       config:
         weave.policies.containers-minimum-replica-count:
           parameters:
-            replica_count: 3
-            owner: owner-1
+            replica_count: 3   # from my-config-2
+            owner: owner-1     # from my-config-1
     ```
 
   - <em>Application `app-a` and all the resources in it in all namespaces replica_count must be `>= 3`</em>
@@ -232,8 +240,8 @@ spec:
       config:
         weave.policies.containers-minimum-replica-count:
           parameters:
-            replica_count: 2
-            owner: owner-1
+            replica_count: 2  # from my-config-1
+            owner: owner-1    # from my-config-1
     ```
 
   - <em>Any application or resource in namespace `flux-system` replica_count must be `>= 2`</em>
