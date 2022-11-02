@@ -11,7 +11,7 @@ require (
 	github.com/MagalixTechnologies/channel v1.1.0
 	github.com/MagalixTechnologies/core/logger v1.0.4
 	github.com/MagalixTechnologies/core/packet v1.0.1
-	github.com/MagalixTechnologies/policy-core v1.1.4
+	github.com/MagalixTechnologies/policy-core v1.1.5
 	github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e
 	github.com/elastic/go-elasticsearch/v7 v7.17.1
 	github.com/fluxcd/pkg/runtime v0.13.1
