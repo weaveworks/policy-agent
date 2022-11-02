@@ -11,6 +11,7 @@ import (
 const (
 	PolicyConfigResourceName = "policyconfigs"
 	PolicyConfigKind         = "PolicyConfig"
+	PolicyConfigListKind     = "PolicyListConfig"
 )
 
 var (

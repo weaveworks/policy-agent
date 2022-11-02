@@ -17,18 +17,42 @@ limitations under the License.
 package v2beta2
 
 import (
+	"strings"
+
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
-	PolicyResourceName = "policies"
-	PolicyKind         = "Policy"
+	PolicyResourceName       = "policies"
+	PolicyKind               = "Policy"
+	PolicyListKind           = "PolicyList"
+	TenancyTag               = "tenancy"
+	PolicyKubernetesProvider = "kubernetes"
+	PolicyTerraformProvider  = "terraform"
 )
 
 var (
 	PolicyGroupVersionResource = GroupVersion.WithResource(PolicyResourceName)
 )
+
+// PolicyStatus Policy Status object
+// PolicyStatus contains the list of modes the policy will be evaluated in.
+// It will be updated every time a policy set is got created, updated or deleted.
+type PolicyStatus struct {
+	// +optional
+	// Modes is the list of modes the policy will be evaluated in, must be one of audit,admission,tf-admission
+	Modes []string `json:"modes,omitempty"`
+	// +optional
+	// ModesString is the string format of the modes field to be displayed
+	ModesString string `json:"modes_str,omitempty"`
+}
+
+// SetModes sets policy status modes
+func (ps *PolicyStatus) SetModes(modes []string) {
+	ps.Modes = modes
+	ps.ModesString = strings.Join(modes, "/")
+}
 
 // PolicyParameters defines a needed input in a policy
 type PolicyParameters struct {
@@ -105,19 +129,22 @@ type PolicySpec struct {
 	Provider string `json:"provider"`
 }
 
+//+kubebuilder:object:root=true
 //+kubebuilder:printcolumn:name="Severity",type=string,JSONPath=`.spec.severity`
 //+kubebuilder:printcolumn:name="Category",type=string,JSONPath=`.spec.category`
 //+kubebuilder:printcolumn:name="Provider",type=string,JSONPath=`.spec.provider`
-
-//+kubebuilder:object:root=true
+//+kubebuilder:printcolumn:name="Modes",type=string,JSONPath=`.status.modes_str`
 //+kubebuilder:resource:scope=Cluster
 //+kubebuilder:storageversion
+//+kubebuilder:subresource:status
 
 // Policy is the Schema for the policies API
 type Policy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	Spec              PolicySpec `json:"spec,omitempty"`
+	//+optional
+	Status PolicyStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true

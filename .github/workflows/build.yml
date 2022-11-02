@@ -43,7 +43,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
         run: |
-          go test -v -cover -covermode=atomic -coverprofile=coverage.txt ./...
+          make test
           bash <(curl -s https://codecov.io/bash) -F unit
 
       - name: Build docker image

@@ -67,9 +67,13 @@ spec:
             - name
             type: object
         type: object
-    served: true
+    served: false
     storage: false
-  - name: v2beta2
+  - additionalPrinterColumns:
+    - jsonPath: .spec.mode
+      name: Mode
+      type: string
+    name: v2beta2
     schema:
       openAPIV3Schema:
         description: PolicySet is the Schema for the policysets API
@@ -113,16 +117,25 @@ spec:
                 type: object
               id:
                 type: string
+              mode:
+                description: Mode is the policy set mode, must be one of audit,admission,tf-admission
+                enum:
+                - audit
+                - admission
+                - tf-admission
+                type: string
               name:
                 type: string
             required:
             - filters
             - id
+            - mode
             - name
             type: object
         type: object
     served: true
     storage: true
+    subresources: {}
 status:
   acceptedNames:
     kind: ""

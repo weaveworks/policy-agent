@@ -291,9 +291,22 @@ spec:
             - severity
             type: object
         type: object
-    served: true
+    served: false
     storage: false
-  - name: v2beta2
+  - additionalPrinterColumns:
+    - jsonPath: .spec.severity
+      name: Severity
+      type: string
+    - jsonPath: .spec.category
+      name: Category
+      type: string
+    - jsonPath: .spec.provider
+      name: Provider
+      type: string
+    - jsonPath: .status.modes_str
+      name: Modes
+      type: string
+    name: v2beta2
     schema:
       openAPIV3Schema:
         description: Policy is the Schema for the policies API
@@ -364,7 +377,7 @@ spec:
                 type: array
               provider:
                 default: kubernetes
-                description: Provider policy provider, can be kubernetes, terraform
+                description: Provider is policy provider, can be kubernetes, terraform
                 enum:
                 - kubernetes
                 - terraform
@@ -438,9 +451,27 @@ spec:
             - name
             - severity
             type: object
+          status:
+            description: PolicyStatus Policy Status object Contains the list of modes
+              the policy will be evaluated in. It will be updated every time a policy
+              set is got created, updated or deleted.
+            properties:
+              modes:
+                description: Modes is the list of modes the policy will be evaluated
+                  in, must be one of audit,admission,tf-admission
+                items:
+                  type: string
+                type: array
+              modes_str:
+                description: ModesString is the string format of the modes field to
+                  be displayed
+                type: string
+            type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""
