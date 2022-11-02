@@ -37,7 +37,7 @@ var (
 )
 
 // PolicyStatus Policy Status object
-// Contains the list of modes the policy will be evaluated in.
+// PolicyStatus contains the list of modes the policy will be evaluated in.
 // It will be updated every time a policy set is got created, updated or deleted.
 type PolicyStatus struct {
 	// +optional
