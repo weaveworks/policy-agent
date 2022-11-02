@@ -17,6 +17,8 @@ limitations under the License.
 package v2beta2
 
 import (
+	"strings"
+
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -35,13 +37,21 @@ var (
 )
 
 // PolicyStatus Policy Status object
+// Contains the list of modes the policy will be evaluated in.
+// It will be updated every time a policy set is got created, updated or deleted.
 type PolicyStatus struct {
 	// +optional
-	// Modes list of modes the policy will be evaluated
+	// Modes is the list of modes the policy will be evaluated in, must be one of audit,admission,tf-admission
 	Modes []string `json:"modes,omitempty"`
 	// +optional
-	// ModesString string format for modes field to be displayed
+	// ModesString is the string format of the modes field to be displayed
 	ModesString string `json:"modes_str,omitempty"`
+}
+
+// SetModes sets policy status modes
+func (ps *PolicyStatus) SetModes(modes []string) {
+	ps.Modes = modes
+	ps.ModesString = strings.Join(modes, "/")
 }
 
 // PolicyParameters defines a needed input in a policy

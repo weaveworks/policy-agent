@@ -9,12 +9,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type cacheMock struct {
+type fakeCache struct {
 	informertest.FakeInformers
 	items map[reflect.Type]client.ObjectList
 }
 
-func (c *cacheMock) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
+func (c *fakeCache) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
 	items, ok := c.items[reflect.TypeOf(list).Elem()]
 	if !ok {
 		return fmt.Errorf("invalid item type")

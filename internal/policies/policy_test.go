@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -31,6 +32,14 @@ func TestGetPolicies(t *testing.T) {
 					{ID: "standard-x"},
 				},
 				Tags: []string{"tag-x"},
+				Parameters: []pacv2.PolicyParameters{
+					{
+						Name:     "x",
+						Type:     "string",
+						Value:    &apiextensionsv1.JSON{Raw: []byte("test")},
+						Required: true,
+					},
+				},
 			},
 		},
 		{
@@ -338,7 +347,7 @@ func TestGetPolicies(t *testing.T) {
 	}
 
 	for i := range cases {
-		cache := cacheMock{
+		cache := fakeCache{
 			items: map[reflect.Type]client.ObjectList{
 				reflect.TypeOf(pacv2.PolicyList{}): &pacv2.PolicyList{
 					TypeMeta: v1.TypeMeta{

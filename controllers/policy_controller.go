@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"strings"
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/weaveworks/policy-agent/api/v2beta2"
@@ -40,7 +39,7 @@ func (p *PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	var policy pacv2.Policy
 	if err := p.Get(ctx, req.NamespacedName, &policy); err != nil {
 		if apierrors.IsNotFound(err) {
-			return ctrl.Result{}, client.IgnoreNotFound(err)
+			return ctrl.Result{}, nil
 		}
 		logger.Errorw("unable to get policy", "error", err)
 		return ctrl.Result{}, err
@@ -74,21 +73,21 @@ func (p *PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		modes[policySet.Spec.Mode] = mode
 	}
 
-	var status pacv2.PolicyStatus
+	var policyModes []string
 	for name, mode := range modes {
 		if modeProviderMap[name] == policy.Spec.Provider && (mode.matched || mode.count == 0) {
-			status.Modes = append(status.Modes, name)
+			policyModes = append(policyModes, name)
 		}
 	}
-	status.ModesString = strings.Join(status.Modes, "/")
-
-	logger.Debugw("updating policy status.modes", "policy", req.Name, "modes", status.ModesString)
 
 	patch := client.MergeFrom(policy.DeepCopy())
-	policy.Status = status
+	policy.Status.SetModes(policyModes)
+
+	logger.Debugw("updating policy status.modes", "policy", req.Name, "modes", policy.Status.ModesString)
+
 	if err := p.Status().Patch(ctx, &policy, patch); err != nil {
 		if apierrors.IsNotFound(err) {
-			return ctrl.Result{}, client.IgnoreNotFound(err)
+			return ctrl.Result{}, nil
 		}
 		return ctrl.Result{}, err
 	}

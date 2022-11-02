@@ -146,7 +146,7 @@ func TestGetPolicyConfig(t *testing.T) {
 		},
 	}
 
-	watcher := PoliciesWatcher{cache: &cacheMock{
+	watcher := PoliciesWatcher{cache: &fakeCache{
 		items: map[reflect.Type]client.ObjectList{
 			reflect.TypeOf(pacv2.PolicyConfigList{}): &pacv2.PolicyConfigList{
 				Items: []pacv2.PolicyConfig{

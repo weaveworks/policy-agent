@@ -3,16 +3,16 @@ package v2beta2
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 const (
-	PolicySetResourceName = "policysets"
-	PolicySetKind         = "PolicySet"
-	PolicySetListKind     = "PolicySetList"
+	PolicySetResourceName    = "policysets"
+	PolicySetKind            = "PolicySet"
+	PolicySetListKind        = "PolicySetList"
+	PolicySetAuditMode       = "audit"
+	PolicySetAdmissionMode   = "admission"
+	PolicySetTFAdmissionMode = "tf-admission"
 )
 
 var (
 	PolicySetGroupVersionResource = GroupVersion.WithResource(PolicySetResourceName)
-	PolicySetAuditMode            = "audit"
-	PolicySetAdmissionMode        = "admission"
-	PolicySetTFAdmissionMode      = "tf-admission"
 )
 
 type PolicySetFilters struct {
@@ -27,7 +27,7 @@ type PolicySetSpec struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	//+kubebuilder:validation:Enum=audit;admission;tf-admission
-	// Mode policy set mode
+	// Mode is the policy set mode, must be one of audit,admission,tf-admission
 	Mode    string           `json:"mode"`
 	Filters PolicySetFilters `json:"filters"`
 }

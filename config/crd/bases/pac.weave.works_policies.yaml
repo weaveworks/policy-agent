@@ -452,15 +452,19 @@ spec:
             - severity
             type: object
           status:
-            description: PolicyStatus Policy Status object
+            description: PolicyStatus Policy Status object Contains the list of modes
+              the policy will be evaluated in. It will be updated every time a policy
+              set is got created, updated or deleted.
             properties:
               modes:
-                description: Modes list of modes the policy will be evaluated
+                description: Modes is the list of modes the policy will be evaluated
+                  in, must be one of audit,admission,tf-admission
                 items:
                   type: string
                 type: array
               modes_str:
-                description: ModesString string format for modes field to be displayed
+                description: ModesString is the string format of the modes field to
+                  be displayed
                 type: string
             type: object
         type: object

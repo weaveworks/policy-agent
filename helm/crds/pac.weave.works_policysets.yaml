@@ -118,7 +118,7 @@ spec:
               id:
                 type: string
               mode:
-                description: Mode policy set mode
+                description: Mode is the policy set mode, must be one of audit,admission,tf-admission
                 enum:
                 - audit
                 - admission
