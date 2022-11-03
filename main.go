@@ -328,7 +328,7 @@ func main() {
 		if config.Audit.Enabled {
 			logger.Info("starting audit policies watcher")
 
-			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, "audit", "kubernetes")
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.AuditMode, crd.KubernetesProvider)
 
 			if err != nil {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
@@ -354,7 +354,7 @@ func main() {
 		if config.Admission.Enabled {
 			logger.Info("starting admission policies watcher")
 
-			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, "admission", "kubernetes")
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.AdmissionMode, crd.KubernetesProvider)
 			if err != nil {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
 			}
@@ -379,7 +379,7 @@ func main() {
 		}
 
 		if config.TFAdmission.Enabled {
-			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, "terraform", "terraform")
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.TFAdmissionMode, crd.TerraformProvider)
 
 			if err != nil {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
