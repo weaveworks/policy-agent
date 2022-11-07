@@ -115,8 +115,6 @@ spec:
                       type: string
                     type: array
                 type: object
-              id:
-                type: string
               mode:
                 description: Mode is the policy set mode, must be one of audit,admission,tf-admission
                 enum:
@@ -128,9 +126,7 @@ spec:
                 type: string
             required:
             - filters
-            - id
             - mode
-            - name
             type: object
         type: object
     served: true
