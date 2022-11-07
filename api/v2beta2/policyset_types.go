@@ -24,7 +24,7 @@ type PolicySetFilters struct {
 }
 
 type PolicySetSpec struct {
-	ID   string `json:"id"`
+	//+optional
 	Name string `json:"name"`
 	//+kubebuilder:validation:Enum=audit;admission;tf-admission
 	// Mode is the policy set mode, must be one of audit,admission,tf-admission

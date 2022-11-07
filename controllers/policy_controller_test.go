@@ -364,8 +364,6 @@ func createPolicySet(id, mode string, ids, categories, severities, standards, ta
 			Name: id,
 		},
 		Spec: pacv2.PolicySetSpec{
-			ID:   id,
-			Name: id,
 			Mode: mode,
 			Filters: pacv2.PolicySetFilters{
 				IDs:        ids,
