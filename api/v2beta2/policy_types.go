@@ -17,6 +17,7 @@ limitations under the License.
 package v2beta2
 
 import (
+	"fmt"
 	"strings"
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -34,6 +35,7 @@ const (
 
 var (
 	PolicyGroupVersionResource = GroupVersion.WithResource(PolicyResourceName)
+	PolicyModeLabelPrefix      = fmt.Sprintf("%s/mode", GroupVersion.Group)
 )
 
 // PolicyStatus Policy Status object
@@ -145,6 +147,24 @@ type Policy struct {
 	Spec              PolicySpec `json:"spec,omitempty"`
 	//+optional
 	Status PolicyStatus `json:"status,omitempty"`
+}
+
+// SetModeLabels add policy modes to labels to support filtering
+func (p *Policy) SetModeLabels(modes []string) {
+	if p.Labels == nil {
+		p.Labels = make(map[string]string)
+	}
+	// remove old labels
+	for label := range p.Labels {
+		if strings.HasPrefix(label, PolicyModeLabelPrefix) {
+			delete(p.Labels, label)
+		}
+	}
+	// set new labels
+	for _, mode := range modes {
+		label := fmt.Sprintf("%s.%s", PolicyModeLabelPrefix, mode)
+		p.Labels[label] = ""
+	}
 }
 
 // +kubebuilder:object:root=true
