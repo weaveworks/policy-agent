@@ -4,6 +4,8 @@ This is an optional resource. It is used to select group of policies to work in 
 
 In each mode, The agent will list all the PolicySets of this mode and check which policies match any of those policy sets, Then validate the resources against them.
 
+If there is no policy set found all policies will work on all modes.
+
 > Note: [Tenant Policies](./policy.md#tenant-policy) is always active in the [Admission](./README.md#admission) mode, event if it is not selected in the `admission` policy sets
 
 **Example**
