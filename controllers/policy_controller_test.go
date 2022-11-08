@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -132,6 +133,11 @@ func TestController(t *testing.T) {
 		}
 		for _, policy := range policies.Items {
 			assert.ElementsMatch(t, expectedModes[policy.Name], policy.Status.Modes)
+			expectedLabels := map[string]string{}
+			for _, mode := range expectedModes {
+				expectedLabels[fmt.Sprintf("%s/%s", pacv2.PolicyModeLabelPrefix, mode)] = ""
+			}
+			assert.ElementsMatch(t, expectedLabels, policy.Labels)
 		}
 	})
 
@@ -163,6 +169,11 @@ func TestController(t *testing.T) {
 		}
 		for _, policy := range policies.Items {
 			assert.ElementsMatch(t, expectedModes[policy.Name], policy.Status.Modes)
+			expectedLabels := map[string]string{}
+			for _, mode := range expectedModes {
+				expectedLabels[fmt.Sprintf("%s/%s", pacv2.PolicyModeLabelPrefix, mode)] = ""
+			}
+			assert.ElementsMatch(t, expectedLabels, policy.Labels)
 		}
 	})
 
@@ -195,6 +206,11 @@ func TestController(t *testing.T) {
 		}
 		for _, policy := range policies.Items {
 			assert.ElementsMatch(t, expectedModes[policy.Name], policy.Status.Modes)
+			expectedLabels := map[string]string{}
+			for _, mode := range expectedModes {
+				expectedLabels[fmt.Sprintf("%s/%s", pacv2.PolicyModeLabelPrefix, mode)] = ""
+			}
+			assert.ElementsMatch(t, expectedLabels, policy.Labels)
 		}
 	})
 
@@ -226,6 +242,11 @@ func TestController(t *testing.T) {
 		}
 		for _, policy := range policies.Items {
 			assert.ElementsMatch(t, expectedModes[policy.Name], policy.Status.Modes)
+			expectedLabels := map[string]string{}
+			for _, mode := range expectedModes {
+				expectedLabels[fmt.Sprintf("%s/%s", pacv2.PolicyModeLabelPrefix, mode)] = ""
+			}
+			assert.ElementsMatch(t, expectedLabels, policy.Labels)
 		}
 	})
 
@@ -258,6 +279,11 @@ func TestController(t *testing.T) {
 		}
 		for _, policy := range policies.Items {
 			assert.ElementsMatch(t, expectedModes[policy.Name], policy.Status.Modes)
+			expectedLabels := map[string]string{}
+			for _, mode := range expectedModes {
+				expectedLabels[fmt.Sprintf("%s/%s", pacv2.PolicyModeLabelPrefix, mode)] = ""
+			}
+			assert.ElementsMatch(t, expectedLabels, policy.Labels)
 		}
 	})
 
@@ -289,6 +315,11 @@ func TestController(t *testing.T) {
 		}
 		for _, policy := range policies.Items {
 			assert.ElementsMatch(t, expectedModes[policy.Name], policy.Status.Modes)
+			expectedLabels := map[string]string{}
+			for _, mode := range expectedModes {
+				expectedLabels[fmt.Sprintf("%s/%s", pacv2.PolicyModeLabelPrefix, mode)] = ""
+			}
+			assert.ElementsMatch(t, expectedLabels, policy.Labels)
 		}
 	})
 
@@ -321,6 +352,11 @@ func TestController(t *testing.T) {
 		}
 		for _, policy := range policies.Items {
 			assert.ElementsMatch(t, expectedModes[policy.Name], policy.Status.Modes)
+			expectedLabels := map[string]string{}
+			for _, mode := range expectedModes {
+				expectedLabels[fmt.Sprintf("%s/%s", pacv2.PolicyModeLabelPrefix, mode)] = ""
+			}
+			assert.ElementsMatch(t, expectedLabels, policy.Labels)
 		}
 	})
 }

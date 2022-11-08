@@ -81,9 +81,19 @@ func (p *PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	patch := client.MergeFrom(policy.DeepCopy())
+	policy.SetModeLabels(policyModes)
+
+	if err := p.Patch(ctx, &policy, patch); err != nil {
+		if apierrors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		return ctrl.Result{}, err
+	}
+
+	patch = client.MergeFrom(policy.DeepCopy())
 	policy.Status.SetModes(policyModes)
 
-	logger.Debugw("updating policy status.modes", "policy", req.Name, "modes", policy.Status.ModesString)
+	logger.Infow("updating policy status.modes", "policy", req.Name, "modes", policy.Status.ModesString)
 
 	if err := p.Status().Patch(ctx, &policy, patch); err != nil {
 		if apierrors.IsNotFound(err) {
