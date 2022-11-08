@@ -2,11 +2,11 @@
 
 This is an optional resource. It is used to select group of policies to work in specific modes.
 
-In each mode, The agent will list all the PolicySets of this mode and check which policies match any of those policy sets, Then validate the resources against them.
+In each mode, The agent will list all the PolicySets of this mode and check which policies match any of those policysets, Then validate the resources against them.
 
 If there is no policy set found all policies will work on all modes.
 
-> Note: [Tenant Policies](./policy.md#tenant-policy) is always active in the [Admission](./README.md#admission) mode, event if it is not selected in the `admission` policy sets
+> Note: [Tenant Policies](./policy.md#tenant-policy) is always active in the [Admission](./README.md#admission) mode, event if it is not selected in the `admission` policysets
 
 **Example**
 ```yaml
@@ -32,7 +32,7 @@ spec:
 
 ## Modes
 
-You can check the available modes [here](./README.md).
+You can check the available modes [here](./README.md#modes).
 
 ## Grouping Policies
 
@@ -44,12 +44,12 @@ The policy will be matched if any of the filters are matched.
 ## Migration from v2beta1 to v2beta2
 
 ### New fields
-- New required field `spec.mode` is added. PolicySets should be updated to set the policy set mode
+- New required field `spec.mode` is added. PolicySets should be updated to set the mode
 
-Previously the agent was configured with which policy sets to use in each mode. Now we removed this argument from the agent's configuration and
+Previously the agent was configured with which policysets to use in each mode. Now we removed this argument from the agent's configuration and
 add the mode to the Policyset itself. 
 
-#### Example of the old agent configuration
+#### Example of the agent configuration in versions older than v2.0.0
 
 ```yaml
 # config.yaml
