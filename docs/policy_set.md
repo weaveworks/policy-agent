@@ -2,6 +2,10 @@
 
 This is an optional resource. It is used to select group of policies to work in specific modes.
 
+In each mode, The agent will list all the PolicySets of this mode and check which policies match any of those policy sets, Then validate the resources against them.
+
+> Note: [Tenant Policies](./policy.md#tenant-policy) is always active in the [Admission](./README.md#admission) mode, event if it is not selected in the `admission` policy sets
+
 **Example**
 ```yaml
 apiVersion: pac.weave.works/v2beta2
@@ -26,26 +30,7 @@ spec:
 
 ## Modes
 
-### `audit`
-
-This mode performs the audit functionality. It triggers per the specified interval (by default every 24 hour) and then lists all the resources in the cluster which the agent has access to read it and performs the validation.
-
-> Works with policies of provider `kubernetes`
-
-
-### `admission`
-
-This contains the admission module. It uses the `controller-runtime` Kubernetes package to register a callback that will be called when the agent recieves an admission request.
-
-> Works with policies of provider `kubernetes`
-
-
-### `tf-admission`
-
-This is a webhook used to validate terraform plans. It mainly used by the [TF-Controller](https://github.com/weaveworks/tf-controller) to enforce policies on terraform plans
-
-> Works with policies of provider `terraform`
-
+You can check the available modes [here](./README.md).
 
 ## Grouping Policies
 
@@ -58,6 +43,36 @@ The policy will be matched if any of the filters are matched.
 
 ### New fields
 - New required field `spec.mode` is added. PolicySets should be updated to set the policy set mode
+
+Previously the agent was configured with which policy sets to use in each mode. Now we removed this argument from the agent's configuration and
+add the mode to the Policyset itself. 
+
+#### Example of the old agent configuration
+
+```yaml
+# config.yaml
+admission:
+   enabled: true
+   policySet: admission-policy-set
+   sinks:
+      filesystemSink:
+         fileName: admission.txt
+```
+
+#### Example of current PolicySet with mode field
+
+```yaml
+apiVersion: pac.weave.works/v2beta2
+kind: PolicySet
+metadata:
+  name: admission-policy-set
+spec:
+  mode: admission
+  filters:
+    ids:
+      - weave.policies.containers-minimum-replica-count
+```
+
 
 ### Updated fields
 - Field `spec.name` became optional.

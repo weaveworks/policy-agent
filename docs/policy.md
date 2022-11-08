@@ -12,3 +12,9 @@ You can find the cutom resource schema [here](../config/crd/bases/pac.weave.work
 ## Policy Library
 
 Here is the Weaveworks [Policy Library](https://github.com/weaveworks/policy-library)
+
+## Tenant Policy
+
+It is used in [Multi Tenancy](https://docs.gitops.weave.works/docs/enterprise/multi-tenancy/) feature in [Weave GitOps Enterprise](https://docs.gitops.weave.works/docs/enterprise/intro/)
+
+Tenant policies has a special tag `tenancy`. 

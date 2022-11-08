@@ -15,9 +15,9 @@
   - [File System](#file-system)
   - [ElasticSearch](#elasticsearch)
   - [SaaS](#saas)
-- [Configuration]()
-- [Versions]()
-- [Development]()
+- [Configuration](#configuration)
+- [Versions](#versions)
+- [Development](#development)
 
 
 ## High Level Architecture
@@ -80,7 +80,7 @@ This is a webhook used to validate terraform plans. It is mainly used by the [TF
 
 ### Kubernetes Events
 
-This sink is used to export validation results as kubernetes native events. It has a retention period and it set by default to 1 hour.
+This sink is used to export validation results as kubernetes native events. Kubernetes event has a retention period and it set by default to 1 hour, you can configure the kubernetes [api-server](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) to update the period.
 
 **Configuration**
 
@@ -126,7 +126,7 @@ sinks:
     address: http://localhost:9200    # ElasticSearch server address
     username: <elastic username>      # User credentials to access ElasticSearch service
     password: <elastic password>      # User credentials to access ElasticSearch service
-    indexname: <index_name>           # index name the results would be written in
+    indexName: <index_name>           # index name the results would be written in
     insertionMode: <insertion mode>   # It could be a choice of both insert or upsert, it defines the way the document is written.
 ```
 
