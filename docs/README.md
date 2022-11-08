@@ -193,7 +193,7 @@ audit:
 
 ## Versions
 
-### v1beta1
+### v1
 - Initial release
 - Introduced Policy CRD
 ### v1beta1
