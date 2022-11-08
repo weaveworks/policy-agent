@@ -57,21 +57,21 @@ This is an optional resource. It is used to provide multiple policy configuratio
 
 ### Audit
 
-This mode performs the audit functionality. It triggers per the specified interval (by default every 24 hour) and then lists all the resources in the cluster which the agent has access to read it and performs the validation.
+This mode performs the audit functionality. It triggers per the specified interval (by default every 24 hour) and then lists all the resources in the cluster which the agent has access to read and validates those resources against the audit policies.
 
 > Works with policies of provider `kubernetes`
 
 
 ### Admission
 
-This contains the admission module. It uses the `controller-runtime` Kubernetes package to register a callback that will be called when the agent recieves an admission request.
+This contains the admission module that enforces policies. It uses the `controller-runtime` Kubernetes package to register a callback that will be called when the agent recieves an admission request. Once called, the agent will validate the received resource against the admission and tenant policies and k8s will use the result of this validation to either allow or reject the creation/update of said resource.
 
 > Works with policies of provider `kubernetes`
 
 
 ### Terraform Admission
 
-This is a webhook used to validate terraform plans. It mainly used by the [TF-Controller](https://github.com/weaveworks/tf-controller) to enforce policies on terraform plans
+This is a webhook used to validate terraform plans. It is mainly used by the [TF-Controller](https://github.com/weaveworks/tf-controller) to enforce policies on terraform plans
 
 > Works with policies of provider `terraform`
 
@@ -165,7 +165,7 @@ There are additional parameters could be provided:
 - `logLevel`: app log level (default: "info")
 - `probesListen`: address for the probes server to run on (default: ":9000")
 - `metricsAddress`: address the metric endpoint binds to (default: ":8080")
-- `audit`: defines defines cluster periodical audit configuration including configuration including the supported sinks (disabled by default)
+- `audit`: defines cluster periodical audit configuration including the supported sinks (disabled by default)
 - `admission`: defines admission control configuration including the supported sinks and webhooks (disabled by default)
 - `tfAdmission`: defines terraform admission control configuration including the supported sinks (disabled by default)
 
