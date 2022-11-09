@@ -291,7 +291,7 @@ spec:
             - severity
             type: object
         type: object
-    served: false
+    served: true
     storage: false
   - additionalPrinterColumns:
     - jsonPath: .spec.severity
