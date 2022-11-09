@@ -122,7 +122,6 @@ type PolicySetSpec struct {
 	Filters PolicySetFilters `json:"filters"`
 }
 
-//+kubebuilder:unservedversion
 //+kubebuilder:object:root=true
 //+kubebuilder:resource:scope=Cluster
 
@@ -156,7 +155,6 @@ type PolicySet struct {
 	Spec PolicySetSpec `json:"spec,omitempty"`
 }
 
-//+kubebuilder:unservedversion
 //+kubebuilder:object:root=true
 //+kubebuilder:resource:scope=Cluster
 
