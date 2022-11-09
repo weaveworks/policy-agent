@@ -7,7 +7,7 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	"github.com/weaveworks/policy-agent/internal/clients/kube"
 	corev1 "k8s.io/api/core/v1"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"

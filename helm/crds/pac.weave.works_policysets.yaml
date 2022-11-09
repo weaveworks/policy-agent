@@ -67,8 +67,71 @@ spec:
             - name
             type: object
         type: object
+    served: false
+    storage: false
+  - additionalPrinterColumns:
+    - jsonPath: .spec.mode
+      name: Mode
+      type: string
+    name: v2beta2
+    schema:
+      openAPIV3Schema:
+        description: PolicySet is the Schema for the policysets API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              filters:
+                properties:
+                  categories:
+                    items:
+                      type: string
+                    type: array
+                  ids:
+                    items:
+                      type: string
+                    type: array
+                  severities:
+                    items:
+                      type: string
+                    type: array
+                  standards:
+                    items:
+                      type: string
+                    type: array
+                  tags:
+                    items:
+                      type: string
+                    type: array
+                type: object
+              mode:
+                description: Mode is the policy set mode, must be one of audit,admission,tf-admission
+                enum:
+                - audit
+                - admission
+                - tf-admission
+                type: string
+              name:
+                type: string
+            required:
+            - filters
+            - mode
+            type: object
+        type: object
     served: true
     storage: true
+    subresources: {}
 status:
   acceptedNames:
     kind: ""

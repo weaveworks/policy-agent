@@ -7,53 +7,57 @@ import (
 
 	"github.com/MagalixTechnologies/core/logger"
 	"github.com/MagalixTechnologies/policy-core/domain"
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlCache "sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type Config struct {
-	Provider  string
-	PolicySet string
-}
+const (
+	AdmissionMode      = "admission"
+	AuditMode          = "audit"
+	TFAdmissionMode    = "tf-admission"
+	KubernetesProvider = "kubernetes"
+	TerraformProvider  = "terraform"
+)
 
 type PoliciesWatcher struct {
-	cache  ctrlCache.Cache
-	config Config
+	cache    ctrlCache.Cache
+	Mode     string
+	Provider string
 }
 
 // NewPoliciesWatcher returns a policies source that fetches them from Kubernetes API
-func NewPoliciesWatcher(ctx context.Context, mgr ctrl.Manager, config Config) (*PoliciesWatcher, error) {
+func NewPoliciesWatcher(ctx context.Context, mgr ctrl.Manager, mode, provider string) (*PoliciesWatcher, error) {
 	return &PoliciesWatcher{
-		cache:  mgr.GetCache(),
-		config: config,
+		cache:    mgr.GetCache(),
+		Mode:     mode,
+		Provider: provider,
 	}, nil
 }
 
 // GetAll returns all policies, implements github.com/MagalixTechnologies/policy-core/domain.PoliciesSource
 func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 	policiesCRD := &pacv2.PolicyList{}
-
 	err := p.cache.List(ctx, policiesCRD, &client.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error while retrieving policies CRD from cache: %w", err)
 	}
 
-	var policySet *domain.PolicySet
-	if p.config.PolicySet != "" {
-		policySet, err = p.GetPolicySet(ctx, p.config.PolicySet)
-		if err != nil {
-			return nil, err
-		}
+	logger.Debugw("retrieved CRD policies from cache", "count", len(policiesCRD.Items))
+
+	var policySets pacv2.PolicySetList
+	err = p.cache.List(ctx, &policySets)
+	if err != nil {
+		return nil, fmt.Errorf("error while retrieving policy sets CRD from cache: %w", err)
 	}
 
-	logger.Debugw("retrieved CRD policies from cache", "count", len(policiesCRD.Items))
+	logger.Infow("retrieved CRD policy sets from cache", "count", len(policySets.Items))
 
 	var policies []domain.Policy
 	for i := range policiesCRD.Items {
-		if policiesCRD.Items[i].Spec.Provider != p.config.Provider {
+		if !p.match(policiesCRD.Items[i], policySets) {
 			continue
 		}
 
@@ -91,12 +95,6 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 			policy.Standards = append(policy.Standards, standard)
 		}
 
-		if policySet != nil {
-			if match := policySet.Match(policy); !match {
-				continue
-			}
-		}
-
 		for k := range policyCRD.Parameters {
 			paramCRD := policyCRD.Parameters[k]
 			param := domain.PolicyParameters{
@@ -118,15 +116,36 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 	return policies, nil
 }
 
-func (p *PoliciesWatcher) GetPolicySet(ctx context.Context, id string) (*domain.PolicySet, error) {
-	policySet := pacv2.PolicySet{}
-	err := p.cache.Get(ctx, client.ObjectKey{Name: id}, &policySet)
-	if err != nil {
-		return nil, err
+func (p *PoliciesWatcher) match(policy pacv2.Policy, policySets pacv2.PolicySetList) bool {
+	// check provider
+	if policy.Spec.Provider != p.Provider {
+		return false
 	}
-	return &domain.PolicySet{
-		ID:      policySet.Spec.ID,
-		Name:    policySet.Spec.Name,
-		Filters: domain.PolicySetFilters(policySet.Spec.Filters),
-	}, nil
+
+	// check if tenant policy when mode is admission
+	if p.Mode == AdmissionMode {
+		for _, tag := range policy.Spec.Tags {
+			if tag == pacv2.TenancyTag {
+				return true
+			}
+		}
+	}
+
+	var count int
+	for _, policySet := range policySets.Items {
+		// check only policy sets with same mode
+		if policySet.Spec.Mode == p.Mode {
+			if policySet.Match(policy) {
+				return true
+			}
+			count++
+		}
+	}
+
+	// if there are no policysets configured return true
+	if count == 0 {
+		return true
+	}
+
+	return false
 }

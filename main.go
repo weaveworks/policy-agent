@@ -19,14 +19,15 @@ import (
 	"github.com/MagalixTechnologies/uuid-go"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	"github.com/weaveworks/policy-agent/configuration"
+	"github.com/weaveworks/policy-agent/controllers"
 	"github.com/weaveworks/policy-agent/internal/admission"
 	"github.com/weaveworks/policy-agent/internal/auditor"
 	"github.com/weaveworks/policy-agent/internal/clients/gateway"
 	"github.com/weaveworks/policy-agent/internal/clients/kube"
 	"github.com/weaveworks/policy-agent/internal/entities/k8s"
-	"github.com/weaveworks/policy-agent/internal/policies/crd"
+	crd "github.com/weaveworks/policy-agent/internal/policies"
 	"github.com/weaveworks/policy-agent/internal/sink/elastic"
 	"github.com/weaveworks/policy-agent/internal/sink/filesystem"
 	flux_notification "github.com/weaveworks/policy-agent/internal/sink/flux-notification"
@@ -250,8 +251,8 @@ func main() {
 			}
 		}
 
-		if config.Terraform.Enabled {
-			terraformSinksConfig := config.Terraform.Sinks
+		if config.TFAdmission.Enabled {
+			terraformSinksConfig := config.TFAdmission.Sinks
 			if terraformSinksConfig.FilesystemSink != nil {
 				fileName := terraformSinksConfig.FilesystemSink.FileName
 				fileSystemSink, err := initFileSystemSink(mgr, fileName)
@@ -327,10 +328,7 @@ func main() {
 		if config.Audit.Enabled {
 			logger.Info("starting audit policies watcher")
 
-			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.Config{
-				Provider:  "kubernetes",
-				PolicySet: config.Audit.PolicySet,
-			})
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.AuditMode, crd.KubernetesProvider)
 
 			if err != nil {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
@@ -356,10 +354,7 @@ func main() {
 		if config.Admission.Enabled {
 			logger.Info("starting admission policies watcher")
 
-			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.Config{
-				Provider:  "kubernetes",
-				PolicySet: config.Admission.PolicySet,
-			})
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.AdmissionMode, crd.KubernetesProvider)
 			if err != nil {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
 			}
@@ -383,11 +378,8 @@ func main() {
 			}
 		}
 
-		if config.Terraform.Enabled {
-			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.Config{
-				Provider:  "terraform",
-				PolicySet: config.Terraform.PolicySet,
-			})
+		if config.TFAdmission.Enabled {
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.TFAdmissionMode, crd.TerraformProvider)
 
 			if err != nil {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
@@ -412,6 +404,20 @@ func main() {
 			if err != nil {
 				return fmt.Errorf("failed to start terraform webhook, error: %w", err)
 			}
+		}
+
+		if err = (&controllers.PolicyReconciler{
+			Client: mgr.GetClient(),
+		}).SetupWithManager(mgr); err != nil {
+			logger.Errorw("unable to create controller", "controller", "policy", "err", err)
+			os.Exit(1)
+		}
+
+		if err = (&controllers.PolicyConfigValidator{
+			Client: mgr.GetClient(),
+		}).SetupWithManager(mgr); err != nil {
+			logger.Errorw("unable to create controller", "controller", "policyConfig", "err", err)
+			os.Exit(1)
 		}
 
 		err = mgr.Start(ctrl.SetupSignalHandler())

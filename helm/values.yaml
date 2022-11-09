@@ -1,6 +1,6 @@
 
 image: weaveworks/policy-agent
-failurePolicy: Ignore
+failurePolicy: Fail
 
 # If you don't want to use cert-manager, set useCertManager to false and provide your own certs
 useCertManager: true

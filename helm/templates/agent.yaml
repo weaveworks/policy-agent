@@ -23,6 +23,8 @@ rules:
   resources:
   - 'policies'
   - 'policysets'
+  - 'policyconfigs'
+  - 'policies/status'
   verbs:
   - '*'
 - apiGroups:
@@ -161,7 +163,7 @@ spec:
         fsGroup: 1000
       containers:
         - image: {{ .Values.image }}:{{ .Chart.AppVersion }}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           name: policy-agent
           args: [
             "--config-file",
@@ -235,7 +237,6 @@ spec:
   selector:
     name:  policy-agent
 ---
-{{- if eq .Values.config.admission.enabled true }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
@@ -247,6 +248,7 @@ metadata:
     cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/agent-certificate
   {{- end }}
 webhooks:
+{{- if eq .Values.config.admission.enabled true }}
   - name: admission.agent.weaveworks
     clientConfig:
       service:
@@ -308,3 +310,23 @@ webhooks:
         operator: NotIn
         values: [{{ .Release.Namespace }}]
 {{- end}}
+  - name: policyconfigs.pac.weave.works
+    admissionReviewVersions:
+    - v1
+    clientConfig:
+      service:
+        name: policy-agent
+        namespace: policy-system
+        path: /validate-v2beta2-policyconfig
+    failurePolicy: Fail
+    rules:
+    - apiGroups:
+      - pac.weave.works
+      apiVersions:
+      - v2beta2
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - policyconfigs
+    sideEffects: None

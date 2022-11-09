@@ -7,11 +7,47 @@ resources:
 - api:
     crdVersion: v1
     namespaced: false
-  - api:
+  domain: weave.works
+  kind: Policy
+  path: api/v1
+  version: v1
+- api:
     crdVersion: v2beta1
     namespaced: false
   domain: weave.works
   kind: Policy
-  path: github.com/weaveworks/policy-agent/api/v1
-  version: v1
+  path: api/v1
+  version: v2beta1
+- api:
+    crdVersion: v2beta1
+    namespaced: false
+  domain: weave.works
+  kind: PolicySet
+  path: api/v1
+  version: v2beta1
+- api:
+    crdVersion: v2beta2
+    namespaced: false
+  domain: weave.works
+  kind: Policy
+  path: api/v1
+  version: v2beta2
+- api:
+    crdVersion: v2beta2
+    namespaced: false
+  domain: weave.works
+  kind: PolicySet
+  path: api/v1
+  version: v2beta2
+- api:
+    crdVersion: v2beta2
+    namespaced: false
+  domain: weave.works
+  kind: PolicyConfig
+  path: api/v1
+  version: v2beta2
+  webhooks:
+    # defaulting: true
+    validation: true
+    webhookVersion: v1
 version: "3"

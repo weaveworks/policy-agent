@@ -68,7 +68,7 @@ type PolicyStandard struct {
 
 // PolicySpec defines the desired state of Policy
 // It describes all that is needed to evaluate a resource against a rego code
-//+kubebuilder:object:generate:true
+// +kubebuilder:object:generate:true
 type PolicySpec struct {
 	// Name is the policy name
 	Name string `json:"name"`
@@ -124,7 +124,6 @@ type PolicySetSpec struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:resource:scope=Cluster
-//+kubebuilder:storageversion
 
 // Policy is the Schema for the policies API
 type Policy struct {
@@ -133,8 +132,9 @@ type Policy struct {
 	Spec              PolicySpec `json:"spec,omitempty"`
 }
 
-// +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
+//+kubebuilder:unservedversion
+//+kubebuilder:object:root=true
+//+kubebuilder:resource:scope=Cluster
 
 // PolicyList contains a list of Policy
 type PolicyList struct {
@@ -143,8 +143,9 @@ type PolicyList struct {
 	Items           []Policy `json:"items"`
 }
 
-// +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
+//+kubebuilder:unservedversion
+//+kubebuilder:object:root=true
+//+kubebuilder:resource:scope=Cluster
 
 // PolicySet is the Schema for the policysets API
 type PolicySet struct {
@@ -154,8 +155,8 @@ type PolicySet struct {
 	Spec PolicySetSpec `json:"spec,omitempty"`
 }
 
-// +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
+//+kubebuilder:object:root=true
+//+kubebuilder:resource:scope=Cluster
 
 // PolicySetList contains a list of PolicySet
 type PolicySetList struct {
