@@ -308,7 +308,13 @@ webhooks:
       matchExpressions:
       - key: kubernetes.io/metadata.name
         operator: NotIn
-        values: [{{ .Release.Namespace }}]
+        {{- if .Values.excludeNamespaces }}
+        values:
+          {{- toYaml .Values.excludeNamespaces | nindent 8 }}
+        {{- else }}
+        values:
+        - {{ .Release.Namespace }}
+        {{- end }}
 {{- end}}
   - name: policyconfigs.pac.weave.works
     admissionReviewVersions:
