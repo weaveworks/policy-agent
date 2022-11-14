@@ -8,6 +8,13 @@ certificate: ""
 key: ""
 caCertificate: ""
 
+# exclude namespaces by admission controller
+# If not set, The policy agent will exclude only it's namespace ({{.Release.Namespace}})
+excludeNamespaces:
+# - policy-system
+# - flux-system
+# - kube-system
+
 persistence:
   enabled: false
   # claimStorage: 1Gi
