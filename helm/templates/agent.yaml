@@ -322,7 +322,7 @@ webhooks:
     clientConfig:
       service:
         name: policy-agent
-        namespace: policy-system
+        namespace: {{ .Release.Namespace }}
         path: /validate-v2beta2-policyconfig
     failurePolicy: Fail
     rules:
