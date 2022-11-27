@@ -1,0 +1,35 @@
+on:
+  push:
+    branches: [ master, dev ]
+  pull_request:
+    branches: [ master, dev ]
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        namespace: [policy-system, test-system]
+    steps:
+      - name: Checkout repo 
+        uses: actions/checkout@v3
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+      - name: Install kind
+        uses: helm/kind-action@v1.3.0
+        with:
+          install_only: true
+      - name: setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.17'
+          cache: true
+      - name: Run tests
+        env:
+          NAMESPACE: ${{ matrix.namespace }}
+        run: |
+          cd integration
+          bash deploy.sh
+          go test -v ./...

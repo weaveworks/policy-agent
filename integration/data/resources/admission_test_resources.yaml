@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orphan-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orphan-deployment
+  template:
+    metadata:
+      labels:
+        app: orphan-deployment
+    spec:
+      containers:
+      - name: ubuntu
+        image: ubuntu:latest
+        command: ["sleep", "100d"]
+        securityContext:
+          privileged: true
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-deployment
+  template:
+    metadata:
+      labels:
+        app: test-deployment
+    spec:
+      containers:
+      - name: ubuntu
+        image: ubuntu:latest
+        command: ["sleep", "100d"]
+        securityContext:
+          privileged: true
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helm-app-deployment
+  namespace: default
+  labels:
+    helm.toolkit.fluxcd.io/name: helm-app
+    helm.toolkit.fluxcd.io/namespace: flux-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: helm-app-deployment
+  template:
+    metadata:
+      labels:
+        app: helm-app-deployment
+    spec:
+      containers:
+      - name: ubuntu
+        image: ubuntu:latest
+        command: ["sleep", "100d"]
+        securityContext:
+          privileged: true
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kustomize-app-deployment
+  namespace: default
+  labels:
+    kustomize.toolkit.fluxcd.io/name: kustomize-app
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kustomize-app-deployment
+  template:
+    metadata:
+      labels:
+        app: kustomize-app-deployment
+    spec:
+      containers:
+      - name: ubuntu
+        image: ubuntu:latest
+        command: ["sleep", "100d"]
+        securityContext:
+          privileged: true
+

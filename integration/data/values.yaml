@@ -1,0 +1,6 @@
+config:
+  audit:
+    enabled: true
+    sinks:
+      k8sEventsSink:
+        enabled: true
