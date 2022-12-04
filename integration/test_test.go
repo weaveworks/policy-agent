@@ -3,6 +3,8 @@ package integration
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -22,8 +24,12 @@ const (
 	missingOwnerLabelPolicy          = "weave.policies.missing-owner-label"
 )
 
-func TestA(t *testing.T) {
-	config, err := clientcmd.BuildConfigFromFlags("", "/home/ahsayde/.kube/config")
+func TestIntegration(t *testing.T) {
+	homeDir, err := os.UserHomeDir()
+	assert.Nil(t, err)
+
+	kubeConfigPath := filepath.Join(homeDir, ".kube", "config")
+	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 	if err != nil {
 		panic(err)
 	}
@@ -45,9 +51,7 @@ func TestA(t *testing.T) {
 		}
 
 		policies, err := listPolicies(ctx, cl)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, err)
 
 		assert.Equal(t, len(policies.Items), 3)
 
@@ -66,9 +70,7 @@ func TestA(t *testing.T) {
 		}
 
 		events, err := listViolationEvents(ctx, cl, opts)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(t, err)
 
 		assert.Equal(t, len(events.Items), 4)
 
@@ -86,9 +88,7 @@ func TestA(t *testing.T) {
 
 	t.Run("check admission results", func(t *testing.T) {
 		err := kubectl("apply", "-f", "data/resources/admission_test_resources.yaml")
-		if err == nil {
-			t.Error(err)
-		}
+		assert.NotNil(t, err)
 
 		time.Sleep(2 * time.Second)
 

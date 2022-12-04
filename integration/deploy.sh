@@ -2,6 +2,8 @@ echo "[*] Creating test cluster ..."
 kind delete cluster --name test
 kind create cluster --name test
 
+kind load docker-image weaveworks/policy-agent:${VERSION} --name test
+
 kubectl create namespace flux-system
 
 echo "[*] Installing cert-manager ..."
@@ -18,4 +20,3 @@ kubectl apply -f data/state
 
 echo "[*] Installing policy agent helm chart on namespace ${NAMESPACE} ..."
 helm install policy-agent ../helm -n ${NAMESPACE} -f ../helm/values.yaml -f data/values.yaml --create-namespace --wait --timeout 60s
-

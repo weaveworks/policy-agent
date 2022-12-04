@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	TypeTerraform = "Terraform"
+	TypeTFAdmission = "TFAdmission"
 )
 
 type Response struct {

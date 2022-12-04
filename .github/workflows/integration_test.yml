@@ -1,3 +1,5 @@
+name: integration
+
 on:
   push:
     branches: [ master, dev ]
@@ -29,7 +31,13 @@ jobs:
       - name: Run tests
         env:
           NAMESPACE: ${{ matrix.namespace }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
+          make build
+
+          VERSION=$(cat ./version.txt)
+          docker build -t weaveworks/policy-agent:${VERSION} .
+
           cd integration
           bash deploy.sh
           go test -v ./...
