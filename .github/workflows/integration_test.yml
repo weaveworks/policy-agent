@@ -38,6 +38,6 @@ jobs:
           VERSION=$(cat ./version.txt)
           docker build -t weaveworks/policy-agent:${VERSION} .
 
-          cd integration
+          cd test/integration
           bash deploy.sh
           go test -v ./...

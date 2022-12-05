@@ -13,10 +13,10 @@ helm install cert-manager jetstack/cert-manager --namespace cert-manager --creat
 
 echo "[*] Apply test resources ..."
 kubectl apply -f data/resources/audit_test_resources.yaml
-kubectl apply -f ../helm/crds
+kubectl apply -f ../../helm/crds
 
 echo "[*] Apply cluster resources"
 kubectl apply -f data/state
 
 echo "[*] Installing policy agent helm chart on namespace ${NAMESPACE} ..."
-helm install policy-agent ../helm -n ${NAMESPACE} -f ../helm/values.yaml -f data/values.yaml --create-namespace --wait --timeout 60s
+helm install policy-agent ../../helm -n ${NAMESPACE} -f ../../helm/values.yaml -f data/values.yaml --create-namespace --wait --timeout 60s
