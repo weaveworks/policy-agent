@@ -1,0 +1,254 @@
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: weave.policies.containers-minimum-replica-count
+spec:
+  id: weave.policies.containers-minimum-replica-count
+  name: Containers Minimum Replica Count
+  enabled: false
+  description: "Use this Policy to to check the replica count of your workloads. The value set in the Policy is greater than or equal to the amount desired, so if the replica count is lower than what is specified, the Policy will be in violation. \n"
+  how_to_solve: |
+    The replica count should be a value equal or greater than what is set in the Policy.
+    ```
+    spec:
+      replicas: <replica_count>
+    ```
+    https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment
+  category: weave.categories.reliability
+  severity: medium
+  targets:
+    kinds:
+      - Deployment
+      - StatefulSet
+      - ReplicaSet
+      - ReplicationController
+      - HorizontalPodAutoscaler
+  standards:
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.2.1.1
+  tags: [soc2-type1]
+  parameters:
+    - name: replica_count
+      type: integer
+      required: true
+      value: 2
+    - name: exclude_namespaces
+      type: array
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.pods.replica_count
+
+    import future.keywords.in
+
+    min_replica_count := input.parameters.replica_count
+    exclude_namespaces := input.parameters.exclude_namespaces
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    controller_input := input.review.object
+
+    violation[result] {
+    	isExcludedNamespace == false
+        not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+    	not replicas >= min_replica_count
+    	result = {
+    		"issue detected": true,
+    		"msg": sprintf("Replica count must be greater than or equal to '%v'; found '%v'.", [min_replica_count, replicas]),
+    		"violating_key": violating_key,
+    		"recommended_value": min_replica_count,
+    	}
+    }
+
+    replicas := controller_input.spec.replicas {
+    	controller_input.kind in {"Deployment", "StatefulSet", "ReplicaSet", "ReplicationController"}
+    } else := controller_input.spec.minReplicas {
+    	controller_input.kind == "HorizontalPodAutoscaler"
+    }
+
+    violating_key := "spec.replicas" {
+    	controller_input.kind in {"Deployment", "StatefulSet", "ReplicaSet", "ReplicationController"}
+    } else := "spec.minReplicas" {
+    	controller_input.kind == "HorizontalPodAutoscaler"
+    }
+
+    isExcludedNamespace = true {
+    	controller_input.metadata.namespace
+    	controller_input.metadata.namespace in exclude_namespaces
+    } else = false
+
+---
+
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: weave.policies.containers-running-in-privileged-mode
+spec:
+  id: weave.policies.containers-running-in-privileged-mode
+  name: Containers Running In Privileged Mode
+  enabled: true
+  description: |
+    This Policy reports if containers are running in privileged mode. A privileged container is given access to all devices on the host. This allows the container nearly all the same access as processes running on the host.
+
+    By default a container is not allowed to access any devices on the host, but a "privileged" container is given access to all devices on the host. This allows the container nearly all the same access as processes running on the host. This is useful for containers that want to use linux capabilities like manipulating the network stack and accessing devices.
+  how_to_solve: "Look at the following path to see what the settings are. \n```\n...\n  spec:\n    containers:\n    - securityContext:\n        privileged: <privilege>\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.2.2.4
+        - weave.controls.pci-dss.2.2.5
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.1
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.4.1
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.3.3.1
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.1.6.1
+  tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, soc2-type1, default]
+  parameters:
+    - name: privilege
+      type: boolean
+      required: true
+      value: false
+    - name: exclude_namespaces
+      type: array
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |
+    package weave.advisor.podSecurity.privileged
+
+    import future.keywords.in
+
+    privilege := input.parameters.privilege
+    exclude_namespaces := input.parameters.exclude_namespaces
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    violation[result] {
+      isExcludedNamespace == false
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      some i
+      container := controller_spec.containers[i]
+      security_context_priv := container.securityContext.privileged
+      not security_context_priv == privilege
+      result = {
+        "issue detected": true,
+        "msg": sprintf("Container %s should set privileged to '%v'; detected '%v'", [container.name, privilege, security_context_priv]),
+        "violating_key": sprintf("spec.template.spec.containers[%v].securityContext.privileged", [i]),
+        "recommended_value": privilege
+      }
+    }
+
+    is_array_contains(array,str) {
+      array[_] = str
+    }
+
+    # Controller input
+    controller_input = input.review.object
+
+    # controller_container acts as an iterator to get containers from the template
+    controller_spec = controller_input.spec.template.spec {
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+    } else = controller_input.spec {
+      controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+      controller_input.kind == "CronJob"
+    }
+
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+
+    isExcludedNamespace = true {
+    	controller_input.metadata.namespace
+    	controller_input.metadata.namespace in exclude_namespaces
+    } else = false
+
+---
+
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: weave.policies.missing-owner-label
+spec:
+  id: weave.policies.missing-owner-label
+  name: Missing Owner Label
+  enabled: false
+  description: "Custom labels can help enforce organizational standards for each artifact deployed. This Policy ensure a custom label key is set in the entity's `metadata`. The Policy detects the presence of the following: \n\n### owner\nA label key of `owner` will help identify who the owner of this entity is. \n\n### app.kubernetes.io/name\nThe name of the application\t\n\n### app.kubernetes.io/instance\nA unique name identifying the instance of an application\t  \n\n### app.kubernetes.io/version\nThe current version of the application (e.g., a semantic version, revision hash, etc.)\n\n### app.kubernetes.io/part-of\nThe name of a higher level application this one is part of\t\n\n### app.kubernetes.io/managed-by\nThe tool being used to manage the operation of an application\t\n\n### app.kubernetes.io/created-by\nThe controller/user who created this resource\t\n"
+  how_to_solve: "Add these custom labels to `metadata`.\n* owner\n* app.kubernetes.io/name\n* app.kubernetes.io/instance\n* app.kubernetes.io/version\n* app.kubernetes.io/name\n* app.kubernetes.io/part-of\n* app.kubernetes.io/managed-by\n* app.kubernetes.io/created-by\n\n```\nmetadata:\n  labels:\n    <label>: value\n```  \nFor additional information, please check\n* https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels \n"
+  category: weave.categories.organizational-standards
+  severity: low
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  tags: []
+  parameters:
+    - name: exclude_namespaces
+      type: array
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |
+    package weave.advisor.labels.missing_owner_label
+    import future.keywords.in
+    exclude_namespaces := input.parameters.exclude_namespaces
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+    violation[result] {
+      isExcludedNamespace == false
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      # Filter the type of entity before moving on since this shouldn't apply to all entities
+      label := "owner"
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+      not controller_input.metadata.labels[label]
+      result = {
+        "issue detected": true,
+        "msg": sprintf("you are missing a label with the key '%v'", [label]),
+        "violating_key": "metadata.labels",
+        "recommended_value": label
+      }
+    }
+    # Controller input
+    controller_input = input.review.object
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+    isExcludedNamespace = true {
+    	controller_input.metadata.namespace
+    	controller_input.metadata.namespace in exclude_namespaces
+    } else = false

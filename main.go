@@ -388,7 +388,7 @@ func main() {
 			validator := validation.NewOPAValidator(
 				policiesSource,
 				false,
-				terraform.TypeTerraform,
+				terraform.TypeTFAdmission,
 				config.AccountID,
 				config.ClusterID,
 				terraformSinks...,
