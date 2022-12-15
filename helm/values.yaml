@@ -24,7 +24,7 @@ config:
   accountId: ""
   clusterId: ""
   admission:
-    mutate: true
+    # mutate: true // enable mutation policies
     enabled: true
     sinks:
       k8sEventsSink:
