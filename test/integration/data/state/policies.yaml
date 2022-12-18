@@ -16,6 +16,7 @@ spec:
     https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment
   category: weave.categories.reliability
   severity: medium
+  mutate: false
   targets:
     kinds:
       - Deployment
@@ -103,6 +104,7 @@ spec:
   how_to_solve: "Look at the following path to see what the settings are. \n```\n...\n  spec:\n    containers:\n    - securityContext:\n        privileged: <privilege>\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n"
   category: weave.categories.pod-security
   severity: high
+  mutate: false
   targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
   standards:
     - id: weave.standards.pci-dss
@@ -208,6 +210,7 @@ spec:
   how_to_solve: "Add these custom labels to `metadata`.\n* owner\n* app.kubernetes.io/name\n* app.kubernetes.io/instance\n* app.kubernetes.io/version\n* app.kubernetes.io/name\n* app.kubernetes.io/part-of\n* app.kubernetes.io/managed-by\n* app.kubernetes.io/created-by\n\n```\nmetadata:\n  labels:\n    <label>: value\n```  \nFor additional information, please check\n* https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels \n"
   category: weave.categories.organizational-standards
   severity: low
+  mutate: false
   targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
   tags: []
   parameters:
