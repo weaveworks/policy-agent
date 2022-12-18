@@ -3,6 +3,7 @@ package mutation
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/MagalixTechnologies/core/logger"
@@ -38,22 +39,22 @@ func (m *MutationHandler) Handle(ctx context.Context, req ctrlAdmission.Request)
 	var entitySpec map[string]interface{}
 	err := json.Unmarshal(req.Object.Raw, &entitySpec)
 	if err != nil {
-		return m.handleErrors(err, "failed to unmarshal")
+		return m.handleErrors(err, fmt.Sprintf("failed to unmarshal entity %s/%s spec into a map", req.Namespace, req.Name))
 	}
 
 	entity := domain.NewEntityFromSpec(entitySpec)
 	result, err := m.validator.Validate(ctx, entity, string(req.AdmissionRequest.Operation))
 	if err != nil {
-		return m.handleErrors(err, "failed to validate")
+		return m.handleErrors(err, fmt.Sprintf("failed to validate entity %s/%s", req.Namespace, req.Name))
 	}
 
 	if result.Mutation != nil {
 		logger.Infow("mutating resource", "name", req.Name, "namespace", req.Namespace)
-		mutated, err := result.Mutation.Mutated()
+		mutated, err := result.Mutation.NewResource()
 		if err != nil {
-			return m.handleErrors(err, "failed to mutate")
+			return m.handleErrors(err, fmt.Sprintf("failed to mutate entity %s/%s ", req.Namespace, req.Name))
 		}
-		return ctrlAdmission.PatchResponseFromRaw(result.Mutation.Old(), mutated)
+		return ctrlAdmission.PatchResponseFromRaw(result.Mutation.OldResource(), mutated)
 	}
 
 	return ctrlAdmission.Allowed("")
