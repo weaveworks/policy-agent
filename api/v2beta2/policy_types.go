@@ -132,7 +132,7 @@ type PolicySpec struct {
 
 	//+optional
 	//+kubebuilder:default:=false
-	// Mutate is a flag of whether to enable mutation of this policy or not
+	// Mutate is a flag that indicates whether to enable mutation of resources violating this policy or not
 	Mutate bool `json:"mutate"`
 }
 

@@ -24,7 +24,7 @@ func NewMutationHandler(validator validation.Validator) *MutationHandler {
 }
 
 func (m *MutationHandler) handleErrors(err error, errMsg string) ctrlAdmission.Response {
-	logger.Errorw("validating admission request error", "error", err, "error-message", errMsg)
+	logger.Errorw("validating mutation request error", "error", err, "error-message", errMsg)
 	errRsp := ctrlAdmission.ValidationResponse(false, errMsg)
 	errRsp.Result.Code = http.StatusInternalServerError
 	return errRsp
