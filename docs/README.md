@@ -68,6 +68,20 @@ This contains the admission module that enforces policies. It uses the `controll
 
 > Works with policies of provider `kubernetes`
 
+#### Mutating Resources
+
+Starting from version `v2.2.0`. The policy agent will support mutating resources. To enable mutating resources set `mutate` flag to `true` in the `admission` configuration section.
+
+```yaml
+admission:
+   enabled: true
+   mutate: true # set this field to true to enable mutating resources
+   sinks:
+      filesystemSink:
+         fileName: admission.txt
+```
+
+> See [here](./policy.md#mutating-resources) how to make policie support mutating resources.
 
 ### Terraform Admission
 

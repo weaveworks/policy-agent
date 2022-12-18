@@ -18,3 +18,24 @@ Here is the Weaveworks [Policy Library](https://github.com/weaveworks/policy-lib
 It is used in [Multi Tenancy](https://docs.gitops.weave.works/docs/enterprise/multi-tenancy/) feature in [Weave GitOps Enterprise](https://docs.gitops.weave.works/docs/enterprise/intro/)
 
 Tenant policies has a special tag `tenancy`. 
+
+## Mutating Resources
+
+
+![](./mutation.png)
+
+Starting from version `v2.2.0`. The policy agent will support mutating resources.
+
+To enable mutating resouruces. Policies must have field `mutate` set to `true` and rego code should return the `violating_key` and the `recommended_value` in the violation response.
+
+Example 
+
+```
+result = {
+    "issue_detected": true,
+    "msg": sprintf("Replica count must be greater than or equal to '%v'; found '%v'.", [min_replica_count, replicas]),
+    "violating_key": "spec.replicas",
+    "recommended_value": min_replica_count
+}
+```
+
