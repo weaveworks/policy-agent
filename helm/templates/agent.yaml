@@ -339,16 +339,14 @@ webhooks:
 
 ---
 
-{{- if eq .Values.config.admission.enabled true }}
-{{- if eq .Values.config.admission.mutate true }}
-
+{{- if and .Values.config.admission.enabled .Values.config.admission.mutate }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: policy-agent
   labels:
     app.kubernetes.io/name: policy-agent
-  {{- if eq .Values.useCertManager true }}
+  {{- if .Values.useCertManager }}
   annotations:
     cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/agent-certificate
   {{- end }}
@@ -419,5 +417,4 @@ webhooks:
         values:
         - {{ .Release.Namespace }}
         {{- end }}
-{{- end }}
 {{- end }}
