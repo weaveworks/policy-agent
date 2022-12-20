@@ -24,7 +24,7 @@ Tenant policies has a special tag `tenancy`.
 
 ![](./mutation.png)
 
-Starting from version `v2.2.0`. The policy agent will support mutating resources.
+Starting from version `v2.2.0`, the policy agent will support mutating resources.
 
 To enable mutating resouruces. Policies must have field `mutate` set to `true` and the rego code should return the `violating_key` and the `recommended_value` in the violation response. The mutation webhook will use the `violating_key` and `recommended_value` to mutate the resource and return the new mutated resource.
 
