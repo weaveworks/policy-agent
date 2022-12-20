@@ -70,7 +70,7 @@ This contains the admission module that enforces policies. It uses the `controll
 
 #### Mutating Resources
 
-Starting from version `v2.2.0`. The policy agent will support mutating resources. To enable mutating resources set `mutate` flag to `true` in the `admission` configuration section.
+Starting from version `v2.2.0`, the policy agent will support mutating resources. To enable mutating resources set `mutate` flag to `true` in the `admission` configuration section.
 
 ```yaml
 admission:
