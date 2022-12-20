@@ -228,7 +228,7 @@ func TestIntegration(t *testing.T) {
 	})
 
 	t.Run("test mutate resources", func(t *testing.T) {
-		raw, err := ioutil.ReadFile("data/resources/mutation_test-resources.yaml")
+		raw, err := ioutil.ReadFile("data/resources/mutation_test_resources.yaml")
 		assert.Nil(t, err)
 
 		var m map[string]interface{}
@@ -236,15 +236,14 @@ func TestIntegration(t *testing.T) {
 		assert.Nil(t, err)
 
 		spec := m["spec"].(map[string]interface{})
-		assert.Equal(t, spec["replicas"], float64(1))
+		assert.Equal(t, int64(1), spec["replicas"])
 
-		err = kubectl("apply", "-f", "data/resources/mutation_test-resources.yaml")
+		err = kubectl("apply", "-f", "data/resources/mutation_test_resources.yaml")
 		assert.NotNil(t, err)
 
 		var deployment appsv1.Deployment
 		err = cl.Get(ctx, client.ObjectKey{Name: testMutationDeployment, Namespace: "default"}, &deployment)
 		assert.NotNil(t, err)
-		assert.Nil(t, deployment)
 
 		var policy v2beta2.Policy
 		err = cl.Get(ctx, client.ObjectKey{Name: minimumReplicaCountPolicy}, &policy)
