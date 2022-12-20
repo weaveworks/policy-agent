@@ -336,3 +336,85 @@ webhooks:
       resources:
       - policyconfigs
     sideEffects: None
+
+---
+
+{{- if and .Values.config.admission.enabled .Values.config.admission.mutate }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: policy-agent
+  labels:
+    app.kubernetes.io/name: policy-agent
+  {{- if .Values.useCertManager }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/agent-certificate
+  {{- end }}
+webhooks:
+  - name: mutation.agent.weaveworks
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: policy-agent
+        path: /mutation
+      caBundle: {{ .Values.caCertificate | b64enc }}
+    rules:
+      - operations: [ "CREATE" ]
+        apiVersions: ["*"]
+        apiGroups:
+        - ""
+        - extensions
+        - apps
+        - batch
+        - metrics.k8s.io
+        - rbac.authorization.k8s.io
+        - storage.k8s.io
+        - source.toolkit.fluxcd.io
+        - gitops.weave.works
+        - kustomize.toolkit.fluxcd.io
+        - helm.toolkit.fluxcd.io
+        - autoscaling
+        resources:
+        - namespaces
+        - pods
+        - limitranges
+        - deployments
+        - replicationcontrollers
+        - statefulsets
+        - daemonsets
+        - replicasets
+        - jobs
+        - cronjobs
+        - services
+        - clusterrolebindings
+        - clusterroles
+        - roles
+        - rolebindings
+        - persistentvolumes
+        - persistentvolumeclaims
+        - storageclasses
+        - gitrepositories
+        - helmrepositories
+        - buckets
+        - gitopsclusters
+        - kustomizations
+        - helmreleases
+        - ocirepositories
+        - horizontalpodautoscalers
+    timeoutSeconds: 5
+    failurePolicy: {{ .Values.failurePolicy }}
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    matchPolicy: Equivalent
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        {{- if .Values.excludeNamespaces }}
+        values:
+          {{- toYaml .Values.excludeNamespaces | nindent 8 }}
+        {{- else }}
+        values:
+        - {{ .Release.Namespace }}
+        {{- end }}
+{{- end }}

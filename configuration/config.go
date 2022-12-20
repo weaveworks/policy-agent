@@ -50,6 +50,7 @@ type AdmissionConfig struct {
 	Enabled bool
 	Webhook AdmissionWebhook
 	Sinks   SinksConfig
+	Mutate  bool
 }
 
 type AuditConfig struct {

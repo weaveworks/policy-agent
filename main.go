@@ -27,6 +27,7 @@ import (
 	"github.com/weaveworks/policy-agent/internal/clients/gateway"
 	"github.com/weaveworks/policy-agent/internal/clients/kube"
 	"github.com/weaveworks/policy-agent/internal/entities/k8s"
+	"github.com/weaveworks/policy-agent/internal/mutation"
 	crd "github.com/weaveworks/policy-agent/internal/policies"
 	"github.com/weaveworks/policy-agent/internal/sink/elastic"
 	"github.com/weaveworks/policy-agent/internal/sink/filesystem"
@@ -340,6 +341,7 @@ func main() {
 				auditor.TypeAudit,
 				config.AccountID,
 				config.ClusterID,
+				false,
 				auditSinks...,
 			)
 			auditControllerInterval := time.Duration(config.Audit.Interval) * time.Hour
@@ -365,6 +367,7 @@ func main() {
 				admission.TypeAdmission,
 				config.AccountID,
 				config.ClusterID,
+				false,
 				admissionSinks...,
 			)
 			admissionServer := admission.NewAdmissionHandler(
@@ -375,6 +378,23 @@ func main() {
 			err = admissionServer.Run(mgr)
 			if err != nil {
 				return fmt.Errorf("failed to start admission server: %w", err)
+			}
+
+			if config.Admission.Mutate {
+				validator := validation.NewOPAValidator(
+					policiesSource,
+					false,
+					admission.TypeAdmission,
+					config.AccountID,
+					config.ClusterID,
+					true,
+				)
+				mutationServer := mutation.NewMutationHandler(validator)
+				logger.Info("starting mutation server...")
+				err = mutationServer.Run(mgr)
+				if err != nil {
+					return fmt.Errorf("failed to start mutation server: %w", err)
+				}
 			}
 		}
 
@@ -391,6 +411,7 @@ func main() {
 				terraform.TypeTFAdmission,
 				config.AccountID,
 				config.ClusterID,
+				false,
 				terraformSinks...,
 			)
 

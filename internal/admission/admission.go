@@ -68,9 +68,11 @@ func (a *AdmissionHandler) Handle(ctx context.Context, req ctrlAdmission.Request
 	if err != nil {
 		return a.handleErrors(err, ErrValidatingResource)
 	}
+
 	if len(result.Violations) > 0 {
 		return ctrlAdmission.ValidationResponse(false, generateResponse(result.Violations))
 	}
+
 	return ctrlAdmission.ValidationResponse(true, "")
 }
 
