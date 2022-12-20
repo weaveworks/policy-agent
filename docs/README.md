@@ -81,7 +81,7 @@ admission:
          fileName: admission.txt
 ```
 
-> See [here](./policy.md#mutating-resources) how to make policie support mutating resources.
+> See [here](./policy.md#mutating-resources) how to make policies support mutating resources.
 
 ### Terraform Admission
 
