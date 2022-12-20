@@ -1,0 +1,12 @@
+config:
+  admission:
+    mutate: true
+    enabled: true
+    sinks:
+      k8sEventsSink:
+        enabled: true
+  audit:
+    enabled: true
+    sinks:
+      k8sEventsSink:
+        enabled: true

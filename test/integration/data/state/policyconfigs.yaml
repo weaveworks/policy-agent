@@ -1,0 +1,62 @@
+apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  name: namespace-config
+spec:
+  match:
+    namespaces:
+    - default
+  config:
+    weave.policies.containers-minimum-replica-count:
+      parameters:
+        replica_count: 3
+---
+
+apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  name: helm-app-config
+spec:
+  match:
+    apps:
+    - kind: HelmRelease
+      name: helm-app
+      namespace: flux-system
+  config:
+    weave.policies.containers-minimum-replica-count:
+      parameters:
+        replica_count: 4
+
+---
+
+apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  name: kustomize-app-config
+spec:
+  match:
+    apps:
+    - kind: Kustomization
+      name: kustomize-app
+      namespace: flux-system
+  config:
+    weave.policies.containers-minimum-replica-count:
+      parameters:
+        replica_count: 5
+
+---
+
+apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  name: resource-config
+spec:
+  match:
+    resources:
+    - kind: Deployment
+      name: test-deployment
+      namespace: default
+  config:
+    weave.policies.containers-minimum-replica-count:
+      parameters:
+        replica_count: 6

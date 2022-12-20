@@ -129,6 +129,11 @@ type PolicySpec struct {
 	//+kubebuilder:validation:Enum=kubernetes;terraform
 	// Provider is policy provider, can be kubernetes, terraform
 	Provider string `json:"provider"`
+
+	//+optional
+	//+kubebuilder:default:=false
+	// Mutate is a flag that indicates whether to enable mutation of resources violating this policy or not
+	Mutate bool `json:"mutate"`
 }
 
 //+kubebuilder:object:root=true

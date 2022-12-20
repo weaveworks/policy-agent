@@ -348,6 +348,11 @@ spec:
               id:
                 description: ID is the policy unique identifier
                 type: string
+              mutate:
+                default: false
+                description: Mutate is a flag that indicates whether to enable mutation
+                  of resources violating this policy or not
+                type: boolean
               name:
                 description: Name is the policy name
                 type: string
