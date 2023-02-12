@@ -18,6 +18,11 @@ var (
 	PolicyConfigGroupVersionResource = GroupVersion.WithResource(PolicyConfigResourceName)
 )
 
+// PolicyConfigStatus will hold the policies ids that don't exist in the cluster
+type PolicyConfigStatus struct {
+	Status          string   `json:"status,omitempty"`
+	MissingPolicies []string `json:"missingPolicies,omitempty"`
+}
 type PolicyTargetApplication struct {
 	//+kubebuilder:validation:Enum=HelmRelease;Kustomization
 	Kind string `json:"kind"`
@@ -67,7 +72,18 @@ type PolicyConfigSpec struct {
 type PolicyConfig struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              PolicyConfigSpec `json:"spec,omitempty"`
+	Spec              PolicyConfigSpec   `json:"spec,omitempty"`
+	Status            PolicyConfigStatus `json:"status,omitempty"`
+}
+
+// SetPolicyConfigStatus sets policy config status
+func (c *PolicyConfig) SetPolicyConfigStatus(missingPolicies []string) {
+	if len(missingPolicies) > 0 {
+		c.Status.Status = "Warning"
+		c.Status.MissingPolicies = missingPolicies
+	} else {
+		c.Status.Status = "OK"
+	}
 }
 
 func (c *PolicyConfig) Validate() error {

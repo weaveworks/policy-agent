@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-func TestPolicyConfigValidator(t *testing.T) {
+func TestPolicyConfigController(t *testing.T) {
 	client := fake.NewFakeClient()
 	err := pacv2.AddToScheme(client.Scheme())
 	if err != nil {
@@ -33,7 +33,7 @@ func TestPolicyConfigValidator(t *testing.T) {
 		t.Error(err)
 	}
 
-	validator := PolicyConfigValidator{
+	controller := PolicyConfigController{
 		Client:  client,
 		decoder: decoder,
 	}
@@ -341,7 +341,7 @@ func TestPolicyConfigValidator(t *testing.T) {
 	for i := range cases {
 		config := cases[i].config
 		js, _ := json.Marshal(config)
-		response := validator.Handle(ctx, admission.Request{
+		response := controller.Handle(ctx, admission.Request{
 			AdmissionRequest: admissionv1.AdmissionRequest{
 				Name: config.Name,
 				Kind: v1.GroupVersionKind{

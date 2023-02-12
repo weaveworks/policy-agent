@@ -434,7 +434,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		if err = (&controllers.PolicyConfigValidator{
+		if err = (&controllers.PolicyConfigController{
 			Client: mgr.GetClient(),
 		}).SetupWithManager(mgr); err != nil {
 			logger.Errorw("unable to create controller", "controller", "policyConfig", "err", err)

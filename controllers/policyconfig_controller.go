@@ -5,15 +5,23 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/MagalixTechnologies/core/logger"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-type PolicyConfigValidator struct {
+type PolicyConfigController struct {
 	Client  client.Client
 	decoder *admission.Decoder
 }
@@ -65,7 +73,7 @@ func checkTargetOverlap(config, newConfig pacv2.PolicyConfig) error {
 	return nil
 }
 
-func (pc *PolicyConfigValidator) Handle(ctx context.Context, req admission.Request) admission.Response {
+func (pc *PolicyConfigController) Handle(ctx context.Context, req admission.Request) admission.Response {
 	newConfig := &pacv2.PolicyConfig{}
 	err := pc.decoder.Decode(req, newConfig)
 	if err != nil {
@@ -94,16 +102,93 @@ func (pc *PolicyConfigValidator) Handle(ctx context.Context, req admission.Reque
 	return admission.Allowed("")
 }
 
-func (pc *PolicyConfigValidator) SetupWithManager(mgr ctrl.Manager) error {
+func (pc *PolicyConfigController) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	logger.Infow("reconciling policy config", " policy config ", req.Name)
+
+	policyConfig := pacv2.PolicyConfig{}
+	if err := pc.Client.Get(ctx, req.NamespacedName, &policyConfig); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if !policyConfig.DeletionTimestamp.IsZero() {
+		logger.Info("skipping policy config", " policy config ", policyConfig.Name, " reason ", " Deleted ")
+		return ctrl.Result{}, nil
+	}
+
+	policyConfigConfig := policyConfig.Spec.Config
+	policiesIDs := []string{}
+
+	for policyID := range policyConfigConfig {
+		policiesIDs = append(policiesIDs, policyID)
+	}
+
+	missingPolicies := []string{}
+
+	for _, policyID := range policiesIDs {
+		policy := pacv2.Policy{}
+		policyName := types.NamespacedName{
+			Name: policyID,
+		}
+		if err := pc.Client.Get(ctx, policyName, &policy); err != nil {
+			if apierrors.IsNotFound(err) {
+				missingPolicies = append(missingPolicies, policyID)
+			}
+		}
+	}
+	patch := client.MergeFrom(policyConfig.DeepCopy())
+	policyConfig.SetPolicyConfigStatus(missingPolicies)
+
+	logger.Infow("updating policy config config status", " name ", req.Name, " warnings ", missingPolicies)
+	if err := pc.Client.Patch(ctx, &policyConfig, patch); err != nil {
+		if apierrors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		return ctrl.Result{}, err
+	}
+	return ctrl.Result{}, nil
+}
+
+func (p *PolicyConfigController) reconcile(_ client.Object) []reconcile.Request {
+	policiesConfigs := &pacv2.PolicyConfigList{}
+	err := p.Client.List(context.Background(), policiesConfigs)
+	if err != nil {
+		return []reconcile.Request{}
+	}
+	requests := make([]reconcile.Request, len(policiesConfigs.Items))
+	for i, item := range policiesConfigs.Items {
+		requests[i] = reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Name: item.Name,
+			},
+		}
+	}
+	return requests
+}
+
+func (pc *PolicyConfigController) SetupWithManager(mgr ctrl.Manager) error {
 	mgr.GetWebhookServer().Register(
 		"/validate-v2beta2-policyconfig",
 		&webhook.Admission{Handler: pc},
 	)
-	return nil
+	// watch both policies and policy config in case user changed either of them
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&pacv2.PolicyConfig{}).
+		Watches(
+			&source.Kind{Type: &pacv2.Policy{}},
+			handler.EnqueueRequestsFromMapFunc(pc.reconcile),
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		).
+		Watches(
+			&source.Kind{Type: &pacv2.PolicyConfig{}},
+			handler.EnqueueRequestsFromMapFunc(pc.reconcile),
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		).
+		Complete(pc)
+
 }
 
 // InjectDecoder injects the decoder.
-func (pc *PolicyConfigValidator) InjectDecoder(d *admission.Decoder) error {
+func (pc *PolicyConfigController) InjectDecoder(d *admission.Decoder) error {
 	pc.decoder = d
 	return nil
 }
