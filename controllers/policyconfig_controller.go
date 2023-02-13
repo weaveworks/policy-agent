@@ -111,7 +111,6 @@ func (pc *PolicyConfigController) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	if !policyConfig.DeletionTimestamp.IsZero() {
-		logger.Info("skipping policy config", " policy config ", policyConfig.Name, " reason ", " Deleted ")
 		return ctrl.Result{}, nil
 	}
 
@@ -140,9 +139,6 @@ func (pc *PolicyConfigController) Reconcile(ctx context.Context, req ctrl.Reques
 
 	logger.Infow("updating policy config config status", " name ", req.Name, " warnings ", missingPolicies)
 	if err := pc.Client.Patch(ctx, &policyConfig, patch); err != nil {
-		if apierrors.IsNotFound(err) {
-			return ctrl.Result{}, nil
-		}
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil

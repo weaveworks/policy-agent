@@ -41,7 +41,6 @@ func (p *PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
-		logger.Errorw("unable to get policy", "error", err)
 		return ctrl.Result{}, err
 	}
 
@@ -51,7 +50,6 @@ func (p *PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	var policySets pacv2.PolicySetList
 	if err := p.List(ctx, &policySets); err != nil {
-		logger.Errorw("unable to list policysets", "error", err)
 		return ctrl.Result{}, err
 	}
 
