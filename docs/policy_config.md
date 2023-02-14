@@ -2,11 +2,28 @@
 
 ## Goal
 
-Users sometimes need to enforce the same policy(s) with different configurations (parameters) for different targets (applications, resources, or namespaces).
+Users sometimes need to enforce the same policy(s) with different configurations (parameters) for different targets (applications, resources namespaces, or workspaces).
 
 ## Schema
 
 A new `PolicyConfig` CRD allows using policies with multiple configurations by configuring policy parameters based on a certain match on applications or resources with Schema and match with one of the following
+
+- Match by workspaces
+
+  ```yaml
+  apiVersion: pac.weave.works/v2beta2 
+  kind: PolicyConfig      # policy config resource kind 
+  metadata:       
+    name: my-config       # policy config name
+  spec:
+    match:                # matches (targets of the policy config)
+      workspaces:         # add one or more workspaces
+      - devteam
+    config:               # config for policies [one or more]
+      weave.policies.containers-minimum-replica-count:   
+        parameters:
+          replica_count: 3
+  ```
 
 - Match by namespaces
 
@@ -17,7 +34,7 @@ A new `PolicyConfig` CRD allows using policies with multiple configurations by c
     name: my-config       # policy config name
   spec:
     match:                # matches (targets of the policy config)
-      namespaces:         # add one or more name spaces
+      namespaces:         # add one or more namespaces
       - dev
       - prod
     config:               # config for policies [one or more]
@@ -66,6 +83,7 @@ A new `PolicyConfig` CRD allows using policies with multiple configurations by c
 
 ## Priority of enforcing multiple configs with overlapping targets [from low to high]
 
+- Policy configs which targets the workspace.
 - Policy configs which targets the namespace.
 - Policy config which targets an application in all namespaces.
 - Policy config which targets an application in a certain namespace.
