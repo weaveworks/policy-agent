@@ -19,7 +19,22 @@ type PolicyConfigValidator struct {
 }
 
 func checkTargetOverlap(config, newConfig pacv2.PolicyConfig) error {
-	if config.Spec.Match.Namespaces != nil {
+	if config.Spec.Match.Workspaces != nil {
+		if newConfig.Spec.Match.Workspaces == nil {
+			return nil
+		}
+		workspaces := map[string]struct{}{}
+		for _, workspace := range config.Spec.Match.Workspaces {
+			workspaces[workspace] = struct{}{}
+		}
+
+		for _, workspace := range newConfig.Spec.Match.Workspaces {
+			if _, ok := workspaces[workspace]; ok {
+				return fmt.Errorf("policy config '%s' already targets workspace '%s'", config.GetName(), workspace)
+			}
+		}
+
+	} else if config.Spec.Match.Namespaces != nil {
 		if newConfig.Spec.Match.Namespaces == nil {
 			return nil
 		}
