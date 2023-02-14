@@ -3,11 +3,18 @@ package crd
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/MagalixTechnologies/policy-core/domain"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	"github.com/weaveworks/policy-agent/internal/utils"
+	v1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	tenantLabel = "toolkit.fluxcd.io/tenant"
 )
 
 func (p *PoliciesWatcher) GetPolicyConfig(ctx context.Context, entity domain.Entity) (*domain.PolicyConfig, error) {
@@ -17,8 +24,25 @@ func (p *PoliciesWatcher) GetPolicyConfig(ctx context.Context, entity domain.Ent
 		return nil, err
 	}
 
-	var namespaces, apps, appsWithNamespace, resources, resourcesWithNamespace []pacv2.PolicyConfig
+	var workspaces, namespaces, apps, appsWithNamespace, resources, resourcesWithNamespace []pacv2.PolicyConfig
+
+	var ns v1.Namespace
+	if err := p.cache.Get(ctx, client.ObjectKey{Name: entity.Namespace}, &ns); err != nil {
+		return nil, fmt.Errorf("failed to get entity namespace: %w", err)
+	}
+
+	entityWorkspace := ns.GetLabels()[tenantLabel]
+
 	for _, config := range configs.Items {
+		if entityWorkspace != "" {
+			for _, workspace := range config.Spec.Match.Workspaces {
+				if workspace == entityWorkspace {
+					workspaces = append(workspaces, config)
+					break
+				}
+			}
+		}
+
 		for _, namespace := range config.Spec.Match.Namespaces {
 			if namespace == entity.Namespace {
 				namespaces = append(namespaces, config)
@@ -39,6 +63,7 @@ func (p *PoliciesWatcher) GetPolicyConfig(ctx context.Context, entity domain.Ent
 				}
 			}
 		}
+
 		for _, resource := range config.Spec.Match.Resources {
 			if resource.Name == entity.Name && resource.Kind == entity.Kind {
 				if resource.Namespace != "" {
@@ -54,6 +79,7 @@ func (p *PoliciesWatcher) GetPolicyConfig(ctx context.Context, entity domain.Ent
 	}
 
 	allConfigs := []pacv2.PolicyConfig{}
+	allConfigs = append(allConfigs, workspaces...)
 	allConfigs = append(allConfigs, namespaces...)
 	allConfigs = append(allConfigs, apps...)
 	allConfigs = append(allConfigs, appsWithNamespace...)

@@ -3,14 +3,14 @@ package crd
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func TestGetPolicies(t *testing.T) {
@@ -36,7 +36,7 @@ func TestGetPolicies(t *testing.T) {
 					{
 						Name:     "x",
 						Type:     "string",
-						Value:    &apiextensionsv1.JSON{Raw: []byte("test")},
+						Value:    &apiextensionsv1.JSON{Raw: []byte(`"test"`)},
 						Required: true,
 					},
 				},
@@ -153,6 +153,7 @@ func TestGetPolicies(t *testing.T) {
 			policies: policies,
 			policySets: []pacv2.PolicySet{
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAuditMode,
 						Filters: pacv2.PolicySetFilters{
@@ -169,6 +170,7 @@ func TestGetPolicies(t *testing.T) {
 			policies: policies,
 			policySets: []pacv2.PolicySet{
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAuditMode,
 						Filters: pacv2.PolicySetFilters{
@@ -185,6 +187,7 @@ func TestGetPolicies(t *testing.T) {
 			policies: policies,
 			policySets: []pacv2.PolicySet{
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAuditMode,
 						Filters: pacv2.PolicySetFilters{
@@ -201,6 +204,7 @@ func TestGetPolicies(t *testing.T) {
 			policies: policies,
 			policySets: []pacv2.PolicySet{
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAuditMode,
 						Filters: pacv2.PolicySetFilters{
@@ -217,6 +221,7 @@ func TestGetPolicies(t *testing.T) {
 			policies: policies,
 			policySets: []pacv2.PolicySet{
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAuditMode,
 						Filters: pacv2.PolicySetFilters{
@@ -235,6 +240,7 @@ func TestGetPolicies(t *testing.T) {
 			policies: policies,
 			policySets: []pacv2.PolicySet{
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAuditMode,
 						Filters: pacv2.PolicySetFilters{
@@ -243,6 +249,7 @@ func TestGetPolicies(t *testing.T) {
 					},
 				},
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-2"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAuditMode,
 						Filters: pacv2.PolicySetFilters{
@@ -259,6 +266,7 @@ func TestGetPolicies(t *testing.T) {
 			policies: policies,
 			policySets: []pacv2.PolicySet{
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAdmissionMode,
 						Filters: pacv2.PolicySetFilters{
@@ -267,6 +275,7 @@ func TestGetPolicies(t *testing.T) {
 					},
 				},
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-2"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAdmissionMode,
 						Filters: pacv2.PolicySetFilters{
@@ -283,6 +292,7 @@ func TestGetPolicies(t *testing.T) {
 			policies: policies,
 			policySets: []pacv2.PolicySet{
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAuditMode,
 						Filters: pacv2.PolicySetFilters{
@@ -299,6 +309,7 @@ func TestGetPolicies(t *testing.T) {
 			policies: policies,
 			policySets: []pacv2.PolicySet{
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAdmissionMode,
 						Filters: pacv2.PolicySetFilters{
@@ -316,6 +327,7 @@ func TestGetPolicies(t *testing.T) {
 			policies: policies,
 			policySets: []pacv2.PolicySet{
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAuditMode,
 						Filters: pacv2.PolicySetFilters{
@@ -332,6 +344,7 @@ func TestGetPolicies(t *testing.T) {
 			policies: policies,
 			policySets: []pacv2.PolicySet{
 				{
+					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
 					Spec: pacv2.PolicySetSpec{
 						Mode: pacv2.PolicySetAdmissionMode,
 						Filters: pacv2.PolicySetFilters{
@@ -347,25 +360,25 @@ func TestGetPolicies(t *testing.T) {
 	}
 
 	for i := range cases {
-		cache := fakeCache{
-			items: map[reflect.Type]client.ObjectList{
-				reflect.TypeOf(pacv2.PolicyList{}): &pacv2.PolicyList{
-					TypeMeta: v1.TypeMeta{
-						Kind: pacv2.PolicyListKind,
-					},
-					Items: cases[i].policies,
-				},
-				reflect.TypeOf(pacv2.PolicySetList{}): &pacv2.PolicySetList{
-					TypeMeta: v1.TypeMeta{
-						Kind: pacv2.PolicySetListKind,
-					},
-					Items: cases[i].policySets,
-				},
-			},
+		schema := runtime.NewScheme()
+		pacv2.AddToScheme(schema)
+		corev1.AddToScheme(schema)
+
+		var items []runtime.Object
+		for idx := range cases[i].policies {
+			item := cases[i].policies[idx]
+			items = append(items, &item)
 		}
 
+		for idx := range cases[i].policySets {
+			item := cases[i].policySets[idx]
+			items = append(items, &item)
+		}
+
+		cache := NewFakeCache(schema, items...)
+
 		watcher := PoliciesWatcher{
-			cache:    &cache,
+			cache:    cache,
 			Mode:     cases[i].mode,
 			Provider: cases[i].provider,
 		}
