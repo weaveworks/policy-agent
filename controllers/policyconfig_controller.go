@@ -8,6 +8,7 @@ import (
 	"github.com/MagalixTechnologies/core/logger"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -25,6 +26,10 @@ type PolicyConfigController struct {
 	Client  client.Client
 	decoder *admission.Decoder
 }
+
+const (
+	policyConfigIndexKey = "spec.config"
+)
 
 func checkTargetOverlap(config, newConfig pacv2.PolicyConfig) error {
 	if config.Spec.Match.Namespaces != nil {
@@ -103,7 +108,7 @@ func (pc *PolicyConfigController) Handle(ctx context.Context, req admission.Requ
 }
 
 func (pc *PolicyConfigController) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger.Infow("reconciling policy config", " policy config ", req.Name)
+	logger.Infow("reconciling policy config", "policy config", req.Name)
 
 	policyConfig := pacv2.PolicyConfig{}
 	if err := pc.Client.Get(ctx, req.NamespacedName, &policyConfig); err != nil {
@@ -131,22 +136,28 @@ func (pc *PolicyConfigController) Reconcile(ctx context.Context, req ctrl.Reques
 		if err := pc.Client.Get(ctx, policyName, &policy); err != nil {
 			if apierrors.IsNotFound(err) {
 				missingPolicies = append(missingPolicies, policyID)
+			} else {
+				return ctrl.Result{}, err
 			}
 		}
 	}
 	patch := client.MergeFrom(policyConfig.DeepCopy())
 	policyConfig.SetPolicyConfigStatus(missingPolicies)
 
-	logger.Infow("updating policy config config status", " name ", req.Name, " warnings ", missingPolicies)
+	logger.Infow("updating policy config config status", "name", req.Name, "status", policyConfig.Status.Status, "warnings", missingPolicies)
 	if err := pc.Client.Patch(ctx, &policyConfig, patch); err != nil {
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
 }
 
-func (p *PolicyConfigController) reconcile(_ client.Object) []reconcile.Request {
+func (p *PolicyConfigController) reconcile(obj client.Object) []reconcile.Request {
 	policiesConfigs := &pacv2.PolicyConfigList{}
-	err := p.Client.List(context.Background(), policiesConfigs)
+	opts := client.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector(policyConfigIndexKey, obj.GetName()),
+	}
+
+	err := p.Client.List(context.Background(), policiesConfigs, &opts)
 	if err != nil {
 		return []reconcile.Request{}
 	}
@@ -166,16 +177,28 @@ func (pc *PolicyConfigController) SetupWithManager(mgr ctrl.Manager) error {
 		"/validate-v2beta2-policyconfig",
 		&webhook.Admission{Handler: pc},
 	)
+
+	err := mgr.GetFieldIndexer().IndexField(context.Background(), &pacv2.PolicyConfig{}, policyConfigIndexKey, func(obj client.Object) []string {
+		policyConfig, ok := obj.(*pacv2.PolicyConfig)
+		if !ok {
+			return nil
+		}
+		policyIDS := []string{}
+		for policyID := range policyConfig.Spec.Config {
+			policyIDS = append(policyIDS, policyID)
+		}
+		return policyIDS
+	})
+
+	if err != nil {
+		return err
+	}
+
 	// watch both policies and policy config in case user changed either of them
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&pacv2.PolicyConfig{}).
 		Watches(
 			&source.Kind{Type: &pacv2.Policy{}},
-			handler.EnqueueRequestsFromMapFunc(pc.reconcile),
-			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-		).
-		Watches(
-			&source.Kind{Type: &pacv2.PolicyConfig{}},
 			handler.EnqueueRequestsFromMapFunc(pc.reconcile),
 			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
 		).
