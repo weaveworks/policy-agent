@@ -2,7 +2,7 @@
 
 ## Goal
 
-Users sometimes need to enforce the same policy(s) with different configurations (parameters) for different targets (applications, resources namespaces, or workspaces).
+Users sometimes need to enforce the same policy(s) with different configurations (parameters) for different targets (applications, resources, namespaces, or workspaces).
 
 ## Schema
 
