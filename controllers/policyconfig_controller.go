@@ -28,7 +28,7 @@ type PolicyConfigController struct {
 }
 
 const (
-	policyConfigIndexKey = "spec.config"
+	policyConfigIndexKey = "spec.config.policies"
 )
 
 func checkTargetOverlap(config, newConfig pacv2.PolicyConfig) error {

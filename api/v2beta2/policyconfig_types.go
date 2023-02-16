@@ -67,6 +67,7 @@ type PolicyConfigSpec struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Cluster
 // +kubebuilder:storageversion
+// +kubebuilder:subresource:status
 
 // PolicyConfig is the Schema for the policyconfigs API
 type PolicyConfig struct {
