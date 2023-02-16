@@ -120,15 +120,10 @@ func (pc *PolicyConfigController) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	policyConfigConfig := policyConfig.Spec.Config
-	policiesIDs := []string{}
-
-	for policyID := range policyConfigConfig {
-		policiesIDs = append(policiesIDs, policyID)
-	}
 
 	missingPolicies := []string{}
 
-	for _, policyID := range policiesIDs {
+	for policyID := range policyConfigConfig {
 		policy := pacv2.Policy{}
 		policyName := types.NamespacedName{
 			Name: policyID,
