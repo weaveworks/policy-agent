@@ -145,7 +145,7 @@ func (pc *PolicyConfigController) Reconcile(ctx context.Context, req ctrl.Reques
 	policyConfig.SetPolicyConfigStatus(missingPolicies)
 
 	logger.Infow("updating policy config config status", "name", req.Name, "status", policyConfig.Status.Status, "warnings", missingPolicies)
-	if err := pc.Client.Patch(ctx, &policyConfig, patch); err != nil {
+	if err := pc.Client.Status().Patch(ctx, &policyConfig, patch); err != nil {
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
