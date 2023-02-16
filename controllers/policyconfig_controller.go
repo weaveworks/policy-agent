@@ -183,11 +183,11 @@ func (pc *PolicyConfigController) SetupWithManager(mgr ctrl.Manager) error {
 		if !ok {
 			return nil
 		}
-		policyIDS := []string{}
+		policyIDs := []string{}
 		for policyID := range policyConfig.Spec.Config {
-			policyIDS = append(policyIDS, policyID)
+			policyIDs = append(policyIDs, policyID)
 		}
-		return policyIDS
+		return policyIDs
 	})
 
 	if err != nil {
