@@ -123,9 +123,9 @@ func TestGetPolicyConfig(t *testing.T) {
 				Kind:      "Deployment",
 				Name:      "deployment-3",
 				Namespace: "frontend",
-				Labels:    map[string]string{
-					// "kustomize.toolkit.fluxcd.io/name":      "my-app-test",
-					// "kustomize.toolkit.fluxcd.io/namespace": "flux-system-test",
+				Labels: map[string]string{
+					"kustomize.toolkit.fluxcd.io/name":      "my-app-test",
+					"kustomize.toolkit.fluxcd.io/namespace": "flux-system-test",
 				},
 			},
 			result: domain.PolicyConfig{

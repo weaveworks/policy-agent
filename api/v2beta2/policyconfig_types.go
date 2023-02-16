@@ -99,6 +99,9 @@ func (c *PolicyConfig) Validate() error {
 	}
 
 	if c.Spec.Match.Namespaces != nil {
+		if target != "" {
+			return fmt.Errorf("cannot target %s and namespaces in same policy config", target)
+		}
 		target = "namespaces"
 	}
 
