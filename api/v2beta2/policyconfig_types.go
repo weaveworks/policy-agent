@@ -48,6 +48,8 @@ func (rt *PolicyTargetResource) ID() string {
 
 type PolicyConfigTarget struct {
 	//+optional
+	Workspaces []string `json:"workspaces,omitempty"`
+	//+optional
 	Namespaces []string `json:"namespaces,omitempty"`
 	//+optional
 	Applications []PolicyTargetApplication `json:"apps,omitempty"`
@@ -92,7 +94,14 @@ func (c *PolicyConfig) SetPolicyConfigStatus(missingPolicies []string) {
 func (c *PolicyConfig) Validate() error {
 	var target string
 
+	if c.Spec.Match.Workspaces != nil {
+		target = "workspaces"
+	}
+
 	if c.Spec.Match.Namespaces != nil {
+		if target != "" {
+			return fmt.Errorf("cannot target %s and namespaces in same policy config", target)
+		}
 		target = "namespaces"
 	}
 

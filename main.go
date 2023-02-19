@@ -36,6 +36,7 @@ import (
 	"github.com/weaveworks/policy-agent/internal/sink/saas"
 	"github.com/weaveworks/policy-agent/internal/terraform"
 	"github.com/weaveworks/policy-agent/pkg/log"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -113,6 +114,11 @@ func main() {
 		}
 		if err != nil {
 			return fmt.Errorf("failed to load Kubernetes config: %w", err)
+		}
+
+		err = v1.AddToScheme(scheme)
+		if err != nil {
+			return fmt.Errorf("failed to add core v1 to scheme: %w", err)
 		}
 
 		err = pacv2.AddToScheme(scheme)

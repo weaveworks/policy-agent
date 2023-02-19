@@ -48,7 +48,7 @@ This is an optional resource. It is used to select group of policies to work in 
 
 ### PolicyConfig
 
-This is an optional resource. It is used to provide multiple policy configurations for the same policy for different resources, applications and namespaces.
+This is an optional resource. It is used to provide multiple policy configurations for the same policy for different resources, applications, namespaces and workspaces.
 
 > See more about PolicyConfig CRD [here](./policy_config.md)
 

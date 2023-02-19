@@ -89,6 +89,10 @@ spec:
                       - name
                       type: object
                     type: array
+                  workspaces:
+                    items:
+                      type: string
+                    type: array
                 type: object
             required:
             - config

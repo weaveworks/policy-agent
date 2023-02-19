@@ -2,23 +2,27 @@ package crd
 
 import (
 	"context"
-	"fmt"
-	"reflect"
 
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache/informertest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-type fakeCache struct {
+type FakeCache struct {
 	informertest.FakeInformers
-	items map[reflect.Type]client.ObjectList
+	client client.Client
 }
 
-func (c *fakeCache) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
-	items, ok := c.items[reflect.TypeOf(list).Elem()]
-	if !ok {
-		return fmt.Errorf("invalid item type")
-	}
-	reflect.ValueOf(list).Elem().Set(reflect.ValueOf(items).Elem())
-	return nil
+func NewFakeCache(s *runtime.Scheme, objs ...runtime.Object) *FakeCache {
+	cl := fake.NewClientBuilder().WithScheme(s).WithRuntimeObjects(objs...).Build()
+	return &FakeCache{client: cl}
+}
+
+func (c *FakeCache) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
+	return c.client.List(ctx, list, opts...)
+}
+
+func (c *FakeCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
+	return c.client.Get(ctx, key, obj)
 }
