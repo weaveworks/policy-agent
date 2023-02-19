@@ -15,7 +15,11 @@ spec:
     singular: policyconfig
   scope: Cluster
   versions:
-  - name: v2beta2
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    name: v2beta2
     schema:
       openAPIV3Schema:
         description: PolicyConfig is the Schema for the policyconfigs API

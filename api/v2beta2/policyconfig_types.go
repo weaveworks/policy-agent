@@ -68,6 +68,7 @@ type PolicyConfigSpec struct {
 // +kubebuilder:resource:scope=Cluster
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
 
 // PolicyConfig is the Schema for the policyconfigs API
 type PolicyConfig struct {
@@ -81,10 +82,10 @@ type PolicyConfig struct {
 func (c *PolicyConfig) SetPolicyConfigStatus(missingPolicies []string) {
 	if len(missingPolicies) > 0 {
 		c.Status.Status = "Warning"
-		c.Status.MissingPolicies = missingPolicies
 	} else {
 		c.Status.Status = "OK"
 	}
+	c.Status.MissingPolicies = missingPolicies
 }
 
 func (c *PolicyConfig) Validate() error {
