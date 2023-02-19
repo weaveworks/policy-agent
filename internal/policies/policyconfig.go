@@ -26,12 +26,15 @@ func (p *PoliciesWatcher) GetPolicyConfig(ctx context.Context, entity domain.Ent
 
 	var workspaces, namespaces, apps, appsWithNamespace, resources, resourcesWithNamespace []pacv2.PolicyConfig
 
-	var ns v1.Namespace
-	if err := p.cache.Get(ctx, client.ObjectKey{Name: entity.Namespace}, &ns); err != nil {
-		return nil, fmt.Errorf("failed to get entity namespace: %w", err)
-	}
+	var entityWorkspace string
 
-	entityWorkspace := ns.GetLabels()[tenantLabel]
+	if entity.Namespace != "" {
+		var ns v1.Namespace
+		if err := p.cache.Get(ctx, client.ObjectKey{Name: entity.Namespace}, &ns); err != nil {
+			return nil, fmt.Errorf("failed to get entity namespace: %w", err)
+		}
+		entityWorkspace = ns.GetLabels()[tenantLabel]
+	}
 
 	for _, config := range configs.Items {
 		if entityWorkspace != "" {
