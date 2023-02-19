@@ -15,7 +15,14 @@ spec:
     singular: policyconfig
   scope: Cluster
   versions:
-  - name: v2beta2
+  - additionalPrinterColumns:
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v2beta2
     schema:
       openAPIV3Schema:
         description: PolicyConfig is the Schema for the policyconfigs API
@@ -82,14 +89,31 @@ spec:
                       - name
                       type: object
                     type: array
+                  workspaces:
+                    items:
+                      type: string
+                    type: array
                 type: object
             required:
             - config
             - match
             type: object
+          status:
+            description: PolicyConfigStatus will hold the policies ids that don't
+              exist in the cluster
+            properties:
+              missingPolicies:
+                items:
+                  type: string
+                type: array
+              status:
+                type: string
+            type: object
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

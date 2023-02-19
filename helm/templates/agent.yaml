@@ -25,6 +25,7 @@ rules:
   - 'policysets'
   - 'policyconfigs'
   - 'policies/status'
+  - 'policyconfigs/status'
   verbs:
   - '*'
 - apiGroups:
@@ -55,6 +56,7 @@ rules:
   - serviceaccounts
   - nodes
   - horizontalpodautoscalers
+  - namespaces
   verbs:
   - get
   - list
