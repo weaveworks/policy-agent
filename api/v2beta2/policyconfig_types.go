@@ -69,6 +69,7 @@ type PolicyConfigSpec struct {
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 
 // PolicyConfig is the Schema for the policyconfigs API
 type PolicyConfig struct {
