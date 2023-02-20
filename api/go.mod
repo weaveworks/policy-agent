@@ -1,11 +1,11 @@
 module github.com/weaveworks/policy-agent/api
 
-go 1.17
+go 1.18
 
 require (
-	k8s.io/apiextensions-apiserver v0.25.4
-	k8s.io/apimachinery v0.25.4
-	sigs.k8s.io/controller-runtime v0.13.1
+	k8s.io/apiextensions-apiserver v0.25.0
+	k8s.io/apimachinery v0.25.0
+	sigs.k8s.io/controller-runtime v0.13.0
 )
 
 require (
