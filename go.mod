@@ -1,6 +1,6 @@
 module github.com/weaveworks/policy-agent
 
-go 1.18
+go 1.19
 
 replace (
 	github.com/dgrijalva/jwt-go v3.2.2+incompatible => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
