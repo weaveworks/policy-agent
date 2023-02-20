@@ -23,6 +23,6 @@ func (c *FakeCache) List(ctx context.Context, list client.ObjectList, opts ...cl
 	return c.client.List(ctx, list, opts...)
 }
 
-func (c *FakeCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
+func (c *FakeCache) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 	return c.client.Get(ctx, key, obj)
 }
