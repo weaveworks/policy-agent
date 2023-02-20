@@ -144,9 +144,5 @@ func (p *PoliciesWatcher) match(policy pacv2.Policy, policySets pacv2.PolicySetL
 	}
 
 	// if there are no policysets configured return true
-	if count == 0 {
-		return true
-	}
-
-	return false
+	return count == 0
 }
