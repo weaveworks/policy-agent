@@ -2,6 +2,12 @@ module github.com/weaveworks/policy-agent/pkg/policy-core
 
 go 1.19
 
+replace (
+	github.com/weaveworks/policy-agent/pkg/logger => ../logger
+	github.com/weaveworks/policy-agent/pkg/policy-core => ../policy-core
+	github.com/weaveworks/policy-agent/pkg/uuid-go => ../uuid-go
+)
+
 require (
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -15,7 +21,6 @@ require (
 )
 
 require (
-	github.com/MagalixTechnologies/core/logger v1.0.4 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

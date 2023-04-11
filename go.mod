@@ -5,6 +5,9 @@ go 1.19
 replace (
 	github.com/dgrijalva/jwt-go v3.2.2+incompatible => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/weaveworks/policy-agent/api => ./api
+	github.com/weaveworks/policy-agent/pkg/logger => ./pkg/logger
+	github.com/weaveworks/policy-agent/pkg/policy-core => ./pkg/policy-core
+	github.com/weaveworks/policy-agent/pkg/uuid-go => ./pkg/uuid-go
 )
 
 require (
