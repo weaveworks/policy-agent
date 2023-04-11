@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	domain "github.com/weaveworks/policy-agent/pkg/domain"
 	gomock "github.com/golang/mock/gomock"
+	domain "github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 )
 
 // MockEntitiesSource is a mock of EntitiesSource interface.

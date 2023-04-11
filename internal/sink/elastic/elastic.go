@@ -152,7 +152,7 @@ func createIndexBody(items []domain.PolicyValidation, index, insertionMode strin
 	for _, item := range items {
 		id := item.ID
 		if insertionMode == "upsert" {
-			id = fmt.Sprintf("%s_%s_%s", item.Policy.ID, item.Entity.ID, item.CreatedAt.Format("2006-02-01"))
+			id = fmt.Sprintf("%s_%s_%s", item.Policy.ID, item.Entity.ID, item.CreatedAt.Format("2006-01-02"))
 		}
 		itemBody, err := createDocumentBody(item, id, index)
 		if err != nil {

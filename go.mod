@@ -18,7 +18,7 @@ require (
 	github.com/urfave/cli/v2 v2.24.4
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/policy-agent/pkg/logger v0.0.0-20230411202656-c275cc5de56f
-	github.com/weaveworks/policy-agent/pkg/policy-core v0.0.0-20230411203003-50b7ab5b014e
+	github.com/weaveworks/policy-agent/pkg/policy-core v0.0.0-20230411203714-bf53ac3f4945
 	github.com/weaveworks/policy-agent/pkg/uuid-go v0.0.0-20230411202656-c275cc5de56f
 	go.uber.org/zap v1.24.0
 	golang.org/x/sync v0.1.0
@@ -30,8 +30,6 @@ require (
 )
 
 require (
-	github.com/MagalixTechnologies/core/logger v1.0.4 // indirect
-	github.com/MagalixTechnologies/policy-core v1.1.6 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
