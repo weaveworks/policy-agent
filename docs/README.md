@@ -1,23 +1,28 @@
 # Documentation
 
-- [High Level Architecture](#high-level-architecture)
-- [Custom Resources](#custom-resources)
-  - [Policy](#policy)
-  - [PolicySet](#policyset)
-  - [PolicyConfig](#policyconfig)
-- [Modes](#modes)
-  - [Audit](#audit)
-  - [Admission](#admission)
-  - [Terraform Admission](#terraform-admission)
-- [Validation Sinks](#validation-Sinks)
-  - [Kubernetes Events](#kubernetes-events)
-  - [Flux Notification COntroller](#flux-notification-controller)
-  - [File System](#file-system)
-  - [ElasticSearch](#elasticsearch)
-  - [SaaS](#saas)
-- [Configuration](#configuration)
-- [Versions](#versions)
-- [Development](#development)
+- [Documentation](#documentation)
+  - [High Level Architecture](#high-level-architecture)
+  - [Custom Resources](#custom-resources)
+    - [Policy](#policy)
+    - [PolicySet](#policyset)
+    - [PolicyConfig](#policyconfig)
+  - [Modes](#modes)
+    - [Audit](#audit)
+    - [Admission](#admission)
+      - [Mutating Resources](#mutating-resources)
+    - [Terraform Admission](#terraform-admission)
+  - [Validation Sinks](#validation-sinks)
+    - [Kubernetes Events](#kubernetes-events)
+    - [Flux Notification Controller](#flux-notification-controller)
+    - [File System](#file-system)
+    - [ElasticSearch](#elasticsearch)
+      - [Insertion modes](#insertion-modes)
+  - [Configuration](#configuration)
+  - [Versions](#versions)
+    - [v1](#v1)
+    - [v1beta1](#v1beta1)
+    - [v2beta2](#v2beta2)
+  - [Development](#development)
 
 
 ## High Level Architecture
@@ -148,21 +153,6 @@ sinks:
 - `insert`: would give an insight of all the historical data, doesn't update or delete any old records. so the index would contain a log for all validation objects.
 
 - `upsert`: Would update the old result of validating an entity against a policy happens in the same day, so the index would only contain the latest validation results for a policy and entity combination per day.
-
-
-### SaaS
-
-This sink sends the validation results to [Weave Policy](https://policy.weave.works) SaaS's backend over websockets.
-
-**Configuration**
-
-```yaml
-sinks:
-  saaSGatewaySink:
-    url: <agent gateway websocket url>
-    secret: <polciy agent secret>
-```
-
 
 ## Configuration
 

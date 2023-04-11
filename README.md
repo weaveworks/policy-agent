@@ -64,7 +64,7 @@ There are additional parameters could be provided:
 
 Example:
 
-This example provides the expected format for the config file, you can define different sinks configuration for admission control mode and cluster periodical audit mode, such as (File system Sink, Flux notification Controller Sink, K8S events Sink and WeavePolicy SaaS Sink)
+This example provides the expected format for the config file, you can define different sinks configuration for admission control mode and cluster periodical audit mode, such as (File system Sink, Flux notification Controller Sink and K8S events Sink)
 ```
 accountId: "76xdx488-a02x-78xc-32xx-8f5574bexxx"
 clusterId: "76xdx488-a02x-78xc-32xx-8f5574bexxx"
@@ -79,8 +79,6 @@ admission:
          address: ""
       k8sEventsSink:
          enabled: true
-      saasGatewaySink:
-         url: ""
 audit:
    enabled: true
    writeCompliance: true
@@ -91,6 +89,4 @@ audit:
          address: ""
       k8sEventsSink:
          enabled: true
-      saasGatewaySink:
-         url: ""
 ```

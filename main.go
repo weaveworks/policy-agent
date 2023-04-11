@@ -38,11 +38,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-const (
-	SaaSSinkBatchSize   = 500
-	SaaSSinkBatchExpiry = 10 * time.Second
-)
-
 // build is overriden during compilation of the binary
 var build = "[runtime build]"
 
@@ -161,8 +156,6 @@ func main() {
 		admissionSinks := []domain.PolicyValidationSink{}
 		terraformSinks := []domain.PolicyValidationSink{}
 
-		var auditSaaSGatewaySink, admissionSaaSGatewaySink *configuration.SaaSGatewaySink
-
 		if config.Audit.Enabled {
 			auditSinksConfig := config.Audit.Sinks
 			if auditSinksConfig.FilesystemSink != nil {
@@ -200,9 +193,6 @@ func main() {
 					return err
 				}
 				auditSinks = append(auditSinks, elasticsearchSink)
-			}
-			if auditSinksConfig.SaasGatewaySink != nil {
-				auditSaaSGatewaySink = auditSinksConfig.SaasGatewaySink
 			}
 		}
 
@@ -245,9 +235,6 @@ func main() {
 				admissionSinks = append(admissionSinks, elasticsearchSink)
 			}
 
-			if admissionSinksConfig.SaasGatewaySink != nil {
-				admissionSaaSGatewaySink = admissionSinksConfig.SaasGatewaySink
-			}
 		}
 
 		if config.TFAdmission.Enabled {
@@ -288,11 +275,6 @@ func main() {
 				}
 				terraformSinks = append(terraformSinks, elasticsearchSink)
 			}
-		}
-
-		if auditSaaSGatewaySink != nil && admissionSaaSGatewaySink != nil &&
-			auditSaaSGatewaySink.URL != admissionSaaSGatewaySink.URL {
-			return errors.New("failed to initialize SaaS gateway sink: different saas gateway sink url in admission and audit sinks configuration")
 		}
 
 		if config.Audit.Enabled {

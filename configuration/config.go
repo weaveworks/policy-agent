@@ -12,13 +12,7 @@ type SinksConfig struct {
 	FilesystemSink       *FileSystemSink
 	FluxNotificationSink *FluxNotificationSink
 	K8sEventsSink        *K8sEventsSink
-	SaasGatewaySink      *SaaSGatewaySink
 	ElasticSink          *ElasticSink
-}
-
-type SaaSGatewaySink struct {
-	URL    string
-	Secret string
 }
 
 type K8sEventsSink struct {
@@ -110,20 +104,6 @@ func GetAgentConfiguration(filePath string) Config {
 	err = viper.Unmarshal(&c)
 	if err != nil {
 		logger.Fatal(err)
-	}
-
-	if c.Admission.Enabled && c.Admission.Sinks.SaasGatewaySink != nil {
-		c.Admission.Sinks.SaasGatewaySink.URL = getField(
-			"admission.sinks.saasGatewaySink.url")
-		c.Admission.Sinks.SaasGatewaySink.Secret = getField(
-			"admission.sinks.saasGatewaySink.secret")
-	}
-
-	if c.Audit.Enabled && c.Audit.Sinks.SaasGatewaySink != nil {
-		c.Audit.Sinks.SaasGatewaySink.URL = getField(
-			"audit.sinks.saasGatewaySink.url")
-		c.Audit.Sinks.SaasGatewaySink.Secret = getField(
-			"audit.sinks.saasGatewaySink.secret")
 	}
 
 	if c.Admission.Enabled && c.Admission.Sinks.ElasticSink != nil {
