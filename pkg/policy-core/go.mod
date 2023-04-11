@@ -4,7 +4,7 @@ go 1.19
 
 replace (
 	github.com/weaveworks/policy-agent/pkg/logger => ../logger
-	github.com/weaveworks/policy-agent/pkg/policy-core => ../policy-core
+	github.com/weaveworks/policy-agent/pkg/opa-core => ../opa-core
 	github.com/weaveworks/policy-agent/pkg/uuid-go => ../uuid-go
 )
 
