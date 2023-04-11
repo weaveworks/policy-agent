@@ -2,8 +2,6 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/MagalixTechnologies/core/logger v1.0.4 h1:qnlUUMYSZMKPwxV9MQC+Cg3Rkh/84v7xW5SBQttTFMU=
 github.com/MagalixTechnologies/core/logger v1.0.4/go.mod h1:HUb6GF/FKiBWkVCiRNCpxo3btqIxp8Ek4HZNt4Ga0KA=
-github.com/MagalixTechnologies/policy-core v1.1.6 h1:IGCYy3wFEkqxV4Hej0W2UfVMKCXYZUf+BokueLlfFBk=
-github.com/MagalixTechnologies/policy-core v1.1.6/go.mod h1:0qmPoLR4Ay/ZHMIjJvJD0ps4UIutw6SmTEZHmtwq5ZU=
 github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e h1:l/ci+0/7XVCFdnLSIvgTM9femU75hXpoCBgVX+w1XTA=
 github.com/OneOfOne/xxhash v1.2.8 h1:31czK/TI9sNkxIKfaUfGlU47BAxQ0ztGgd9vPyqimf8=
 github.com/OneOfOne/xxhash v1.2.8/go.mod h1:eZbhyaAYD41SGSSsnmcpxVoRiQ/MPUTjUdIIOT9Um7Q=

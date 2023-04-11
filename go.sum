@@ -335,6 +335,8 @@ github.com/weaveworks/policy-agent/pkg/opa-core v0.0.0-20230411202656-c275cc5de5
 github.com/weaveworks/policy-agent/pkg/opa-core v0.0.0-20230411202656-c275cc5de56f/go.mod h1:MwRlDt6p01tiUAIR9hDiz7Ib/3btvRxBnLq4cc7LDS0=
 github.com/weaveworks/policy-agent/pkg/policy-core v0.0.0-20230411202656-c275cc5de56f h1:LzFJt9EKMCCV8WuFzOG481U3fmkS2oCKEx5IS0AbNyo=
 github.com/weaveworks/policy-agent/pkg/policy-core v0.0.0-20230411202656-c275cc5de56f/go.mod h1:pe8uapa8TB8x6rBrlEDe/yU8yw6FJK8Ml/jZrGf2Juk=
+github.com/weaveworks/policy-agent/pkg/policy-core v0.0.0-20230411203003-50b7ab5b014e h1:RyVGtFJTYcdYLNhoatNaAIgVgDczrJoWl4KHzAUlQVg=
+github.com/weaveworks/policy-agent/pkg/policy-core v0.0.0-20230411203003-50b7ab5b014e/go.mod h1:pe8uapa8TB8x6rBrlEDe/yU8yw6FJK8Ml/jZrGf2Juk=
 github.com/weaveworks/policy-agent/pkg/uuid-go v0.0.0-20230411202656-c275cc5de56f h1:WEkUQQbUIC64XKhHWYTnwSx9AE0QdQzz9wbIsnYf9rQ=
 github.com/weaveworks/policy-agent/pkg/uuid-go v0.0.0-20230411202656-c275cc5de56f/go.mod h1:2ZwzI+1qRXCYkb482qNqbZ60dF1y+PuTCyqHfsXPTRU=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
@@ -691,6 +693,8 @@ google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQ
 google.golang.org/protobuf v1.27.1/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
 google.golang.org/protobuf v1.28.1 h1:d0NfwRgPtno5B1Wa6L2DAG+KivqkdutMf1UhdNx175w=
 google.golang.org/protobuf v1.28.1/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
+google.golang.org/protobuf v1.30.0 h1:kPPoIgf3TsEvrm0PFe15JQ+570QVxYzEvvHqChK+cng=
+google.golang.org/protobuf v1.30.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
@@ -733,6 +737,8 @@ k8s.io/klog/v2 v2.90.1 h1:m4bYOKall2MmOiRaR1J+We67Do7vm9KiQVlT96lnHUw=
 k8s.io/klog/v2 v2.90.1/go.mod h1:y1WjHnz7Dj687irZUWR/WLkLc5N1YHtjLdmgWjndZn0=
 k8s.io/kube-openapi v0.0.0-20230217203603-ff9a8e8fa21d h1:oFDpQ7FfzinCtrFOl4izwOWsdTprlS2A9IXBENMW0UA=
 k8s.io/kube-openapi v0.0.0-20230217203603-ff9a8e8fa21d/go.mod h1:/BYxry62FuDzmI+i9B+X2pqfySRmSOW2ARmj5Zbqhj0=
+k8s.io/kube-openapi v0.0.0-20230327201221-f5883ff37f0c h1:EFfsozyzZ/pggw5qNx7ftTVZdp7WZl+3ih89GEjYEK8=
+k8s.io/kube-openapi v0.0.0-20230327201221-f5883ff37f0c/go.mod h1:byini6yhqGC14c3ebc/QwanvYwhuMWF6yz2F8uwW8eg=
 k8s.io/utils v0.0.0-20230406110748-d93618cff8a2 h1:qY1Ad8PODbnymg2pRbkyMT/ylpTrCM8P2RJ0yroCyIk=
 k8s.io/utils v0.0.0-20230406110748-d93618cff8a2/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
