@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/weaveworks/policy-agent/pkg/core/logger"
+	"github.com/weaveworks/policy-agent/pkg/logger"
 	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 	"github.com/weaveworks/policy-agent/pkg/policy-core/validation"
 	ctrl "sigs.k8s.io/controller-runtime"
