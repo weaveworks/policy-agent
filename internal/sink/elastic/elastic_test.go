@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/MagalixTechnologies/policy-core/domain"
 	"github.com/stretchr/testify/assert"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 )
 
 const (

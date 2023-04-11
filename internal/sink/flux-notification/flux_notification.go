@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/MagalixTechnologies/core/logger"
-	"github.com/MagalixTechnologies/policy-core/domain"
 	"github.com/weaveworks/policy-agent/internal/utils"
+	"github.com/weaveworks/policy-agent/pkg/logger"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 	"k8s.io/client-go/tools/record"
 )
 
@@ -44,7 +44,7 @@ func (f *FluxNotificationSink) Stop() {
 	f.cancelWorker()
 }
 
-// Write adds results to buffer, implements github.com/MagalixTechnologies/policy-core/domain.PolicyValidationSink
+// Write adds results to buffer, implements github.com/weaveworks/policy-agent/pkg/policy-core/domain.PolicyValidationSink
 func (f *FluxNotificationSink) Write(_ context.Context, results []domain.PolicyValidation) error {
 	logger.Debugw("writing validation results", "sink", "flux_notification", "count", len(results))
 	for _, result := range results {

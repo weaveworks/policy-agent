@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/MagalixTechnologies/policy-core/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/policy-agent/api/v2beta2"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 
 	appsv1 "k8s.io/api/apps/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"

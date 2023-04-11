@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/MagalixTechnologies/core/logger"
 	"github.com/spf13/viper"
+	"github.com/weaveworks/policy-agent/pkg/logger"
 )
 
 type SinksConfig struct {

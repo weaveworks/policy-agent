@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/MagalixTechnologies/policy-core/domain"
-	validationmock "github.com/MagalixTechnologies/policy-core/validation/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	entitiesmock "github.com/weaveworks/policy-agent/internal/entities/mock"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
+	validationmock "github.com/weaveworks/policy-agent/pkg/policy-core/validation/mock"
 	"golang.org/x/sync/errgroup"
 )
 

@@ -8,11 +8,9 @@ replace (
 )
 
 require (
-	github.com/MagalixTechnologies/channel v1.1.0
-	github.com/MagalixTechnologies/core/logger v1.0.4
-	github.com/MagalixTechnologies/core/packet v1.0.1
-	github.com/MagalixTechnologies/policy-core v1.1.6
-	github.com/MagalixTechnologies/uuid-go v0.0.0-20210127133914-f8f07f7ab96e
+	github.com/weaveworks/policy-agent/core/logger v1.0.4
+	github.com/weaveworks/policy-agent/policy-core v1.1.6
+	github.com/weaveworks/policy-agent/uuid-go v0.0.0-20210127133914-f8f07f7ab96e
 	github.com/elastic/go-elasticsearch/v7 v7.17.7
 	github.com/fluxcd/pkg/runtime v0.29.0
 	github.com/go-logr/logr v1.2.3
@@ -33,7 +31,6 @@ require (
 )
 
 require (
-	github.com/MagalixTechnologies/opa-core v1.0.13 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect

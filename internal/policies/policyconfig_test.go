@@ -10,7 +10,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/MagalixTechnologies/policy-core/domain"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
 )

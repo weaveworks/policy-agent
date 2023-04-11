@@ -4,7 +4,7 @@ In order to get the agent up and running there are some extra steps that needs t
 
 ## Policies
 
-The agent needs access to policies to validate the user's requests against. These are provided to him as CRDs running in the cluster. Thus having those CRDs in the cluster is necessary for the agent to function. The policies are hosted in the policies library [repo](https://github.com/MagalixTechnologies/policy-library).
+The agent needs access to policies to validate the user's requests against. These are provided to him as CRDs running in the cluster. Thus having those CRDs in the cluster is necessary for the agent to function. The policies are hosted in the policies library [repo](https://github.com/weaveworks/policy-library).
 
 To install the policies you first need to register the policy CRD. At the root of the repo run:
 

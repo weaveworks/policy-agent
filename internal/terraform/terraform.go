@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/MagalixTechnologies/core/logger"
-	"github.com/MagalixTechnologies/policy-core/domain"
-	"github.com/MagalixTechnologies/policy-core/validation"
+	"github.com/weaveworks/policy-agent/pkg/core/logger"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/validation"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
