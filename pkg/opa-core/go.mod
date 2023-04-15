@@ -1,6 +1,6 @@
 module github.com/weaveworks/policy-agent/pkg/opa-core
 
-go 1.19
+go 1.20
 
 require (
 	github.com/open-policy-agent/opa v0.51.0

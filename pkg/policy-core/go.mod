@@ -1,6 +1,6 @@
 module github.com/weaveworks/policy-agent/pkg/policy-core
 
-go 1.19
+go 1.20
 
 replace (
 	github.com/weaveworks/policy-agent/pkg/logger => ../logger
