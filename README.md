@@ -5,6 +5,10 @@
 
 Policy agent that enforces rego policies by controlling admission of violating resources.
 
+## Documentation
+
+Policy agent guides and reference documentation is available at [docs.gitops.weave.works](https://docs.gitops.weave.works/docs/policy/intro/)
+
 ## Features
 
 - Enforce policies at deploy time
@@ -47,6 +51,7 @@ GLOBAL OPTIONS:
 ```
 
 ### Policy Agent config File
+
 The config file is the single entry point for configuring the agent.
 
 The agent needs the following parameters to be provided in the configuration yaml file:
