@@ -6,7 +6,7 @@ While the agent can be run like any go binary this won't be ideal in certain sit
 
 The easiest way to achieve this is by using the provided helm chart.
 
-You will need (cert-manager)[https://cert-manager.io/docs/installation/] on your cluster before using the agent locally.
+You will need [cert-manager](https://cert-manager.io/docs/installation/) on your cluster before using the agent locally.
 
 The first step would be to build the agent binary this is by done by running the following in the repo root:
 
@@ -49,7 +49,7 @@ config:
 Then you can finally run the agent:
 
 ```bash
-helm3 install agent -f {values-file-path} helm -npolicy-system
+helm3 install agent -f {values-file-path} helm -n policy-system
 ```
 
 When agent pod is ready, it should be good to go.
