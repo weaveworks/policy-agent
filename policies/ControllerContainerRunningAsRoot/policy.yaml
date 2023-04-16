@@ -1,0 +1,131 @@
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.container-running-as-root
+spec:
+  id: weave.policies.container-running-as-root
+  name: Container Running As Root
+  enabled: true
+  description: "Running as root gives the container full access to all resources in the VM it is running on. Containers should not run with such access rights unless required by design. This Policy enforces that the `securityContext.runAsNonRoot` attribute is set to `true`. \n"
+  how_to_solve: "You should set `securityContext.runAsNonRoot` to `true`. Not setting it will default to giving the container root user rights on the VM that it is running on. \n```\n...\n  spec:\n    securityContext:\n      runAsNonRoot: true\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.2.2.4
+        - weave.controls.pci-dss.2.2.5
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.6
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.4.1
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.3.3.1
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.24
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+  tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default]
+  parameters:
+    - name: exclude_namespaces
+      type: array
+      required: false
+      value: [kube-system]
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |
+    package weave.advisor.podSecurity.runningAsRoot
+
+    import future.keywords.in
+
+    exclude_namespaces := input.parameters.exclude_namespaces
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    # Check for missing securityContext.runAsNonRoot (missing in both, pod and container)
+    violation[result] {
+    	isExcludedNamespace == false
+    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+
+    	controller_spec.securityContext
+    	not controller_spec.securityContext.runAsNonRoot
+    	not controller_spec.securityContext.runAsNonRoot == false
+
+    	some i
+    	containers := controller_spec.containers[i]
+    	containers.securityContext
+    	not containers.securityContext.runAsNonRoot
+    	not containers.securityContext.runAsNonRoot == false
+
+    	result = {
+    		"issue detected": true,
+    		"msg": sprintf("Container missing spec.template.spec.containers[%v].securityContext.runAsNonRoot while Pod spec.template.spec.securityContext.runAsNonRoot is not defined as well.", [i]),
+    		"violating_key": sprintf("spec.template.spec.containers[%v].securityContext", [i]),
+    	}
+    }
+
+    # Container security context
+    # Check if containers.securityContext.runAsNonRoot exists and = false
+    violation[result] {
+    	isExcludedNamespace == false
+    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+
+    	some i
+    	containers := controller_spec.containers[i]
+    	containers.securityContext
+    	containers.securityContext.runAsNonRoot == false
+
+    	result = {
+    		"issue detected": true,
+    		"msg": sprintf("Container spec.template.spec.containers[%v].securityContext.runAsNonRoot should be set to true ", [i]),
+    		"violating_key": sprintf("spec.template.spec.containers[%v].securityContext.runAsNonRoot", [i]),
+    		"recommended_value": true,
+    	}
+    }
+
+    # Pod security context
+    # Check if spec.securityContext.runAsNonRoot exists and = false
+    violation[result] {
+    	isExcludedNamespace == false
+    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+
+    	controller_spec.securityContext
+    	controller_spec.securityContext.runAsNonRoot == false
+
+    	result = {
+    		"issue detected": true,
+    		"msg": "Pod spec.template.spec.securityContext.runAsNonRoot should be set to true",
+    		"violating_key": "spec.template.spec.securityContext.runAsNonRoot",
+    		"recommended_value": true,
+    	}
+    }
+
+    controller_input = input.review.object
+
+    controller_spec = controller_input.spec.template.spec {
+    	contains(controller_input.kind, {"StatefulSet", "DaemonSet", "Deployment", "Job", "ReplicaSet"})
+    } else = controller_input.spec {
+    	controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+    	controller_input.kind == "CronJob"
+    }
+
+    contains(kind, kinds) {
+    	kinds[_] = kind
+    }
+
+    isExcludedNamespace = true {
+    	controller_input.metadata.namespace
+    	controller_input.metadata.namespace in exclude_namespaces
+    } else = false

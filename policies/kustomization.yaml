@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - policies/ControllerContainerAllowingPrivilegeEscalation/policy.yaml
+  - policies/ControllerContainerBlockSysctls/policy.yaml
+  - policies/ControllerContainerRunningAsRoot/policy.yaml
+  - policies/ControllerMinimumReplicaCount/policy.yaml
+  - policies/ControllerReadOnlyFileSystem/policy.yaml

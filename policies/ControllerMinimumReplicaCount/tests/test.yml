@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demoservice
+  labels:
+    app.kubernetes.io/name: demoservice
+    app: demoservice
+    owner: tony
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demoservice
+  template:
+    metadata:
+      labels:
+        app: demoservice
+    spec:
+      containers:
+      - name: demoservice
+        command: ["node", "app.js"]
+        image: airwavetechio/demoservice:v0.0.2
+        env:
+          - name: PORT
+            value: "5000"
+        ports:
+        - containerPort: 5000
+          name: liveness-port
+        livenessProbe:
+          httpGet:
+            path: /
+            port: liveness-port
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: liveness-port
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 10m
+            memory: 25Mi
+          requests:
+            cpu: 10m
+            memory: 25Mi
+      - name: demoservice
+        command: ["node", "app.js"]
+        image: airwavetechio/demoservice:v0.0.2
+        env:
+          - name: PORT
+            value: "5000"
+        ports:
+        - containerPort: 5000
+          name: liveness-port
+        livenessProbe:
+          httpGet:
+            path: /
+            port: liveness-port
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: liveness-port
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 10m
+            memory: 25Mi
+          requests:
+            cpu: 10m
+            memory: 25Mi
+      restartPolicy: Always

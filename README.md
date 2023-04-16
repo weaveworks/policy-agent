@@ -95,3 +95,21 @@ audit:
       k8sEventsSink:
          enabled: true
 ```
+## Install included policies
+
+Policy agent is shipped with 5 [policies](./policies/). To install policy profile with them add `weave-policy-agent` repo as source for policies in the profile values with the path `./policies` as below. Refer to this [document](https://docs.gitops.weave.works/docs/policy/weave-policy-profile/#policy-sources) for more information
+
+```yaml
+policySource:
+  enabled: true
+  url: https://github.com/weaveworks/policy-agent
+  tag: <add-latest-tag-here>
+  path: ./policies/kustomization.yaml # Path to the policies dir - or a kustomization.yaml that selects some policies - in the repo
+  secretRef (if the repo is private): "" # Name of the K8s secret with private repo credentials (leave empty if the repo is public)
+```
+
+**Note**  Policies can be applied directly on the cluster 
+
+```bash
+kubectl apply -f <path-to-policy>/policy.yaml
+```

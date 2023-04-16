@@ -1,0 +1,111 @@
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.containers-running-with-privilege-escalation
+spec:
+  id: weave.policies.containers-running-with-privilege-escalation
+  name: Containers Running With Privilege Escalation
+  enabled: true
+  description: "Containers are running with PrivilegeEscalation configured. Setting this Policy to `true` allows child processes to gain more privileges than its parent process.  \n\nThis Policy gates whether or not a user is allowed to set the security context of a container to `allowPrivilegeEscalation` to `true`. The default value for this is `false` so no child process of a container can gain more privileges than its parent.\n\nThere are 2 parameters for this Policy:\n- exclude_namespace (string) : This sets a namespace you want to exclude from Policy compliance checking. \n- allow_privilege_escalation (bool) : This checks for the value of `allowPrivilegeEscalation` in your spec.  \n"
+  how_to_solve: |
+    Check the following path to see what the PrivilegeEscalation value is set to.
+    ```
+    ...
+      spec:
+        containers:
+          securityContext:
+            allowPrivilegeEscalation: <value>
+    ```
+    https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.2.2.4
+        - weave.controls.pci-dss.2.2.5
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.5
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.4.1
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.3.3.2
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.1.6.1
+  tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default, soc2-type1]
+  parameters:
+    - name: exclude_namespaces
+      type: array
+      required: true
+      value: [kube-system]
+    - name: allow_privilege_escalation
+      type: boolean
+      required: true
+      value: false
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |
+    package weave.advisor.podSecurity.privilegeEscalation
+
+    import future.keywords.in
+
+    exclude_namespaces := input.parameters.exclude_namespaces
+    allow_privilege_escalation := input.parameters.allow_privilege_escalation
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    violation[result] {
+      isExcludedNamespace == false
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      some i
+      containers := controller_spec.containers[i]
+      allow_priv := containers.securityContext.allowPrivilegeEscalation
+      not allow_priv == allow_privilege_escalation
+      result = {
+        "issue detected": true,
+        "msg": sprintf("Container %s privilegeEscalation should be set to '%v'; detected '%v'", [containers[i].name, allow_privilege_escalation, allow_priv]),
+        "violating_key": sprintf("spec.template.spec.containers[%v].securityContext.allowPrivilegeEscalation", [i]),
+        "recommended_value": allow_privilege_escalation
+      }
+    }
+
+    is_array_contains(array,str) {
+      array[_] = str
+    }
+
+    # Controller input
+    controller_input = input.review.object
+
+    # controller_container acts as an iterator to get containers from the template
+    controller_spec = controller_input.spec.template.spec {
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+    } else = controller_input.spec {
+      controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+      controller_input.kind == "CronJob"
+    }
+
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+
+    isExcludedNamespace = true {
+    	controller_input.metadata.namespace
+    	controller_input.metadata.namespace in exclude_namespaces
+    } else = false

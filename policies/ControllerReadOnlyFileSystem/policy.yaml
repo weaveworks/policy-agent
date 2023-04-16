@@ -1,0 +1,39 @@
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.containers-read-only-root-filesystem
+spec:
+  id: weave.policies.containers-read-only-root-filesystem
+  name: Containers Read Only Root Filesystem
+  enabled: false
+  description: "This Policy will cause a violation if the root file system is not mounted as specified. As a security practice, the root file system should be read-only or expose risk to your nodes if compromised. \n\nThis Policy requires containers must run with a read-only root filesystem (i.e. no writable layer).\n"
+  how_to_solve: "Set `readOnlyRootFilesystem` in your `securityContext` to the value specified in the Policy. \n```\n...\n  spec:\n    containers:\n      - securityContext:\n          readOnlyRootFilesystem: <read_only>\n```\n\nhttps://kubernetes.io/docs/concepts/policy/pod-security-policy/#volumes-and-file-systems\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.3.2
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.4.4.4
+  tags: [mitre-attack, nist800-190]
+  parameters:
+    - name: read_only
+      type: boolean
+      required: true
+      value: true
+    - name: exclude_namespaces
+      type: array
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: "package weave.advisor.podSecurity.enforce_ro_fs\n\nimport future.keywords.in\n\nread_only = input.parameters.read_only\nexclude_namespaces := input.parameters.exclude_namespaces\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\nviolation[result] {\n  isExcludedNamespace == false\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  some i\n  containers := controller_spec.containers[i]\n  root_fs := containers.securityContext.readOnlyRootFilesystem\n  not root_fs == read_only\n  result = {\n    \"issue detected\": true,\n    \"msg\": sprintf(\"readOnlyRootFilesystem should equal '%v'; detected '%v'\", [read_only, root_fs]),\n    \"recommended_value\": read_only,\n    \"violating_key\": sprintf(\"spec.template.spec.containers[%v].securityContext.readOnlyRootFilesystem\", [i]) \n  }\n}\n\n# Controller input\ncontroller_input = input.review.object\n\n# controller_container acts as an iterator to get containers from the template\ncontroller_spec = controller_input.spec.template.spec {\n  contains_kind(controller_input.kind, {\"StatefulSet\" , \"DaemonSet\", \"Deployment\", \"Job\"})\n} else = controller_input.spec {\n  controller_input.kind == \"Pod\"\n} else = controller_input.spec.jobTemplate.spec.template.spec {\n  controller_input.kind == \"CronJob\"\n}\n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}\n\nisExcludedNamespace = true {\n\tcontroller_input.metadata.namespace\n\tcontroller_input.metadata.namespace in exclude_namespaces\n} else = false\n"
