@@ -105,7 +105,6 @@ policySource:
   url: https://github.com/weaveworks/policy-agent
   tag: <add-latest-tag-here>
   path: ./policies/kustomization.yaml # Path to the policies dir - or a kustomization.yaml that selects some policies - in the repo
-  secretRef (if the repo is private): "" # Name of the K8s secret with private repo credentials (leave empty if the repo is public)
 ```
 
 **Note**  Policies can be applied directly on the cluster 
