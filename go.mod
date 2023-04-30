@@ -13,12 +13,12 @@ replace (
 
 require (
 	github.com/elastic/go-elasticsearch/v7 v7.17.7
-	github.com/fluxcd/pkg/runtime v0.29.0
+	github.com/fluxcd/pkg/runtime v0.35.0
 	github.com/go-logr/logr v1.2.4
 	github.com/golang/mock v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.15.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/urfave/cli/v2 v2.24.4
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/policy-agent/pkg/logger v0.0.0-20230411202656-c275cc5de56f
@@ -29,8 +29,8 @@ require (
 	k8s.io/api v0.26.3
 	k8s.io/apiextensions-apiserver v0.26.1
 	k8s.io/apimachinery v0.26.3
-	k8s.io/client-go v0.26.1
-	sigs.k8s.io/controller-runtime v0.14.4
+	k8s.io/client-go v0.26.3
+	sigs.k8s.io/controller-runtime v0.14.6
 )
 
 require (
@@ -43,7 +43,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
-	github.com/fluxcd/pkg/apis/event v0.4.0 // indirect
+	github.com/fluxcd/pkg/apis/event v0.4.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8 // indirect
@@ -111,7 +111,7 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/component-base v0.26.1 // indirect
+	k8s.io/component-base v0.26.3 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230327201221-f5883ff37f0c // indirect
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2 // indirect
