@@ -1,5 +1,5 @@
-[![codecov](https://codecov.io/gh/weaveworks/policy-agent/branch/dev/graph/badge.svg?token=5HALYBWEIQ)](https://codecov.io/gh/weaveworks/policy-agent) ![build](https://github.com/weaveworks/policy-agent/actions/workflows/build.yml/badge.svg?branch=dev)
-
+[![codecov](https://codecov.io/gh/weaveworks/policy-agent/branch/dev/graph/badge.svg?token=5HALYBWEIQ)](https://codecov.io/gh/weaveworks/policy-agent) ![build](https://github.com/weaveworks/policy-agent/actions/workflows/build.yml/badge.svg?branch=dev) [![Contributors](https://img.shields.io/github/contributors/weaveworks/policy-agent)](https://github.com/weaveworks/policy-agent/graphs/contributors)
+[![Release](https://img.shields.io/github/v/release/weaveworks/policy-agent?include_prereleases)](https://github.com/weaveworks/policy-agent/releases/latest)
 
 # Policy Agent
 
