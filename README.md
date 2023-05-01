@@ -7,7 +7,9 @@ Policy agent that enforces rego policies by controlling admission of violating r
 
 ## Documentation
 
-Policy agent guides and reference documentation is available at [docs.gitops.weave.works](https://docs.gitops.weave.works/docs/policy/intro/)
+Policy agent guides for runnning the agent in Weave GitOps Enterprse, and leverging all its capabilities, is available at [docs.gitops.weave.works](https://docs.gitops.weave.works/docs/policy/intro/).
+
+Refer to this [doc](docs/README.md) for documentation on the high-level architecture and the different components that make up the agent.
 
 ## Features
 
@@ -107,8 +109,19 @@ policySource:
   path: ./policies/kustomization.yaml # Path to the policies dir - or a kustomization.yaml that selects some policies - in the repo
 ```
 
-**Note**  Policies can be applied directly on the cluster 
+**Note**  Policies can be applied directly on the cluster
 
 ```bash
 kubectl apply -f <path-to-policy>/policy.yaml
 ```
+
+## Contribution
+
+Need help or want to contribute? Please see the links below.
+- Need help?
+    - Talk to us in
+      the [#weave-policy-agent channel](@todo add channel url)
+      on Weaveworks Community Slack. [Invite yourself if you haven't joined yet.](https://slack.weave.works/)
+- Have feature proposals or want to contribute?
+    - Please create a [Github issue](https://github.com/weaveworks/weave-policy-agent/issues)
+    - Learn more about contributing [here](./CONTRIBUTING.md).
