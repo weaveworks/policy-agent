@@ -16,7 +16,7 @@ Refer to this [doc](docs/README.md) for documentation on the high-level architec
 - Enforce policies at deploy time
 - Report runtime violations and compliance
 - Support for multiple sinks for validation results
-- Extend policies by defining your own policy using Custom Resource Definitions
+- Extend policies by defining your own policy using CustomResourceDefinitions
 
 ## Running the Agent
 
