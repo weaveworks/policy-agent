@@ -1,6 +1,6 @@
 # Contributing
 
-Weave Gitops is a [Mozilla Public License(MPL2)](LICENSE) project. This is a Weaveworks
+Weave Policy Agent is a [Mozilla Public License(MPL2)](LICENSE) project. This is a Weaveworks
 open source product with a community led by Weaveworks :heart:
 
 We welcome improvements to reporting issues and documentation as well as to code.
