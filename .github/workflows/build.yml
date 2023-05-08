@@ -12,6 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          fetch_depth: 0
           token: ${{ secrets.PAT }}
       - name: setup go
         uses: actions/setup-go@v3
