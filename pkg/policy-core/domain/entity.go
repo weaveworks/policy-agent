@@ -37,19 +37,22 @@ func (e *Entity) ObjectRef() *v1.ObjectReference {
 // NewEntityFromSpec takes map representing a Kubernetes entity and parses it into Entity struct
 func NewEntityFromSpec(entitySpec map[string]interface{}) Entity {
 	kubeEntity := unstructured.Unstructured{Object: entitySpec}
-	metadata := entitySpec["metadata"].(map[string]interface{})
-	delete(metadata, "managedFields")
-	return Entity{
-		ID:              string(kubeEntity.GetUID()),
-		Name:            kubeEntity.GetName(),
-		APIVersion:      kubeEntity.GetAPIVersion(),
-		Kind:            kubeEntity.GetKind(),
-		Namespace:       kubeEntity.GetNamespace(),
-		Manifest:        entitySpec,
-		ResourceVersion: kubeEntity.GetResourceVersion(),
-		Labels:          kubeEntity.GetLabels(),
-		HasParent:       len(kubeEntity.GetOwnerReferences()) != 0,
+	if metadata, ok := entitySpec["metadata"].(map[string]interface{}); ok {
+		delete(metadata, "managedFields")
+		return Entity{
+			ID:              string(kubeEntity.GetUID()),
+			Name:            kubeEntity.GetName(),
+			APIVersion:      kubeEntity.GetAPIVersion(),
+			Kind:            kubeEntity.GetKind(),
+			Namespace:       kubeEntity.GetNamespace(),
+			Manifest:        entitySpec,
+			ResourceVersion: kubeEntity.GetResourceVersion(),
+			Labels:          kubeEntity.GetLabels(),
+			HasParent:       len(kubeEntity.GetOwnerReferences()) != 0,
+		}
 	}
+	return Entity{}
+
 }
 
 // EntitiesList a grouping of Entity objects
