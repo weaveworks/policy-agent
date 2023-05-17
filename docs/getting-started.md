@@ -15,7 +15,7 @@ Weave Policy Agent can be installed using 2 methods (By using HelmRelease and Fl
 
 ### Using HelmRelease and Flux
 
-To install Weave Policy Agent using `Flux` it requires the `HelmRepository` and `HelmRelease` for the Weave Policy Agent  to be applied into your cluster by adding them to your cluster repository in a location that's readable by flux
+To install Weave Policy Agent using `Flux` it requires the `HelmRepository` and `HelmRelease` for the Weave Policy Agent  to be applied into your cluster by adding them to your cluster repository in a location that's readable by flux.
 
 <details>
   <summary>Click to expand Weave Policy Agent HelmRepository </summary>
@@ -81,6 +81,17 @@ status: {}
 ```
 </details>
 
+Once the `HelmRepository` and `HelmRelease` are reconciled by `Flux` you should find the Policy Agent installed on your cluster.
+
+Check installation status using
+
+```bash
+flux get helmrelease -A
+kubectl get pods -n policy-system
+```
+
+![Policy Agent](imgs/check-agent-1.png)
+
 ### Using Helm
 
 - Create `policy-system` namespace to install the chart in
@@ -101,14 +112,20 @@ status: {}
     helm install policy-agent policy-agent/policy-agent -n policy-system
     ```
 
-## References
+Check installation status using
 
-- [HelmRepository](https://fluxcd.io/flux/components/source/helmrepositories/)
-- [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/)
+```bash
+flux get helmrelease -A
+kubectl get pods -n policy-system
+```
 
 ## Installing Policies
 
-### Using Flux
+The [Policy CRD](../helm/crds/pac.weave.works_policies.yaml) is used to define policies which are then consumed and used by the agent to validate entities.
+
+It uses OPA Rego Language to evaluate the entities.
+
+### Installing Policies Using Flux
 
 To install default policies create a `kustomization` to reference the default policies from the policy agent repository
 
@@ -144,7 +161,7 @@ spec:
 ```
 </details>
 
-### Using Kustomize
+### Installing Policies Using Kustomize
 
 You can use kustomize to install the default policies from the Policy Agent repository by applying this kustomization
 
@@ -210,16 +227,17 @@ kubectl get policies
 
     ```bash
     Error from server (==================================================================
-    Policy	: weave.policies.controller-serviceaccount-tokens-automount
+    ==================================================================
+    Policy	: weave.policies.containers-minimum-replica-count
     Entity	: deployment/nginx-deployment in namespace: default
     Occurrences:
-    - 'automountServiceAccountToken' must be set; found '{"containers": [{"image": "nginx:1.14.2", "imagePullPolicy": "IfNotPresent", "name": "nginx", "ports": [{"containerPort": 80, "protocol": "TCP"}], "resources": {}, "terminationMessagePath": "/dev/termination-log", "terminationMessagePolicy": "File"}], "dnsPolicy": "ClusterFirst", "restartPolicy": "Always", "schedulerName": "default-scheduler", "securityContext": {}, "terminationGracePeriodSeconds": 30}'
-    ): error when creating "deployment.yaml": admission webhook "admission.agent.weaveworks" denied the request: ==================================================================
-    Policy	: weave.policies.controller-serviceaccount-tokens-automount
+    - Replica count must be greater than or equal to '2'; found '1'.
+    ): error when creating "deployment.yaml": admission webhook "admission.agent.weaveworks" denied the request: 
+    ==================================================================
+    Policy	: weave.policies.containers-minimum-replica-count
     Entity	: deployment/nginx-deployment in namespace: default
     Occurrences:
-    - 'automountServiceAccountToken' must be set; found '{"containers": [{"image": "nginx:1.14.2", "imagePullPolicy": "IfNotPresent", "name": "nginx", "ports": [{"containerPort": 80, "protocol": "TCP"}], "resources": {}, "terminationMessagePath": "/dev/termination-log", "terminationMessagePolicy": "File"}], "dnsPolicy": "ClusterFirst", "restartPolicy": "Always", "schedulerName": "default-scheduler", "securityContext": {}, "terminationGracePeriodSeconds": 30}'
-
+    - Replica count must be greater than or equal to '2'; found '1'.
     ```
 
     </details>
@@ -232,15 +250,28 @@ kubectl get policies
 
 - To view the violating events by using WeaveGitOps UI
 
-    // TODO: add screenshot
+    ![WeaveGitOps UI](imgs/violations.png)
 
 ## Fix & Exclude
 
-// TODO:
-Mention of how to resolve section in policies → [[screenshot of policies UI]] 
-Mention that users can excludeNamespaces, because usually there are certain namespaces that we are ok with having violations and we don’t want to stop deployments from happening 
+- To fix the violation, each policy has a `how_to_solve` section and it's used by the admission controller to make a suggestion for you to how to fix the violation in your resource `yaml` file. The following example for Minimum Replica Count Policy
+  
+    ![how to solve](./imgs/how-to-solve.png)
 
+    ```bash
+    Policy	: weave.policies.containers-minimum-replica-count
+    Entity	: deployment/nginx-deployment in namespace: default
+    Occurrences:
+    - Replica count must be greater than or equal to '2'; found '1'.
+    ```
 
-## FAQs
-// TODO:
-I use WeaveGitOps to view violations 
+- To prevent the agent from scanning certain namespaces and stop deployments, you can add these namespaces to `excludeNamespaces` in the Policy Agent helm chart values file
+
+- To prevent certain policy from running in a specific namespace, you can add these namespaces to the policy either by direct modification to the policy file or by using `kustomize` overlays
+
+## References
+
+- [HelmRepository](https://fluxcd.io/flux/components/source/helmrepositories/)
+- [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/)
+
+## FAQ
