@@ -2,20 +2,21 @@
 
 ## Prerequisites
 
-- [Kubernetes Cluster](https://kubernetes.io/) (v1.20 or newer)
-- [Flux](https://fluxcd.io/flux/installation/) (v0.36.0 or newer) (optional)
-- [Cert Manager](https://cert-manager.io/docs/installation/) (v1.5.0) or newer
+- [Kubernetes Cluster](https://kubernetes.io/) >= v1.20
+- [Flux](https://fluxcd.io/flux/installation/) >= v0.36.0 (optional)
+- [Cert Manager](https://cert-manager.io/docs/installation/) >= v1.5.0
 - [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
 - [helm](https://helm.sh/docs/intro/install/) (Optional)
 - [kustomize](https://kubectl.docs.kubernetes.io/installation/kustomize/) (optional)
 
 ## Installing Weave Policy Agent
 
-Weave Policy Agent can be installed using 2 methods (By using HelmRelease and Flux, By using Helm)
+This document will cover two approaches for installing the agent. The first is using Flux and Helm Releases as part of a GitOps ecosystem where Flux will take care of the installation, while the second is using Helm to install the agent directly on the cluster.
+For both scenarios, the examples used installs the agent with only the admission mode enabled and Kubernetes events configured as the sink for the violations. 
 
 ### Using HelmRelease and Flux
 
-To install Weave Policy Agent using `Flux` it requires the `HelmRepository` and `HelmRelease` for the Weave Policy Agent  to be applied into your cluster by adding them to your cluster repository in a location that's readable by flux.
+To install the Weave Policy Agent using `Flux`, create a `HelmRepository` and `HelmRelease` that reference the agent, and add them to your cluster's repository in a location reconcilable by flux. 
 
 <details>
   <summary>Click to expand Weave Policy Agent HelmRepository </summary>
@@ -81,7 +82,7 @@ status: {}
 ```
 </details>
 
-Once the `HelmRepository` and `HelmRelease` are reconciled by `Flux` you should find the Policy Agent installed on your cluster.
+Once the `HelmRepository` and `HelmRelease` are reconciled by `Flux`, you should find the Policy Agent installed on your cluster.
 
 Check installation status using
 
@@ -127,7 +128,7 @@ It uses OPA Rego Language to evaluate the entities.
 
 ### Installing Policies Using Flux
 
-To install default policies create a `kustomization` to reference the default policies from the policy agent repository
+To install the default policies, create a `kustomization` to reference the default policies from the policy agent repository and push it to your cluster's repository.
 
 <details>
   <summary>Click to expand Policies kustomization </summary>
@@ -163,7 +164,7 @@ spec:
 
 ### Installing Policies Using Kustomize
 
-You can use kustomize to install the default policies from the Policy Agent repository by applying this kustomization
+You can use kustomize to install the default policies from the Policy Agent repository by applying this kustomization directly to your Kubernetes cluster.
 
 <details>
   <summary>Click to expand the default policies kustomization </summary>
@@ -179,14 +180,16 @@ resources:
 
 ### Verify Policies Installation
 
-By using the following command
+You can verify the installation by running the following command. If the installation is successful, the output will show a list of all the default policies.
 
 ```bash
 kubectl get policies
 ```
 
 ## Explore Violations
-
+Now that you have the agent and policies in place, it's time to watch the agent block violating resources. [One](link to replica policy) of the default policies blocks deployments that have replicas lower than 2. 
+You can create or update a Deployment and set the `replicas` value to 1. The agent will block it because it violates the policy.
+If you don't have a violating Deployment, you can use the Deployment below as an example.
 - Sync a new or existing service that has one or more violations and watch it getting blocked by the Policy Agent 
 - If you don’t have a violating service and want to test the agent out, you can apply this violating service as an example
 
@@ -220,7 +223,7 @@ kubectl get policies
 
     </details>
 
-- The violation of the admission controller should look like this
+The agent's admission controller will block the deployment and show the output below.
 
     <details>
     <summary>Click to expand the admission controller response for the violation </summary>
@@ -242,7 +245,7 @@ kubectl get policies
 
     </details>
 
-- To view the violating events by using `kubectl`
+Since Kubernetes events are configured as a sink for the admission mode, you can use kubectl to list the violatons.
 
     ```bash
     kubectl get events --field-selector type=Warning,reason=PolicyViolation -A
@@ -265,9 +268,9 @@ kubectl get policies
     - Replica count must be greater than or equal to '2'; found '1'.
     ```
 
-- To prevent the agent from scanning certain namespaces and stop deployments, you can add these namespaces to `excludeNamespaces` in the Policy Agent helm chart values file
+- To prevent the agent from scanning certain namespaces and stop deployments, you can add these namespaces to `excludeNamespaces` in the Policy Agent helm chart values file.
 
-- To prevent certain policy from running in a specific namespace, you can add these namespaces to the policy either by direct modification to the policy file or by using `kustomize` overlays
+- To prevent a certain policy from running in a specific namespace, you can add these namespaces to the policy's `exclude_namespaces` parameter, either by a direct modification to the policy file or by using `kustomize` overlays.
 
 ## References
 
