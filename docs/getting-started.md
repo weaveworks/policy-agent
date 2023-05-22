@@ -19,7 +19,7 @@ For both scenarios, the examples used installs the agent with only the admission
 To install the Weave Policy Agent using `Flux`, create a `HelmRepository` and `HelmRelease` that reference the agent, and add them to your cluster's repository in a location reconcilable by flux. 
 
 <details>
-  <summary>Click to expand Weave Policy Agent HelmRepository </summary>
+  <summary>Click to expand HelmRepository </summary>
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -37,7 +37,7 @@ status: {}
 </details>
 
 <details>
-  <summary>Click to expand Weave Policy Agent HelmRelease </summary>
+  <summary>Click to expand HelmRelease </summary>
 
 ```yaml
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
@@ -84,39 +84,36 @@ status: {}
 
 Once the `HelmRepository` and `HelmRelease` are reconciled by `Flux`, you should find the Policy Agent installed on your cluster.
 
-Check installation status using
+Check installation status using the below commands, you should expect to see the success of HelmRelease installation and the pod of the agent running
 
 ```bash
 flux get helmrelease -A
 kubectl get pods -n policy-system
 ```
 
-![Policy Agent](imgs/check-agent-1.png)
-
 ### Using Helm
 
-- Create `policy-system` namespace to install the chart in
+Create `policy-system` namespace to install the chart in
 
-    ```bash
-    kubectl create ns policy-system
-    ```
+  ```bash
+  kubectl create ns policy-system
+  ```
 
-- Add the Weave Policy Agent helm chart
+Add the Weave Policy Agent helm chart
 
-    ```bash
-    helm repo add policy-agent https://weaveworks.github.io/policy-agent/
-    ```
+  ```bash
+  helm repo add policy-agent https://weaveworks.github.io/policy-agent/
+  ```
 
-- Install the helm chart
+Install the helm chart
 
-    ```bash
-    helm install policy-agent policy-agent/policy-agent -n policy-system
-    ```
+  ```bash
+  helm install policy-agent policy-agent/policy-agent -n policy-system
+  ```
 
-Check installation status using
+Check installation status using the below command, you should expect the pod of the agent running
 
 ```bash
-flux get helmrelease -A
 kubectl get pods -n policy-system
 ```
 
@@ -257,20 +254,20 @@ Since Kubernetes events are configured as a sink for the admission mode, you can
 
 ## Fix & Exclude
 
-- To fix the violation, each policy has a `how_to_solve` section and it's used by the admission controller to make a suggestion for you to how to fix the violation in your resource `yaml` file. The following example for Minimum Replica Count Policy
+To fix the violation, each policy has a `how_to_solve` section and it's used by the admission controller to make a suggestion for you to how to fix the violation in your resource `yaml` file. The following example for Minimum Replica Count Policy
   
-    ![how to solve](./imgs/how-to-solve.png)
+  ![how to solve](./imgs/how-to-solve.png)
 
-    ```bash
-    Policy	: weave.policies.containers-minimum-replica-count
-    Entity	: deployment/nginx-deployment in namespace: default
-    Occurrences:
-    - Replica count must be greater than or equal to '2'; found '1'.
-    ```
+  ```bash
+  Policy	: weave.policies.containers-minimum-replica-count
+  Entity	: deployment/nginx-deployment in namespace: default
+  Occurrences:
+  - Replica count must be greater than or equal to '2'; found '1'.
+  ```
 
-- To prevent the agent from scanning certain namespaces and stop deployments, you can add these namespaces to `excludeNamespaces` in the Policy Agent helm chart values file.
+To prevent the agent from scanning certain namespaces and stop deployments, you can add these namespaces to `excludeNamespaces` in the Policy Agent helm chart values file.
 
-- To prevent a certain policy from running in a specific namespace, you can add these namespaces to the policy's `exclude_namespaces` parameter, either by a direct modification to the policy file or by using `kustomize` overlays.
+To prevent a certain policy from running in a specific namespace, you can add these namespaces to the policy's `exclude_namespaces` parameter, either by a direct modification to the policy file or by using `kustomize` overlays.
 
 ## References
 
