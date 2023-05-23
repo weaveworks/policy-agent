@@ -12,7 +12,7 @@ If you are not using flux, you need to have both [Helm](https://helm.sh/docs/int
 
 ## Installing Weave Policy Agent
 
-By default, the policy agent is configured to enforce policies using kubernetes admisson controller, and publish the violation events to Kubernetes Events. For advanced configurations, please check [here](../helm/values.yaml)
+By default, the policy agent is configured to enforce policies using kubernetes admisson controller, and publish the violation events to Kubernetes Events. For advanced configurations, please check [here](../helm/values.yaml).
 
 To install Weave Policy Agent, you can use Flux and HelmRelease as part of GitOps ecosystem, or you can directly install the agent using just Helm. 
 
