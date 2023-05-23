@@ -14,10 +14,11 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT }}
+
       - name: setup go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: '1.19'
+          go-version: '1.20.x'
           cache: true
 
       - name: Get branch name (merge)
@@ -54,7 +55,7 @@ jobs:
           VERSION=${{ env.BRANCH_NAME }}-${COMMIT_COUNT}-${SHORT_HASH}
 
           if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
-            export VERSION=$(<version.txt)
+            export VERSION=master
           fi
 
           if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
@@ -63,16 +64,17 @@ jobs:
 
           make image VERSION=$VERSION
 
-
       - name: Scan The Image
         run: |
           REPO=policy-agent
           COMMIT_COUNT=$(git rev-list --count HEAD)
           SHORT_HASH=$(git rev-parse --short HEAD)
           VERSION=${{ env.BRANCH_NAME }}-${COMMIT_COUNT}-${SHORT_HASH}
+
           if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
-            export VERSION=$(<version.txt)
+            export VERSION=master
           fi
+
           if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
             export VERSION=dev
           fi
@@ -89,21 +91,13 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.PAT }}
 
-      - name: Release and push to Docker Registry
+      - name: Create image and push to Docker Registry
         if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
         run: |
+
           if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
-            export VERSION=$(<version.txt)
-            git config user.email "release-ci@weave.works"
-            git config user.name "release-ci"
-            git tag -a v$VERSION -m "Policy Agent v$VERSION release"
-            git push -u origin v$VERSION
+            export VERSION=master
           fi
 
           if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
