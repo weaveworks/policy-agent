@@ -24,9 +24,28 @@ Create `policy-system` namespace to install the chart in
   kubectl create ns policy-system
   ```
 
-In your flux repo root, create the following `HelmRepository` and `HelmRelease` manifests that reference the policy helm chart. 
+In your flux repo in the cluster's directory, create the following `HelmRepository` and `HelmRelease` manifests that reference the policy helm chart, push the new files to your repository.
 
 Note: You can create these manifests in another directory, just make sure the directory is getting reconciled by flux.
+
+The repository tree should be something like the following:
+
+  <details>
+    <summary>Repository tree - Click to expand .. </summary>
+
+  ```bash
+  .
+  └── clusters
+      └── my-cluster
+          ├── flux-system
+          │   ├── gotk-components.yaml
+          │   ├── gotk-sync.yaml
+          │   └── kustomization.yaml
+          ├── wpa-helmrelease.yaml
+          └── wpa-helmrepo.yaml
+  ```
+
+  </details>
 
 <details>
   <summary>wpa-helmrepo.yaml - Click to expand .. </summary>
@@ -93,25 +112,6 @@ status: {}
 </details>
 
 Once the `HelmRepository` and `HelmRelease` are reconciled by `Flux`, you should find the Policy Agent installed on your cluster.
-
-The repository tree should be something like the following:
-
-  <details>
-    <summary>Repository tree - Click to expand .. </summary>
-
-  ```bash
-  .
-  └── clusters
-      └── my-cluster
-          ├── flux-system
-          │   ├── gotk-components.yaml
-          │   ├── gotk-sync.yaml
-          │   └── kustomization.yaml
-          ├── wpa-helmrelease.yaml
-          └── wpa-helmrepo.yaml
-  ```
-
-  </details>
 
 Check installation status using the below commands, you should expect to see the success of HelmRelease installation and the pod of the agent running.
 
