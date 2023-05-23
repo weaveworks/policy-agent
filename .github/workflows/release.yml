@@ -1,15 +1,12 @@
 name: Release Charts
 
 on:
-  workflow_run:
-    workflows: ["build"]
-    branches: [master]
-    types: 
-      - completed
+  push:
+    tags:
+      - v*
 
 jobs:
   release:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

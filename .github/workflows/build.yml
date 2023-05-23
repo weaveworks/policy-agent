@@ -12,8 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
           token: ${{ secrets.PAT }}
+
       - name: setup go
         uses: actions/setup-go@v3
         with:
@@ -47,15 +47,11 @@ jobs:
           make test
           bash <(curl -s https://codecov.io/bash) -F unit
 
-      - name: Build docker image
+      - name: Build dev docker image
         run: |
           COMMIT_COUNT=$(git rev-list --count HEAD)
           SHORT_HASH=$(git rev-parse --short HEAD)
           VERSION=${{ env.BRANCH_NAME }}-${COMMIT_COUNT}-${SHORT_HASH}
-
-          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
-            export VERSION=$(<version.txt)
-          fi
 
           if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
             export VERSION=dev
@@ -63,49 +59,18 @@ jobs:
 
           make image VERSION=$VERSION
 
-
-      - name: Scan The Image
-        run: |
-          REPO=policy-agent
-          COMMIT_COUNT=$(git rev-list --count HEAD)
-          SHORT_HASH=$(git rev-parse --short HEAD)
-          VERSION=${{ env.BRANCH_NAME }}-${COMMIT_COUNT}-${SHORT_HASH}
-          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
-            export VERSION=$(<version.txt)
-          fi
-          if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
-            export VERSION=dev
-          fi
-
-          echo scanning ${REPO}:${VERSION}
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sudo sh -s -- -b /usr/local/bin
-          grype "${REPO}:${VERSION}" --scope all-layers > /tmp/report.txt #--fail-on high to fail on sev high
-
       - name: Login to Docker Hub
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/dev'
         uses: docker/login-action@v1
         with:
           registry: docker.io
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.PAT }}
 
-      - name: Release and push to Docker Registry
-        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
+      - name: Create dev image and push to Docker Registry
+        if: github.ref == 'refs/heads/dev'
         run: |
-          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
-            export VERSION=$(<version.txt)
-            git config user.email "release-ci@weave.works"
-            git config user.name "release-ci"
-            git tag -a v$VERSION -m "Policy Agent v$VERSION release"
-            git push -u origin v$VERSION
-          fi
-
           if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
             export VERSION=dev
           fi
