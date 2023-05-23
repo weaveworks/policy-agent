@@ -94,7 +94,7 @@ status: {}
 
 Once the `HelmRepository` and `HelmRelease` are reconciled by `Flux`, you should find the Policy Agent installed on your cluster.
 
-The repository tree should be something like the following
+The repository tree should be something like the following:
 
   <details>
     <summary>Repository tree - Click to expand .. </summary>
@@ -113,7 +113,7 @@ The repository tree should be something like the following
 
   </details>
 
-Check installation status using the below commands, you should expect to see the success of HelmRelease installation and the pod of the agent running
+Check installation status using the below commands, you should expect to see the success of HelmRelease installation and the pod of the agent running.
 
 ```bash
 flux get helmrelease -A
@@ -122,19 +122,19 @@ kubectl get pods -n policy-system
 
 ### Using Helm
 
-Create `policy-system` namespace to install the chart in
+Create `policy-system` namespace to install the chart in.
 
   ```bash
   kubectl create ns policy-system
   ```
 
-Add the Weave Policy Agent helm chart
+Add the Weave Policy Agent helm chart.
 
   ```bash
   helm repo add policy-agent https://weaveworks.github.io/policy-agent/
   ```
 
-Install the helm chart
+Install the helm chart.
 
   ```bash
   helm install policy-agent policy-agent/policy-agent -n policy-system
