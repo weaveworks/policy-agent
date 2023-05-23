@@ -2,24 +2,33 @@
 
 ## Prerequisites
 
-- [Kubernetes Cluster](https://kubernetes.io/) >= v1.20
-- [Flux](https://fluxcd.io/flux/installation/) >= v0.36.0 (optional)
-- [Cert Manager](https://cert-manager.io/docs/installation/) >= v1.5.0
+- Kubernetes Cluster (>= v1.20)
+- [Flux](https://fluxcd.io/flux/installation/) (>= v0.36.0)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
-- [helm](https://helm.sh/docs/intro/install/) (Optional)
-- [kustomize](https://kubectl.docs.kubernetes.io/installation/kustomize/) (optional)
+- [Cert Manager](https://cert-manager.io/docs/installation/) (>= v1.5.0)
+- [WeaveGitOps UI]()(Optional)
+
+If you are not using flux, you need to have both [Helm](https://helm.sh/docs/intro/install/) and [Kustomize](https://kubectl.docs.kubernetes.io/installation/kustomize/) installed on your cluster
 
 ## Installing Weave Policy Agent
+By default, the policy agent is configured to enforce policies using kubernetes admisson controller, and publish the violation events to Kubernetes Events. For advanced configurations, please check [here](//TODO: add URL for the agent configurations)
 
-This document will cover two approaches for installing the agent. The first is using Flux and Helm Releases as part of a GitOps ecosystem where Flux will take care of the installation, while the second is using Helm to install the agent directly on the cluster.
-For both scenarios, the examples used installs the agent with only the admission mode enabled and Kubernetes events configured as the sink for the violations. 
+To install Weave Policy Agent, you can use Flux and HelmRelease as part of GitOps ecosystem, or you can directly install the agent using just Helm. 
 
 ### Using HelmRelease and Flux
 
-To install the Weave Policy Agent using `Flux`, create a `HelmRepository` and `HelmRelease` that reference the agent, and add them to your cluster's repository in a location reconcilable by flux. 
+Create `policy-system` namespace to install the chart in
+
+  ```bash
+  kubectl create ns policy-system
+  ```
+
+In your flux repo root, create the following `HelmRepository` and `HelmRelease` manifests that reference the policy helm chart. 
+
+Note: You can create these manifests in another directory, just make sure the directory is getting reconciled by flux.
 
 <details>
-  <summary>Click to expand HelmRepository </summary>
+  <summary>wpa-helmrepo.yaml - Click to expand .. </summary>
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -37,7 +46,7 @@ status: {}
 </details>
 
 <details>
-  <summary>Click to expand HelmRelease </summary>
+  <summary>wpa-helmrelease.yaml - Click to expand .. </summary>
 
 ```yaml
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
@@ -119,16 +128,17 @@ kubectl get pods -n policy-system
 
 ## Installing Policies
 
-The [Policy CRD](../helm/crds/pac.weave.works_policies.yaml) is used to define policies which are then consumed and used by the agent to validate entities.
+Weave Policy Agent uses policies custom resources to validate resources compliance. Policy custom resource follows this definition ([Policy CRD](../helm/crds/pac.weave.works_policies.yaml)), and it consists of policy code and policy meta data. Policy code is written in OPA Rego Language. 
 
-It uses OPA Rego Language to evaluate the entities.
+To get started, you can use the default policies found [here](../policies/), which covers some kubernetes and flux best practices. 
 
-### Installing Policies Using Flux
+### Using Flux Kustomization
 
-To install the default policies, create a `kustomization` to reference the default policies from the policy agent repository and push it to your cluster's repository.
+//TODO: let's provide the path where it will work
+Create a `kustomization` to reference the default policies from the policy agent repository and push it to your cluster's repository.
 
 <details>
-  <summary>Click to expand Policies kustomization </summary>
+  <summary>policies.yaml - Click to expand .. </summary>
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1
@@ -159,12 +169,14 @@ spec:
 ```
 </details>
 
-### Installing Policies Using Kustomize
+### Using Kustomize
 
-You can use kustomize to install the default policies from the Policy Agent repository by applying this kustomization directly to your Kubernetes cluster.
+Apply the following kustomization directly to your Kubernetes cluster.
+
+//TODO: let's provide the command to apply the kustomization
 
 <details>
-  <summary>Click to expand the default policies kustomization </summary>
+  <summary>policies.yaml - Click to expand .. </summary>
 
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -183,15 +195,47 @@ You can verify the installation by running the following command. If the install
 kubectl get policies
 ```
 
+### View Policies in WeaveGitOps
+
+If you have WeaveGitOps UI installed on your cluster, you can use it to explore the policies installed on the cluster, as well as, explore the details on each policy. 
+
+//TODO: add screenshot from the policies.
+
 ## Explore Violations
-Now that you have the agent and policies in place, it's time to watch the agent block violating resources. [One](link to replica policy) of the default policies blocks deployments that have replicas lower than 2. 
-You can create or update a Deployment and set the `replicas` value to 1. The agent will block it because it violates the policy.
-If you don't have a violating Deployment, you can use the Deployment below as an example.
-- Sync a new or existing service that has one or more violations and watch it getting blocked by the Policy Agent 
-- If you don’t have a violating service and want to test the agent out, you can apply this violating service as an example
+With the agent and policies installed, Weave Policy Agent will prevent any resource that violate the relevant polices from being created or updated. 
+
+When using flux, flux reconcilation will fail if one of your application resources is violating any of the policies. 
+
+You should be able to see an error like this: 
+ <details>
+    <summary>Admission controller  violation error - Click to expand .. </summary>
+
+    ```bash
+    Error from server (==================================================================
+    ==================================================================
+    Policy	: weave.policies.containers-minimum-replica-count
+    Entity	: deployment/nginx-deployment in namespace: default
+    Occurrences:
+    - Replica count must be greater than or equal to '2'; found '1'.
+    ): error when creating "deployment.yaml": admission webhook "admission.agent.weaveworks" denied the request: 
+    ==================================================================
+    Policy	: weave.policies.containers-minimum-replica-count
+    Entity	: deployment/nginx-deployment in namespace: default
+    Occurrences:
+    - Replica count must be greater than or equal to '2'; found '1'.
+    ```
+
+  </details>
+
+### Violating Deployment Example
+If you don't have a violating application/resource on your cluster, you can use the following Deployment as an example to try the agent out. 
+
+This deployment is violating `Containers Minimum Replica Count` policy by having 1 replicas instead of min. 2 replicas.
+
+If you are using flux, try adding the deployment to your flux repo root directory. Or you can simply apply it directly to your cluster using `kubectl apply`.
 
     <details>
-    <summary>Click to expand violating deployment </summary>
+    <summary>violating-deployment.yaml - Click to expand .. </summary>
 
     ```yaml
     apiVersion: apps/v1
@@ -220,58 +264,37 @@ If you don't have a violating Deployment, you can use the Deployment below as an
 
     </details>
 
-The agent's admission controller will block the deployment and show the output below.
-
-    <details>
-    <summary>Click to expand the admission controller response for the violation </summary>
-
-    ```bash
-    Error from server (==================================================================
-    ==================================================================
-    Policy	: weave.policies.containers-minimum-replica-count
-    Entity	: deployment/nginx-deployment in namespace: default
-    Occurrences:
-    - Replica count must be greater than or equal to '2'; found '1'.
-    ): error when creating "deployment.yaml": admission webhook "admission.agent.weaveworks" denied the request: 
-    ==================================================================
-    Policy	: weave.policies.containers-minimum-replica-count
-    Entity	: deployment/nginx-deployment in namespace: default
-    Occurrences:
-    - Replica count must be greater than or equal to '2'; found '1'.
-    ```
-
-    </details>
-
-Since Kubernetes events are configured as a sink for the admission mode, you can use kubectl to list the violatons.
+### Check violations via Kubernetes Events
+Since Kubernetes events are configured as a sink for the admission mode, you can use the following command to list policy violatons.
 
     ```bash
     kubectl get events --field-selector type=Warning,reason=PolicyViolation -A
     ```
 
-- To view the violating events by using WeaveGitOps UI
+### Check violations via WeaveGitOps UI
+
+If you have WeaveGitOps UI installed, you can find each policy violations listed in Violations tab inside each policy. 
 
     ![WeaveGitOps UI](imgs/violations.png)
 
-## Fix & Exclude
+## Fix Policy Violations
 
-To fix the violation, each policy has a `how_to_solve` section and it's used by the admission controller to make a suggestion for you to how to fix the violation in your resource `yaml` file. The following example for Minimum Replica Count Policy
-  
+Your next step is to start fix policy violations, for that you can follow the remediation steps listed in each policy, apply them to the violating resources, and re-apply the resource or let flux sync the updated manifest.
+
+Remediation steps are aavailable in the policy custom resource `yaml`, under the `how_to_resolve` section. 
+
   ![how to solve](./imgs/how-to-solve.png)
 
-  ```bash
-  Policy	: weave.policies.containers-minimum-replica-count
-  Entity	: deployment/nginx-deployment in namespace: default
-  Occurrences:
-  - Replica count must be greater than or equal to '2'; found '1'.
-  ```
+The remediation steps also are viewable using WeaveGitOps UI in each policy page.   
+
+//TODO: add screenshot of just the how to resolve section in WeaveGitOps UI.
+
+### Fix Deployment Example Violation
+To fix the violation on the deployment example, simply update the `replicas` count from `1` to `2`, then apply or sync the deployment. It should pass the violation and the new manifest gets applied.
+
+## Exclude Namespaces
+Usually, you will have certain namespaces that you need to be excluded from policy evaluation, because they are vital to how your cluster operate and you don't want them affected by policy violations, for example `kube-system` and `flux-system`. 
 
 To prevent the agent from scanning certain namespaces and stop deployments, you can add these namespaces to `excludeNamespaces` in the Policy Agent helm chart values file.
 
 To prevent a certain policy from running in a specific namespace, you can add these namespaces to the policy's `exclude_namespaces` parameter, either by a direct modification to the policy file or by using `kustomize` overlays.
-
-## References
-
-- [HelmRepository](https://fluxcd.io/flux/components/source/helmrepositories/)
-- [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/)
-
-## FAQ
