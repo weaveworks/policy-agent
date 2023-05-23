@@ -16,9 +16,9 @@ jobs:
           token: ${{ secrets.PAT }}
 
       - name: setup go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: '1.19'
+          go-version: '1.20.x'
           cache: true
 
       - name: Get branch name (merge)
@@ -48,11 +48,15 @@ jobs:
           make test
           bash <(curl -s https://codecov.io/bash) -F unit
 
-      - name: Build dev docker image
+      - name: Build docker image
         run: |
           COMMIT_COUNT=$(git rev-list --count HEAD)
           SHORT_HASH=$(git rev-parse --short HEAD)
           VERSION=${{ env.BRANCH_NAME }}-${COMMIT_COUNT}-${SHORT_HASH}
+
+          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
+            export VERSION=master
+          fi
 
           if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
             export VERSION=dev
@@ -60,12 +64,16 @@ jobs:
 
           make image VERSION=$VERSION
 
-      - name: Scan The Dev Image
+      - name: Scan The Image
         run: |
           REPO=policy-agent
           COMMIT_COUNT=$(git rev-list --count HEAD)
           SHORT_HASH=$(git rev-parse --short HEAD)
           VERSION=${{ env.BRANCH_NAME }}-${COMMIT_COUNT}-${SHORT_HASH}
+
+          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
+            export VERSION=master
+          fi
 
           if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
             export VERSION=dev
@@ -84,9 +92,14 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
 
-      - name: Create dev image and push to Docker Registry
-        if: github.ref == 'refs/heads/dev'
+      - name: Create image and push to Docker Registry
+        if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'
         run: |
+
+          if [[ ${{ env.BRANCH_NAME }} == "master" ]]; then
+            export VERSION=master
+          fi
+
           if [[ ${{ env.BRANCH_NAME }} == "dev" ]]; then
             export VERSION=dev
           fi
