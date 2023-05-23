@@ -35,7 +35,8 @@ jobs:
         run: |
           make build
 
-          docker build -t weaveworks/policy-agent:test .
+          export VERSION=test
+          docker build -t weaveworks/policy-agent:${VERSION} .
 
           cd test/integration
           bash deploy.sh
