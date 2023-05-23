@@ -134,8 +134,7 @@ To get started, you can use the default policies found [here](../policies/), whi
 
 ### Using Flux Kustomization
 
-//TODO: let's provide the path where it will work
-Create a `kustomization` to reference the default policies from the policy agent repository and push it to your cluster's repository.
+In flux repo, beside the policy agent helm repo and helm release files, create the following mainfest file to reference the default policies from the policy agent repository and push it to your cluster.
 
 <details>
   <summary>policies.yaml - Click to expand .. </summary>
@@ -171,9 +170,11 @@ spec:
 
 ### Using Kustomize
 
-Apply the following kustomization directly to your Kubernetes cluster.
+Create `policies` directory and create the following `kustomization.yaml` file, then from the parent directory apply it to your Kubernetes cluster using 
 
-//TODO: let's provide the command to apply the kustomization
+``` bash
+  kubectl apply -k policies`
+``` 
 
 <details>
   <summary>policies.yaml - Click to expand .. </summary>
