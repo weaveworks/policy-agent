@@ -140,7 +140,7 @@ Install the helm chart.
   helm install policy-agent policy-agent/policy-agent -n policy-system
   ```
 
-Check installation status using the below command, you should expect the pod of the agent running
+Check the installation status using the below command, you should expect the pod of the agent to be running.
 
   ```bash
   kubectl get pods -n policy-system
