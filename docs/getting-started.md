@@ -190,14 +190,14 @@ spec:
 
 ### Using Kustomize
 
-Create `policies` directory and create the following `kustomization.yaml` file, then from the parent directory apply it to your Kubernetes cluster using 
+Create `policies` directory and create the following `kustomization.yaml` file, then from the parent directory apply it to your Kubernetes cluster using the command below.
 
 ``` bash
-  kubectl apply -k policies`
+  kubectl apply -k policies
 ``` 
 
 <details>
-  <summary>policies.yaml - Click to expand .. </summary>
+  <summary>kustomization.yaml - Click to expand .. </summary>
 
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
