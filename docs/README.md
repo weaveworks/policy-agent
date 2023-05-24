@@ -27,7 +27,7 @@
 
 ## High Level Architecture
 
-![](agent-hla.png)
+![](imgs/agent-hla.png)
 
 The Policy agent can run in 3 different modes. [Audit](#audit), [Admission](#admission), and [Terraform Admission](#terraform-admission) and it can run in multiple modes in the same time.
 
