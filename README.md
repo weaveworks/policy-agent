@@ -30,7 +30,7 @@ Users can use our free policies or define their own policies using our Policy CR
 
 ## Getting started
 
-To get started, check out this [guide](link to getting started) on how to install the policy agent to your kubernetes cluster and explore violations.
+To get started, check out this [guide](docs/getting-started.md) on how to install the policy agent to your kubernetes cluster and explore violations.
 
 ## Documentation
 
