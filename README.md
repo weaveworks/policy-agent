@@ -3,30 +3,27 @@
 
 # Weave Policy Agent
 
-The Weave Policy Agent helps users have security and compliance checks on their Kubernetes clusters by enforcing rego policies at deploy time, and periodically auditing runtime resources in the cluster.
+Weave Policy Agent is a policy-as-code engine built on Open Policy Agent (OPA) that ensures security, compliance, and best practices for Kubernetes applications. Designed for GitOps workflows, especially Flux, it enables fine-grained policies for Flux applications and tenants, ensuring isolation and compliance across Kubernetes deployments.
 
 ## Features
 
-### Admission
+#### Prevent violating K8s resources via admission controller
+Weave Policy Agent uses kubernetes admission controller to monitor any Kubernetes Resource changes and prevent the ones violating the policies from getting deployed. 
 
-Enforce policies at deploy time for Kubernetes and [tf-controller](https://github.com/weaveworks/tf-controller) resources.
+#### Prevent violating terraform plans via `tf-controller`
+If you are using flux's terraform controller ([tf-controller](https://github.com/weaveworks/tf-controller)) to apply and sync your terraform plans, you can use Weave Policy Agent to prevent violating plans from being applied to your cluster. 
 
-### Audit
+#### Audit runtime compliance
+The agent scans Kubernetes resources on the cluster and report runtime violations at a configurable frequency.
 
-Report runtime violations and compliance for Kubernetes resources.
+#### Advanced features for flux
+While the agent works natively with Kubernetes resources, Weave Policy Agent has specific features allowing fine-grained policy configurations to flux applications and tenants, as well as alerting integration with flux's `notification-controller`
 
-### Sinks
+#### Observability via WeaveGitOps UI
+Policies and violations can be displayed on WeaveGitOps Dashboards allowing better observability over cluster's compliance. 
 
-Support for configuring multiple sinks for the audit and admission modes. We currently support the following sinks:
-- Kubernetes events
-- Filesystem
-- Elasticsearch
-- [notification-controller](https://github.com/fluxcd/notification-controller)
-
-
-### Policies
-
-Users can use our free policies or define their own policies using our Policy CRD.
+#### Example Policies
+Example policies that target K8s and Flux best practices are available [here](policies). Users can as well write their policies in Rego using the agent policy CRD.
 
 ## Getting started
 
