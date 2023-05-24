@@ -101,6 +101,7 @@ func (k *K8sEventSink) write(ctx context.Context, result domain.PolicyValidation
 			Name:            fluxObject.GetName(),
 			Namespace:       fluxObject.GetNamespace(),
 			ResourceVersion: fluxObject.GetResourceVersion(),
+			FieldPath:       result.Policy.ID,
 		}
 		event.Namespace = fluxObject.GetNamespace()
 	}
