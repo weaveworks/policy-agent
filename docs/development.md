@@ -20,9 +20,9 @@ This will generate a binary at `bin/agent`  but we won't be using directly. We w
 docker build . -t agent-test:{chart-version}
 ```
 
-Notice that the tag version needs to be the same as the helm chart version. You can give any name to the image.
+Notice that the tag version needs to be the same as the helm chart version. You can give any name to the image. The version could be found on `/helm/Chart.yaml`
 
-You know have an image that you can add to your local cluster. This vary depending on which provider you are using.
+Now you have an image that can be added to your local cluster. This vary depending on which provider you are using.
 
 If you are using `kind`:
 
@@ -46,10 +46,16 @@ config:
   clusterId: "wge-dev"
 ```
 
+Create `policy-system` namespace to install the chart in
+
+  ```bash
+  kubectl create ns policy-system
+  ```
+
 Then you can finally run the agent:
 
 ```bash
-helm3 install agent -f {values-file-path} helm -n policy-system
+helm install agent -f {values-file-path} helm -n policy-system
 ```
 
 When agent pod is ready, it should be good to go.
