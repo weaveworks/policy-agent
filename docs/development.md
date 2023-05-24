@@ -20,9 +20,9 @@ This will generate a binary at `bin/agent`  but we won't be using directly. We w
 docker build . -t agent-test:{chart-version}
 ```
 
-Notice that the tag version needs to be the same as the helm chart version. You can give any name to the image. The version could be found on `/helm/Chart.yaml`
+Notice that the tag version needs to be the same as the helm chart version. You can give any name to the image. The version could be found in `./helm/Chart.yaml`
 
-Now you have an image that can be added to your local cluster. This vary depending on which provider you are using.
+Now you have an image that can be added to your local cluster. This varies depending on which provider you are using.
 
 If you are using `kind`:
 
@@ -37,7 +37,7 @@ With `minikube` you will need to run this in a shell before building an image an
 eval $(minikube docker-env)
 ```
 
-Next you will have to create your values file, you can configure the agent inside as necessary overriding the default values. The following needs to be configured:
+Next you need to create your values file, you can configure the agent inside as necessary overriding the default values. The following needs to be configured:
 
 ```yaml
 image: agent-test
