@@ -24,9 +24,9 @@ jobs:
         with:
           install_only: true
       - name: setup go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: '1.19'
+          go-version: '1.20.x'
           cache: true
       - name: Run tests
         env:
@@ -35,7 +35,7 @@ jobs:
         run: |
           make build
 
-          export VERSION=$(cat ./version.txt)
+          export VERSION=test
           docker build -t weaveworks/policy-agent:${VERSION} .
 
           cd test/integration

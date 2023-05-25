@@ -1,0 +1,41 @@
+name: Release Charts
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: master
+          fetch-depth: 0
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: gh-pages
+          ref: gh-pages
+          fetch-depth: 0
+      
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+
+      - name: Release
+        shell: bash
+        run: |
+          helm package master/helm
+          mkdir -p gh-pages/releases
+          mv policy-agent-* gh-pages/releases/
+          cd gh-pages
+          helm repo index releases --url https://weaveworks.github.io/policy-agent/releases
+          mv releases/index.yaml index.yaml
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git add releases index.yaml
+          git commit -m "update release charts"
+          git push

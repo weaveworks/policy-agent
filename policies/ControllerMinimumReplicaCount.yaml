@@ -1,0 +1,87 @@
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: weave.policies.containers-minimum-replica-count
+spec:
+  id: weave.policies.containers-minimum-replica-count
+  name: Containers Minimum Replica Count
+  enabled: false
+  description: "Use this Policy to to check the replica count of your workloads. The value set in the Policy is greater than or equal to the amount desired, so if the replica count is lower than what is specified, the Policy will be in violation. \n"
+  how_to_solve: |
+    The replica count should be a value equal or greater than what is set in the Policy.
+    ```
+    spec:
+      replicas: <replica_count>
+    ```
+    https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment
+  category: weave.categories.reliability
+  severity: medium
+  targets:
+    kinds:
+      - Deployment
+      - StatefulSet
+      - ReplicaSet
+      - ReplicationController
+      - HorizontalPodAutoscaler
+  standards:
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.2.1.1
+  tags: [soc2-type1, tenancy]
+  parameters:
+    - name: replica_count
+      type: integer
+      required: true
+      value: 2
+    - name: exclude_namespaces
+      type: array
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.pods.replica_count
+
+    import future.keywords.in
+
+    min_replica_count := input.parameters.replica_count
+    exclude_namespaces := input.parameters.exclude_namespaces
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    controller_input := input.review.object
+
+    violation[result] {
+      isExcludedNamespace == false
+        not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      not replicas >= min_replica_count
+      result = {
+        "issue detected": true,
+        "msg": sprintf("Replica count must be greater than or equal to '%v'; found '%v'.", [min_replica_count, replicas]),
+        "violating_key": violating_key,
+        "recommended_value": min_replica_count,
+      }
+    }
+
+    replicas := controller_input.spec.replicas {
+      controller_input.kind in {"Deployment", "StatefulSet", "ReplicaSet", "ReplicationController"}
+    } else := controller_input.spec.minReplicas {
+      controller_input.kind == "HorizontalPodAutoscaler"
+    }
+
+    violating_key := "spec.replicas" {
+      controller_input.kind in {"Deployment", "StatefulSet", "ReplicaSet", "ReplicationController"}
+    } else := "spec.minReplicas" {
+      controller_input.kind == "HorizontalPodAutoscaler"
+    }
+
+    isExcludedNamespace = true {
+      controller_input.metadata.namespace
+      controller_input.metadata.namespace in exclude_namespaces
+    } else = false

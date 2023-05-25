@@ -28,10 +28,6 @@ Performs the audit functionality. It triggers per the specified interval and the
 
 Contains client code to contact any external services.
 
-#### gateway
-
-Contains the logic to connect and authorize to the Saas sink.
-
 #### kube
 
 Contains code that make use of the Kubernetes client to contact the API server.
@@ -53,7 +49,6 @@ Contains the implementations of `PolicyValidationSink`, responsible of writing t
 - filesystem: writes to a configured file path
 - flux-notification: integrates with flux and writes to its notification controller
 - k8s-event: write to a Kubernetes event on the cluster
-- saas: writes to the Saas connection
 
 ### terraform
 

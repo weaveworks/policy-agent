@@ -3,9 +3,9 @@ package controllers
 import (
 	"context"
 
-	"github.com/MagalixTechnologies/core/logger"
 	"github.com/weaveworks/policy-agent/api/v2beta2"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	"github.com/weaveworks/policy-agent/pkg/logger"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 
