@@ -325,6 +325,16 @@ github.com/tchap/go-patricia/v2 v2.3.1 h1:6rQp39lgIYZ+MHmdEq4xzuk1t7OdC35z/xm0BG
 github.com/tchap/go-patricia/v2 v2.3.1/go.mod h1:VZRHKAb53DLaG+nA9EaYYiaEx6YztwDlLElMsnSHD4k=
 github.com/urfave/cli/v2 v2.24.4 h1:0gyJJEBYtCV87zI/x2nZCPyDxD51K6xM8SkwjHFCNEU=
 github.com/urfave/cli/v2 v2.24.4/go.mod h1:GHupkWPMM0M/sj1a2b4wUrWBPzazNrIjouW6fmdJLxc=
+github.com/weaveworks/policy-agent/api v1.0.5 h1:4pqzzta8xPUsE9h9YhGJVg5XQ2NuAU/CDoU7zdCw5A0=
+github.com/weaveworks/policy-agent/api v1.0.5/go.mod h1:LlhTiipsV5GSHkL/q7Wa7qrJPZGR9Xtoq2npXTWp9bI=
+github.com/weaveworks/policy-agent/pkg/logger v1.1.0 h1:LwWacSwGApgqniM0wzBS1XcAE46Iu0mCeczQBeIA11M=
+github.com/weaveworks/policy-agent/pkg/logger v1.1.0/go.mod h1:bhlwMW3rcPE294XrmlDYvx4EkRCbAzEqXBT9LI4KIFA=
+github.com/weaveworks/policy-agent/pkg/opa-core v0.0.0-20230411202656-c275cc5de56f h1:x5IUSwgm9Ze4J9TGeka0gm5bu5VzvWIiAOT6GoRCsUQ=
+github.com/weaveworks/policy-agent/pkg/opa-core v0.0.0-20230411202656-c275cc5de56f/go.mod h1:MwRlDt6p01tiUAIR9hDiz7Ib/3btvRxBnLq4cc7LDS0=
+github.com/weaveworks/policy-agent/pkg/policy-core v1.2.0 h1:JpH8MEuGSTnkxC7G896qeULYAYQ1HvKnhwdOTkfrn7g=
+github.com/weaveworks/policy-agent/pkg/policy-core v1.2.0/go.mod h1:5smeBUrej5FAT+1ss5Q8KkIqUlVy0eF4VRkSP2RHjBs=
+github.com/weaveworks/policy-agent/pkg/uuid-go v0.1.0 h1:2zODdAnMFAgYhNJj/Oe59OxG98LWuFRxF7cIovPnSVE=
+github.com/weaveworks/policy-agent/pkg/uuid-go v0.1.0/go.mod h1:norQi1tZAienB1ad0kAbiJlTe85j+LVef5P53kW7qAo=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
 github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb h1:zGWFAtiMcyryUHoUjUJX0/lt1H2+i2Ka2n+D3DImSNo=
 github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
