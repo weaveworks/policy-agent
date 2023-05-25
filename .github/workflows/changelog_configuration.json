@@ -18,5 +18,8 @@
   ],
   "template": "${{CHANGELOG}}\n\n<details>\n<summary>Uncategorized</summary>\n\n${{UNCATEGORIZED}}\n</details>",
   "pr_template": "- PR: #${{NUMBER}} - ${{TITLE}}",
-    "empty_template": "- no changes"
+  "empty_template": "- no changes",
+  "base_branches": [
+      "dev"
+  ]
 }
