@@ -1,4 +1,3 @@
-// Sorry.
 package uuid
 
 import (
@@ -106,7 +105,6 @@ func (uuid *UUID) SetBSON(raw bson.Raw) error {
 	}
 
 	if str == "" {
-		// TODO Yasser, 2018-08-06: log warning?
 		*uuid = Nil
 		return nil
 	}
