@@ -329,8 +329,8 @@ github.com/weaveworks/policy-agent/api v1.0.5 h1:4pqzzta8xPUsE9h9YhGJVg5XQ2NuAU/
 github.com/weaveworks/policy-agent/api v1.0.5/go.mod h1:LlhTiipsV5GSHkL/q7Wa7qrJPZGR9Xtoq2npXTWp9bI=
 github.com/weaveworks/policy-agent/pkg/logger v1.1.0 h1:LwWacSwGApgqniM0wzBS1XcAE46Iu0mCeczQBeIA11M=
 github.com/weaveworks/policy-agent/pkg/logger v1.1.0/go.mod h1:bhlwMW3rcPE294XrmlDYvx4EkRCbAzEqXBT9LI4KIFA=
-github.com/weaveworks/policy-agent/pkg/opa-core v0.0.0-20230411202656-c275cc5de56f h1:x5IUSwgm9Ze4J9TGeka0gm5bu5VzvWIiAOT6GoRCsUQ=
-github.com/weaveworks/policy-agent/pkg/opa-core v0.0.0-20230411202656-c275cc5de56f/go.mod h1:MwRlDt6p01tiUAIR9hDiz7Ib/3btvRxBnLq4cc7LDS0=
+github.com/weaveworks/policy-agent/pkg/opa-core v1.1.0 h1:++9oPP/cNuo2SUbBjFim1o0YM8g42kcNWgXMBCOdl7w=
+github.com/weaveworks/policy-agent/pkg/opa-core v1.1.0/go.mod h1:ZY18awHQq5tvh4lL9PvaRbP34qOIw709wGcKhtf6ZbI=
 github.com/weaveworks/policy-agent/pkg/policy-core v1.2.0 h1:JpH8MEuGSTnkxC7G896qeULYAYQ1HvKnhwdOTkfrn7g=
 github.com/weaveworks/policy-agent/pkg/policy-core v1.2.0/go.mod h1:5smeBUrej5FAT+1ss5Q8KkIqUlVy0eF4VRkSP2RHjBs=
 github.com/weaveworks/policy-agent/pkg/uuid-go v0.1.0 h1:2zODdAnMFAgYhNJj/Oe59OxG98LWuFRxF7cIovPnSVE=
