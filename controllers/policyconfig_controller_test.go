@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/MagalixTechnologies/uuid-go"
 	"github.com/stretchr/testify/assert"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	"github.com/weaveworks/policy-agent/pkg/uuid-go"
 	admissionv1 "k8s.io/api/admission/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

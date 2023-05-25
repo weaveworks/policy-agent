@@ -1,8 +1,8 @@
 package log
 
 import (
-	"github.com/MagalixTechnologies/core/logger"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/policy-agent/pkg/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

@@ -1,22 +1,13 @@
 package main
 
 import (
-	"context"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/MagalixTechnologies/core/logger"
-	"github.com/MagalixTechnologies/core/packet"
-	"github.com/MagalixTechnologies/policy-core/domain"
-	"github.com/MagalixTechnologies/policy-core/validation"
-	"github.com/MagalixTechnologies/uuid-go"
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
 	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
@@ -24,7 +15,6 @@ import (
 	"github.com/weaveworks/policy-agent/controllers"
 	"github.com/weaveworks/policy-agent/internal/admission"
 	"github.com/weaveworks/policy-agent/internal/auditor"
-	"github.com/weaveworks/policy-agent/internal/clients/gateway"
 	"github.com/weaveworks/policy-agent/internal/clients/kube"
 	"github.com/weaveworks/policy-agent/internal/entities/k8s"
 	"github.com/weaveworks/policy-agent/internal/mutation"
@@ -33,9 +23,11 @@ import (
 	"github.com/weaveworks/policy-agent/internal/sink/filesystem"
 	flux_notification "github.com/weaveworks/policy-agent/internal/sink/flux-notification"
 	k8s_event "github.com/weaveworks/policy-agent/internal/sink/k8s-event"
-	"github.com/weaveworks/policy-agent/internal/sink/saas"
 	"github.com/weaveworks/policy-agent/internal/terraform"
 	"github.com/weaveworks/policy-agent/pkg/log"
+	"github.com/weaveworks/policy-agent/pkg/logger"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/validation"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -44,11 +36,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-)
-
-const (
-	SaaSSinkBatchSize   = 500
-	SaaSSinkBatchExpiry = 10 * time.Second
 )
 
 // build is overriden during compilation of the binary
@@ -169,8 +156,6 @@ func main() {
 		admissionSinks := []domain.PolicyValidationSink{}
 		terraformSinks := []domain.PolicyValidationSink{}
 
-		var auditSaaSGatewaySink, admissionSaaSGatewaySink *configuration.SaaSGatewaySink
-
 		if config.Audit.Enabled {
 			auditSinksConfig := config.Audit.Sinks
 			if auditSinksConfig.FilesystemSink != nil {
@@ -208,9 +193,6 @@ func main() {
 					return err
 				}
 				auditSinks = append(auditSinks, elasticsearchSink)
-			}
-			if auditSinksConfig.SaasGatewaySink != nil {
-				auditSaaSGatewaySink = auditSinksConfig.SaasGatewaySink
 			}
 		}
 
@@ -253,9 +235,6 @@ func main() {
 				admissionSinks = append(admissionSinks, elasticsearchSink)
 			}
 
-			if admissionSinksConfig.SaasGatewaySink != nil {
-				admissionSaaSGatewaySink = admissionSinksConfig.SaasGatewaySink
-			}
 		}
 
 		if config.TFAdmission.Enabled {
@@ -295,40 +274,6 @@ func main() {
 					return err
 				}
 				terraformSinks = append(terraformSinks, elasticsearchSink)
-			}
-		}
-
-		if auditSaaSGatewaySink != nil && admissionSaaSGatewaySink != nil &&
-			auditSaaSGatewaySink.URL != admissionSaaSGatewaySink.URL {
-			return errors.New("failed to initialize SaaS gateway sink: different saas gateway sink url in admission and audit sinks configuration")
-		}
-
-		var saasGatewaySink configuration.SaaSGatewaySink
-		if auditSaaSGatewaySink != nil || admissionSaaSGatewaySink != nil {
-			if auditSaaSGatewaySink != nil {
-				saasGatewaySink = *auditSaaSGatewaySink
-			} else if admissionSaaSGatewaySink != nil {
-				saasGatewaySink = *admissionSaaSGatewaySink
-			}
-
-			logger.Info("initializing SaaS gateway sink...")
-			gateway, err := initSaaSGateway(contextCli.Context, kubeClient, config, saasGatewaySink)
-			if err != nil {
-				return err
-			}
-			if auditSaaSGatewaySink != nil {
-				gatewaySink, err := initSaaSSink(contextCli.Context, mgr, gateway, packet.PacketPolicyValidationAudit)
-				if err != nil {
-					return err
-				}
-				auditSinks = append(auditSinks, gatewaySink)
-			}
-			if admissionSaaSGatewaySink != nil {
-				gatewaySink, err := initSaaSSink(contextCli.Context, mgr, gateway, packet.PacketPolicyValidationAdmission)
-				if err != nil {
-					return err
-				}
-				admissionSinks = append(admissionSinks, gatewaySink)
 			}
 		}
 
@@ -522,82 +467,4 @@ func initElasticSearchSink(mgr manager.Manager, elasticsearchSinkConfig configur
 	mgr.Add(sink)
 
 	return sink, nil
-}
-
-func initSaaSSink(ctx context.Context, mgr manager.Manager, gateway *gateway.Gateway, packetKind packet.PacketKind) (*saas.SaaSGatewaySink, error) {
-	sink := saas.NewSaaSGatewaySink(
-		gateway,
-		packetKind,
-		SaaSSinkBatchSize,
-		SaaSSinkBatchExpiry,
-	)
-	logger.Info("starting SaaS gateway connection")
-	go gateway.Start(ctx)
-	active := gateway.WaitActive(ctx, 10*time.Second)
-	if !active {
-		return nil, errors.New("timeout while waiting for SaaS gateway connection")
-	}
-	logger.Info("starting Saas gateway sink ...")
-	mgr.Add(sink)
-
-	return sink, nil
-}
-
-func initSaaSGateway(ctx context.Context, kubeClient *kube.KubeClient, config configuration.Config, gatewaySink configuration.SaaSGatewaySink) (*gateway.Gateway, error) {
-	secret, err := base64.StdEncoding.DecodeString(gatewaySink.Secret)
-	if err != nil {
-		return nil, errors.New("secret not encoded in base64 format")
-	}
-	gatewayURL, err := url.Parse(gatewaySink.URL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse gateway url: %w", err)
-	}
-	accountID, err := uuid.FromString(config.AccountID)
-	if err != nil {
-		return nil, errors.New("invalid uuid format for account id")
-	}
-	clusterID, err := uuid.FromString(config.ClusterID)
-	if err != nil {
-		return nil, errors.New("invalid uuid format for cluster id")
-	}
-
-	var agentPermissions string
-	permissionsObj, err := kubeClient.GetAgentPermissions(ctx)
-	if err != nil {
-		agentPermissions = err.Error()
-		logger.Warnw("Failed to get agent permissions", "error", err)
-	}
-
-	agentPermissionsBytes, err := json.Marshal(permissionsObj.Status.ResourceRules)
-	if err != nil {
-		parseErr := fmt.Errorf("error while parsing agent permissions: %w", err)
-		agentPermissions = parseErr.Error()
-		logger.Warnw("Failed to parse agent permissions", "error", err)
-	}
-
-	agentPermissions = string(agentPermissionsBytes)
-
-	k8sServerVersion, err := kubeClient.GetServerVersion()
-	if err != nil {
-		k8sServerVersion = err.Error()
-		logger.Warnw("failed to discover kubernetes server version", "error", err)
-	}
-
-	clusterProvider, err := kubeClient.GetClusterProvider(ctx)
-	if err != nil {
-		clusterProvider = err.Error()
-		logger.Warnw("failed to get kubernetes cluster provider", "error", err)
-	}
-
-	gateway := gateway.NewGateway(
-		*gatewayURL,
-		accountID,
-		clusterID,
-		secret,
-		k8sServerVersion,
-		clusterProvider,
-		agentPermissions,
-		build,
-	)
-	return gateway, nil
 }

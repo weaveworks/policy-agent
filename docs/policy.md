@@ -22,7 +22,7 @@ Tenant policies has a special tag `tenancy`.
 ## Mutating Resources
 
 
-![](./mutation.png)
+![](./imgs/mutation.png)
 
 Starting from version `v2.2.0`, the policy agent will support mutating resources.
 
