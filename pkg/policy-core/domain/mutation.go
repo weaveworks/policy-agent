@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/weaveworks/weave-policy-agent/pkg/logger"
+	"github.com/weaveworks/policy-agent/pkg/logger"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 )
 

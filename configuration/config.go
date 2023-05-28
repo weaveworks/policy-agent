@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
-	"github.com/weaveworks/weave-policy-agent/pkg/logger"
+	"github.com/weaveworks/policy-agent/pkg/logger"
 )
 
 type SinksConfig struct {

@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: weave-policy-agent
+  name: policy-agent
   labels:
-    app.kubernetes.io/name: "weave-policy-agent"
+    app.kubernetes.io/name: "policy-agent"
     app.kubernetes.io/version: "1"
     app.kubernetes.io/component: "service-account"
     app.kubernetes.io/tier: "backend"
@@ -11,9 +11,9 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: weave-policy-agent
+  name: policy-agent
   labels:
-    app.kubernetes.io/name: "weave-policy-agent"
+    app.kubernetes.io/name: "policy-agent"
     app.kubernetes.io/version: "1"
     app.kubernetes.io/component: "cluster-role"
     app.kubernetes.io/tier: "backend"
@@ -65,26 +65,26 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: weave-policy-agent
+  name: policy-agent
   labels:
-    app.kubernetes.io/name: "weave-policy-agent"
+    app.kubernetes.io/name: "policy-agent"
     app.kubernetes.io/version: "1"
     app.kubernetes.io/component: "cluster-role-binding"
     app.kubernetes.io/tier: "backend"
 subjects:
 - kind: ServiceAccount
-  name: weave-policy-agent
+  name: policy-agent
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: weave-policy-agent
+  name: policy-agent
   apiGroup: rbac.authorization.k8s.io
 ---
 {{if eq .Values.persistence.enabled true }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: weave-policy-agent
+  name: policy-agent
 spec:
   storageClassName: {{ .Values.persistence.storageClassName }}
   accessModes:
@@ -97,7 +97,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: weave-policy-agent-config
+  name: policy-agent-config
 data:
   config.yaml: |-
     {{- toYaml .Values.config | nindent 6 }}
@@ -115,20 +115,20 @@ kind: Certificate
 metadata:
   name: agent-certificate
 spec:
-  commonName: weave-policy-agent.{{ .Release.Namespace }}.svc
+  commonName: policy-agent.{{ .Release.Namespace }}.svc
   dnsNames:
-  - weave-policy-agent.{{ .Release.Namespace }}.svc.cluster.local
-  - weave-policy-agent.{{ .Release.Namespace }}.svc
+  - policy-agent.{{ .Release.Namespace }}.svc.cluster.local
+  - policy-agent.{{ .Release.Namespace }}.svc
   issuerRef:
     kind: Issuer
     name: agent-issuer
-  secretName: weave-policy-agent-cert
+  secretName: policy-agent-cert
 ---
 {{ else }}
 apiVersion: v1
 kind: Secret
 metadata:
-  name: weave-policy-agent-cert
+  name: policy-agent-cert
 type: kubernetes.io/tls
 data:
   tls.crt: |
@@ -140,33 +140,33 @@ data:
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: weave-policy-agent
+  name: policy-agent
   labels:
-    app.kubernetes.io/name: "weave-policy-agent"
-    app.kubernetes.io/instance: "weave-policy-agent"
-    app.kubernetes.io/part-of: "weave-policy-agent"
+    app.kubernetes.io/name: "policy-agent"
+    app.kubernetes.io/instance: "policy-agent"
+    app.kubernetes.io/part-of: "policy-agent"
     app.kubernetes.io/managed-by: "weaveworks"
     app.kubernetes.io/version: "1"
-    app.kubernetes.io/component: "weave-policy-agent"
+    app.kubernetes.io/component: "policy-agent"
     app.kubernetes.io/tier: "backend"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name:  weave-policy-agent
+      name:  policy-agent
   template:
     metadata:
       labels:
-        name: weave-policy-agent
+        name: policy-agent
     spec:
-      serviceAccountName: weave-policy-agent
+      serviceAccountName: policy-agent
       restartPolicy: Always
       securityContext:
         fsGroup: 1000
       containers:
         - image: {{ .Values.image }}:{{ .Chart.AppVersion }}
           imagePullPolicy: IfNotPresent
-          name: weave-policy-agent
+          name: policy-agent
           args: [
             "--config-file",
             "/config/config.yaml"
@@ -203,7 +203,7 @@ spec:
             protocol: TCP
           envFrom:
           - configMapRef:
-              name: weave-policy-agent-config
+              name: policy-agent-config
           volumeMounts:
           - name: cert
             mountPath: /certs
@@ -217,34 +217,34 @@ spec:
       volumes:
       - name: cert
         secret:
-          secretName: weave-policy-agent-cert
+          secretName: policy-agent-cert
       - name: agent-config-volume
         configMap:
-          name: weave-policy-agent-config
+          name: policy-agent-config
       {{- if eq .Values.persistence.enabled true }}
       - name: validation-results
         persistentVolumeClaim:
-          claimName: weave-policy-agent
+          claimName: policy-agent
       {{- end }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: weave-policy-agent
+  name: policy-agent
 spec:
   ports:
   - name: https-admission-webhook
     port: 443
     targetPort: webhook
   selector:
-    name:  weave-policy-agent
+    name:  policy-agent
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: weave-policy-agent
+  name: policy-agent
   labels:
-    app.kubernetes.io/name: weave-policy-agent
+    app.kubernetes.io/name: policy-agent
   {{- if eq .Values.useCertManager true }}
   annotations:
     cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/agent-certificate
@@ -255,7 +255,7 @@ webhooks:
     clientConfig:
       service:
         namespace: {{ .Release.Namespace }}
-        name: weave-policy-agent
+        name: policy-agent
         path: /admission
       caBundle: {{ .Values.caCertificate | b64enc }}
     rules:
@@ -323,7 +323,7 @@ webhooks:
     - v1
     clientConfig:
       service:
-        name: weave-policy-agent
+        name: policy-agent
         namespace: {{ .Release.Namespace }}
         path: /validate-v2beta2-policyconfig
     failurePolicy: Fail
@@ -345,9 +345,9 @@ webhooks:
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: weave-policy-agent
+  name: policy-agent
   labels:
-    app.kubernetes.io/name: weave-policy-agent
+    app.kubernetes.io/name: policy-agent
   {{- if .Values.useCertManager }}
   annotations:
     cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/agent-certificate
@@ -357,7 +357,7 @@ webhooks:
     clientConfig:
       service:
         namespace: {{ .Release.Namespace }}
-        name: weave-policy-agent
+        name: policy-agent
         path: /mutation
       caBundle: {{ .Values.caCertificate | b64enc }}
     rules:

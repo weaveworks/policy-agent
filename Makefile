@@ -158,7 +158,7 @@ push@%:
 
 .PHONY: mock
 mock:
-	mockgen -package mock -destination internal/entities/mock/mock.go github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain EntitiesSource
+	mockgen -package mock -destination internal/entities/mock/mock.go github.com/weaveworks/policy-agent/pkg/policy-core/domain EntitiesSource
 
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
