@@ -9,10 +9,10 @@ import (
 	"time"
 
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/weaveworks/policy-agent/pkg/logger"
-	opa "github.com/weaveworks/policy-agent/pkg/opa-core"
-	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
-	"github.com/weaveworks/policy-agent/pkg/uuid-go"
+	"github.com/weaveworks/weave-policy-agent/pkg/logger"
+	opa "github.com/weaveworks/weave-policy-agent/pkg/opa-core"
+	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/weave-policy-agent/pkg/uuid-go"
 )
 
 const (

@@ -1,4 +1,4 @@
-module github.com/weaveworks/policy-agent/pkg/uuid-go
+module github.com/weaveworks/weave-policy-agent/pkg/uuid-go
 
 go 1.20
 

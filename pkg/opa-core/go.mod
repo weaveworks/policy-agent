@@ -1,4 +1,4 @@
-module github.com/weaveworks/policy-agent/pkg/opa-core
+module github.com/weaveworks/weave-policy-agent/pkg/opa-core
 
 go 1.20
 

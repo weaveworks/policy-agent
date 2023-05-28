@@ -43,7 +43,7 @@ jobs:
 
       - name: Scan The Image
         run: |
-          REPO=policy-agent
+          REPO=weave-policy-agent
           VERSION=${{  github.ref_name }}
 
           echo scanning ${REPO}:${VERSION}

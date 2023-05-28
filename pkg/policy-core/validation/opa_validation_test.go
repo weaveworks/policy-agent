@@ -9,9 +9,9 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
-	"github.com/weaveworks/policy-agent/pkg/policy-core/domain/mock"
-	"github.com/weaveworks/policy-agent/pkg/policy-core/validation/testdata"
+	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain/mock"
+	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/validation/testdata"
 )
 
 func TestNewOPAValidator(t *testing.T) {
