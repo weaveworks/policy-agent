@@ -11,8 +11,8 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/weave-policy-agent/pkg/logger"
-	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/policy-agent/pkg/logger"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 )
 
 const (
@@ -70,7 +70,7 @@ func NewElasticSearchSink(address, username, password, index, insertionMode stri
 	}, nil
 }
 
-// Write adds results to buffer, implements github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain.PolicyValidationSink
+// Write adds results to buffer, implements github.com/weaveworks/policy-agent/pkg/policy-core/domain.PolicyValidationSink
 func (es *ElasticSearchSink) Write(_ context.Context, policyValidations []domain.PolicyValidation) error {
 	for _, policyValidation := range policyValidations {
 		es.policyValidationChan <- policyValidation

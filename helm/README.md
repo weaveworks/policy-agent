@@ -2,7 +2,7 @@
 
 ## Installation
 ```bash
-helm repo add weave-policy-agent https://weaveworks.github.io/weave-policy-agent/
+helm repo add policy-agent https://weaveworks.github.io/policy-agent/
 ```
 
 ## Configuration
