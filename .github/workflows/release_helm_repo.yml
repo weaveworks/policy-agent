@@ -30,9 +30,9 @@ jobs:
         run: |
           helm package master/helm
           mkdir -p gh-pages/releases
-          mv policy-agent-* gh-pages/releases/
+          mv weave-policy-agent-* gh-pages/releases/
           cd gh-pages
-          helm repo index releases --url https://weaveworks.github.io/policy-agent/releases
+          helm repo index releases --url https://weaveworks.github.io/weave-policy-agent/releases
           mv releases/index.yaml index.yaml
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"

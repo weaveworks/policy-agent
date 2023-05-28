@@ -2,7 +2,7 @@ package log
 
 import (
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/policy-agent/pkg/logger"
+	"github.com/weaveworks/weave-policy-agent/pkg/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pacv2 "github.com/weaveworks/weave-policy-agent/api/v2beta2"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

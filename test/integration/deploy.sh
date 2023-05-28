@@ -19,4 +19,4 @@ echo "[*] Apply cluster resources"
 kubectl apply -f data/state
 
 echo "[*] Installing policy agent helm chart on namespace ${NAMESPACE} ..."
-helm install policy-agent ../../helm -n ${NAMESPACE} -f ../../helm/values.yaml -f data/values.yaml --create-namespace --wait --timeout 60s
+helm install weave-policy-agent ../../helm -n ${NAMESPACE} -f ../../helm/values.yaml -f data/values.yaml --create-namespace --wait --timeout 60s

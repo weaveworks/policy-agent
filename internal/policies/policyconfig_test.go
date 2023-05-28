@@ -10,9 +10,9 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
 
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pacv2 "github.com/weaveworks/weave-policy-agent/api/v2beta2"
 )
 
 func TestGetPolicyConfig(t *testing.T) {

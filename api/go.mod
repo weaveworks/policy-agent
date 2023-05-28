@@ -1,6 +1,6 @@
-module github.com/weaveworks/policy-agent/api
+module github.com/weaveworks/weave-policy-agent/api
 
-go 1.19
+go 1.20
 
 require (
 	k8s.io/apiextensions-apiserver v0.26.1
