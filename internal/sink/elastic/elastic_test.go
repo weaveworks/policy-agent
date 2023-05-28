@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 )
 
 const (

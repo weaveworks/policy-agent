@@ -1,8 +1,8 @@
 package testdata
 
 import (
-	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
-	"github.com/weaveworks/weave-policy-agent/pkg/uuid-go"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/policy-agent/pkg/uuid-go"
 )
 
 var (

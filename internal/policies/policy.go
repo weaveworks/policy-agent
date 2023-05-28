@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	pacv2 "github.com/weaveworks/weave-policy-agent/api/v2beta2"
-	"github.com/weaveworks/weave-policy-agent/pkg/logger"
-	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	"github.com/weaveworks/policy-agent/pkg/logger"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 	v1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlCache "sigs.k8s.io/controller-runtime/pkg/cache"
@@ -37,7 +37,7 @@ func NewPoliciesWatcher(ctx context.Context, mgr ctrl.Manager, mode, provider st
 	}, nil
 }
 
-// GetAll returns all policies, implements github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain.PoliciesSource
+// GetAll returns all policies, implements github.com/weaveworks/policy-agent/pkg/policy-core/domain.PoliciesSource
 func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 	policiesCRD := &pacv2.PolicyList{}
 	err := p.cache.List(ctx, policiesCRD, &client.ListOptions{})

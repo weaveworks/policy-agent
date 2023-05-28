@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	v2beta2 "github.com/weaveworks/weave-policy-agent/api/v2beta2"
+	v2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

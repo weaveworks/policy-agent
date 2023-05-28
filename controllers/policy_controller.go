@@ -3,8 +3,9 @@ package controllers
 import (
 	"context"
 
-	pacv2 "github.com/weaveworks/weave-policy-agent/api/v2beta2"
-	"github.com/weaveworks/weave-policy-agent/pkg/logger"
+	"github.com/weaveworks/policy-agent/api/v2beta2"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	"github.com/weaveworks/policy-agent/pkg/logger"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -103,7 +104,7 @@ func (p *PolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 func (p *PolicyReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&pacv2.Policy{}).
+		For(&v2beta2.Policy{}).
 		Watches(
 			&source.Kind{Type: &pacv2.PolicySet{}},
 			handler.EnqueueRequestsFromMapFunc(p.reconcile),
