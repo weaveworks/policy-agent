@@ -2,8 +2,9 @@ name: Release Charts
 
 on:
   push:
-    tags:
-      - v*
+    branches: [ master, dev ]
+  pull_request:
+    branches: [ master, dev ]
 
 jobs:
   release:
