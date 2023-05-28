@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/weaveworks/policy-agent/pkg/logger"
-	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
-	"github.com/weaveworks/policy-agent/pkg/policy-core/validation"
+	"github.com/weaveworks/weave-policy-agent/pkg/logger"
+	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/validation"
 )
 
 // AuditorController performs audit on a regular interval by using entitites sources to retrieve resources

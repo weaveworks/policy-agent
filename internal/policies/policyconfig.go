@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
-	"github.com/weaveworks/policy-agent/internal/utils"
-	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
+	pacv2 "github.com/weaveworks/weave-policy-agent/api/v2beta2"
+	"github.com/weaveworks/weave-policy-agent/internal/utils"
+	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
 	v1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/weaveworks/policy-agent/pkg/logger"
-	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/weave-policy-agent/pkg/logger"
+	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
 )
 
 const (
@@ -67,7 +67,7 @@ func (f *FileSystemSink) WritePolicyValidationWorker(_ context.Context) error {
 	}
 }
 
-// Write adds results to buffer, implements github.com/weaveworks/policy-agent/pkg/policy-core/domain.PolicyValidationSink
+// Write adds results to buffer, implements github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain.PolicyValidationSink
 func (f *FileSystemSink) Write(_ context.Context, policyValidations []domain.PolicyValidation) error {
 	for i := range policyValidations {
 		PolicyValidation := policyValidations[i]

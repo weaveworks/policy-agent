@@ -4,9 +4,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/weaveworks/policy-agent/internal/utils"
-	"github.com/weaveworks/policy-agent/pkg/logger"
-	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/weave-policy-agent/internal/utils"
+	"github.com/weaveworks/weave-policy-agent/pkg/logger"
+	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -56,7 +56,7 @@ func (k *K8sEventSink) Stop() {
 	k.cancelWorker()
 }
 
-// Write adds results to buffer, implements github.com/weaveworks/policy-agent/pkg/policy-core/domain.PolicyValidationSink
+// Write adds results to buffer, implements github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain.PolicyValidationSink
 func (k *K8sEventSink) Write(_ context.Context, results []domain.PolicyValidation) error {
 	logger.Infow("writing validation results", "sink", "k8s_events", "count", len(results))
 	for _, result := range results {
