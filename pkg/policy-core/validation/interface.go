@@ -3,7 +3,7 @@ package validation
 import (
 	"context"
 
-	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 )
 
 // Validator is responsible for validating policies

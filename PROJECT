@@ -1,8 +1,8 @@
 domain: weave.works
 layout:
 - go.kubebuilder.io/v3
-projectName: weave-policy-agent
-repo: github.com/weaveworks/weave-policy-agent
+projectName: policy-agent
+repo: github.com/weaveworks/policy-agent
 resources:
 - api:
     crdVersion: v1

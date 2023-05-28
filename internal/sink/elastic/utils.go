@@ -7,8 +7,8 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/pkg/errors"
-	"github.com/weaveworks/weave-policy-agent/pkg/policy-core/domain"
-	"github.com/weaveworks/weave-policy-agent/pkg/uuid-go"
+	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
+	"github.com/weaveworks/policy-agent/pkg/uuid-go"
 )
 
 func getCount(client *elasticsearch.Client, index string) (int, error) {

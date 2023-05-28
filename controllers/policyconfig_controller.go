@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	pacv2 "github.com/weaveworks/weave-policy-agent/api/v2beta2"
-	"github.com/weaveworks/weave-policy-agent/pkg/logger"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	"github.com/weaveworks/policy-agent/pkg/logger"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"

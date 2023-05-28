@@ -55,12 +55,12 @@ apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
-  name: weave-policy-agent
+  name: policy-agent
   namespace: flux-system
 spec:
   interval: 1m0s
   timeout: 1m0s
-  url: https://weaveworks.github.io/weave-policy-agent/
+  url: https://weaveworks.github.io/policy-agent/
 status: {}
 ```
 </details>
@@ -72,16 +72,16 @@ status: {}
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: weave-policy-agent
+  name: policy-agent
   namespace: flux-system
 spec:
   chart:
     spec:
-      chart: weave-policy-agent
+      chart: policy-agent
       sourceRef:
         apiVersion: source.toolkit.fluxcd.io/v1beta2
         kind: HelmRepository
-        name: weave-policy-agent
+        name: policy-agent
         namespace: flux-system
       version: 2.3.0
   interval: 10m0s
@@ -131,13 +131,13 @@ Create `policy-system` namespace to install the chart in.
 Add the Weave Policy Agent helm chart.
 
   ```bash
-  helm repo add weave-policy-agent https://weaveworks.github.io/weave-policy-agent/
+  helm repo add policy-agent https://weaveworks.github.io/policy-agent/
   ```
 
 Install the helm chart.
 
   ```bash
-  helm install weave-policy-agent weave-policy-agent/weave-policy-agent -n policy-system
+  helm install policy-agent policy-agent/policy-agent -n policy-system
   ```
 
 Check the installation status using the below command, you should expect the pod of the agent to be running.
@@ -167,7 +167,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m
-  url: https://github.com/weaveworks/weave-policy-agent/
+  url: https://github.com/weaveworks/policy-agent/
   ref:
     branch: master
 ---
@@ -203,7 +203,7 @@ Create `policies` directory and create the following `kustomization.yaml` file, 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- github.com/weaveworks/weave-policy-agent/policies
+- github.com/weaveworks/policy-agent/policies
 ```
 
 </details>

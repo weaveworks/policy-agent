@@ -1,4 +1,4 @@
-module github.com/weaveworks/weave-policy-agent/pkg/logger
+module github.com/weaveworks/policy-agent/pkg/logger
 
 go 1.20
 
