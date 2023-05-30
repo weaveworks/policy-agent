@@ -3,7 +3,7 @@ entries:
   policy-agent:
   - apiVersion: v2
     appVersion: 2.3.0
-    created: "2023-05-30T12:35:05.059446068Z"
+    created: "2023-05-30T13:00:11.617972713Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: 86ba233be07b682f86a286e534d87955acedb1f796a5eacceb04d7796fa6746b
     maintainers:
@@ -15,7 +15,7 @@ entries:
     version: 2.3.0
   - apiVersion: v2
     appVersion: 2.2.0
-    created: "2023-05-30T12:35:05.058990765Z"
+    created: "2023-05-30T13:00:11.61728811Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: ff9e67bb422458839516179b66a7f2ede59c8f4fa4c3cc677bb6d891a9c35299
     maintainers:
@@ -27,7 +27,7 @@ entries:
     version: 2.2.0
   - apiVersion: v2
     appVersion: 2.1.1
-    created: "2023-05-30T12:35:05.058527061Z"
+    created: "2023-05-30T13:00:11.616356806Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: 24dcfaa5fd9e5a982891e53fcee6f36a91a9816e8554475dc0659e75e9f3bd47
     maintainers:
@@ -39,7 +39,7 @@ entries:
     version: 2.1.1
   - apiVersion: v2
     appVersion: 2.1.0
-    created: "2023-05-30T12:35:05.057898656Z"
+    created: "2023-05-30T13:00:11.6150228Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: 744f5242c335838236d21ce59331a6e820d507466c3f0e56f24295d239cda78d
     maintainers:
@@ -51,7 +51,7 @@ entries:
     version: 2.1.0
   - apiVersion: v2
     appVersion: 2.0.0
-    created: "2023-05-30T12:35:05.057338252Z"
+    created: "2023-05-30T13:00:11.613894595Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: 520a7ca1e796792bb301fd5d7e76d3bfe7902083792d8c76bdf97e86e4c89cf5
     maintainers:
@@ -63,7 +63,7 @@ entries:
     version: 2.0.0
   - apiVersion: v2
     appVersion: 1.2.1
-    created: "2023-05-30T12:35:05.056909548Z"
+    created: "2023-05-30T13:00:11.613328193Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: 891b358c5520137deaefddcac4b92053bf7998e32065562c05e58a3fab7a115f
     maintainers:
@@ -75,7 +75,7 @@ entries:
     version: 1.2.1
   - apiVersion: v2
     appVersion: 1.2.0
-    created: "2023-05-30T12:35:05.056521445Z"
+    created: "2023-05-30T13:00:11.61283559Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: 12f084e2ed86349539bbc79f3608036d9ea2ed88381a5307a5057f79c3af9c9c
     maintainers:
@@ -87,7 +87,7 @@ entries:
     version: 1.2.0
   - apiVersion: v2
     appVersion: 1.1.0
-    created: "2023-05-30T12:35:05.056155642Z"
+    created: "2023-05-30T13:00:11.611572185Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: d3cf4f6fd0e6ff9068056d4120f4de556b8ab5c36d409e44df9f231746e6283d
     maintainers:
@@ -99,7 +99,7 @@ entries:
     version: 1.1.0
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2023-05-30T12:35:05.05579574Z"
+    created: "2023-05-30T13:00:11.610921182Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: f53883a19f3ce14fa2280f127ba7572afb025bfc6bab82609a84ae7688c6c31e
     maintainers:
@@ -111,7 +111,7 @@ entries:
     version: 1.0.0
   - apiVersion: v2
     appVersion: 0.4.3
-    created: "2023-05-30T12:35:05.055378336Z"
+    created: "2023-05-30T13:00:11.61043398Z"
     dependencies:
     - condition: cert-manager.install
       name: cert-manager
@@ -128,7 +128,7 @@ entries:
     version: 0.4.3
   - apiVersion: v1
     appVersion: 0.4.2
-    created: "2023-05-30T12:35:05.04939829Z"
+    created: "2023-05-30T13:00:11.604617054Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: 427aff0c8638cac00068ce81f3058e5a33555153652d793d1049dfad4acaa752
     maintainers:
@@ -141,7 +141,7 @@ entries:
   weave-policy-agent:
   - apiVersion: v2
     appVersion: 2.3.0
-    created: "2023-05-30T12:35:05.059881372Z"
+    created: "2023-05-30T13:00:11.622312332Z"
     description: A Helm chart for Kubernetes to configure the policy agent
     digest: 709b563238c76ea15066fd4e06689c8c91a0f30723b1eccc9f7a3f2eef3f41aa
     maintainers:
@@ -151,4 +151,4 @@ entries:
     urls:
     - https://weaveworks.github.io/policy-agent/releases/weave-policy-agent-2.3.0.tgz
     version: 2.3.0
-generated: "2023-05-30T12:35:05.048863485Z"
+generated: "2023-05-30T13:00:11.597619423Z"
