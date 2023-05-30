@@ -3,6 +3,7 @@
 ## Policy Agent
 
 - Update the [HelmChart](../helm/Chart.yaml) version.
+- Update the HelmChart [values.yaml](../helm/values.yaml) version.
 - Create a pull request from `dev` to `master`.
 - Create a new tag and push it to origin as the following example:
 

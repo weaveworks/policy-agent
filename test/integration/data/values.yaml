@@ -1,3 +1,4 @@
+imageTag: test
 config:
   admission:
     mutate: true

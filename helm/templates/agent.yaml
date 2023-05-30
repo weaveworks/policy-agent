@@ -164,7 +164,7 @@ spec:
       securityContext:
         fsGroup: 1000
       containers:
-        - image: {{ .Values.image }}:{{ .Chart.AppVersion }}
+        - image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: IfNotPresent
           name: policy-agent
           args: [
