@@ -8,10 +8,10 @@ Weave Policy Agent is a policy-as-code engine built on Open Policy Agent (OPA) t
 ## Features
 
 #### Prevent violating K8s resources via admission controller
-Weave Policy Agent uses kubernetes admission controller to monitor any Kubernetes Resource changes and prevent the ones violating the policies from getting deployed. 
+Weave Policy Agent uses kubernetes admission controller to monitor any Kubernetes Resource changes and prevent the ones violating the policies from getting deployed.
 
 #### Prevent violating terraform plans via `tf-controller`
-If you are using flux's terraform controller ([tf-controller](https://github.com/weaveworks/tf-controller)) to apply and sync your terraform plans, you can use Weave Policy Agent to prevent violating plans from being applied to your cluster. 
+If you are using flux's terraform controller ([tf-controller](https://github.com/weaveworks/tf-controller)) to apply and sync your terraform plans, you can use Weave Policy Agent to prevent violating plans from being applied to your cluster.
 
 #### Audit runtime compliance
 The agent scans Kubernetes resources on the cluster and report runtime violations at a configurable frequency.
@@ -20,7 +20,7 @@ The agent scans Kubernetes resources on the cluster and report runtime violation
 While the agent works natively with Kubernetes resources, Weave Policy Agent has specific features allowing fine-grained policy configurations to flux applications and tenants, as well as alerting integration with flux's `notification-controller`
 
 #### Observability via WeaveGitOps UI
-Policies and violations can be displayed on WeaveGitOps Dashboards allowing better observability over cluster's compliance. 
+Policies and violations can be displayed on WeaveGitOps Dashboards allowing better observability over cluster's compliance.
 
 #### Example Policies
 Example policies that target K8s and Flux best practices are available [here](policies). Users can as well write their policies in Rego using the agent policy CRD.
@@ -38,10 +38,10 @@ Refer to this [doc](docs/README.md) for documentation on the high-level architec
 ## Contribution
 
 Need help or want to contribute? Please see the links below.
-- Need help?
+<!-- - Need help?
     - Talk to us in
       the [#weave-policy-agent channel](@todo add channel url)
-      on Weaveworks Community Slack. [Invite yourself if you haven't joined yet.](https://slack.weave.works/)
+      on Weaveworks Community Slack. [Invite yourself if you haven't joined yet.](https://slack.weave.works/) -->
 - Have feature proposals or want to contribute?
     - Please create a [Github issue](https://github.com/weaveworks/weave-policy-agent/issues)
     - Learn more about contributing [here](./CONTRIBUTING.md).
