@@ -21,9 +21,9 @@ require (
 	github.com/stretchr/testify v1.8.2
 	github.com/urfave/cli/v2 v2.24.4
 	github.com/weaveworks/policy-agent/api v1.0.5
-	github.com/weaveworks/policy-agent/pkg/logger v0.0.0-20230411202656-c275cc5de56f
+	github.com/weaveworks/policy-agent/pkg/logger v1.1.0
 	github.com/weaveworks/policy-agent/pkg/policy-core v0.0.0-20230411203714-bf53ac3f4945
-	github.com/weaveworks/policy-agent/pkg/uuid-go v0.0.0-20230411202656-c275cc5de56f
+	github.com/weaveworks/policy-agent/pkg/uuid-go v0.1.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/sync v0.1.0
 	k8s.io/api v0.26.3
@@ -91,7 +91,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/tchap/go-patricia/v2 v2.3.1 // indirect
-	github.com/weaveworks/policy-agent/pkg/opa-core v0.0.0-20230411202656-c275cc5de56f // indirect
+	github.com/weaveworks/policy-agent/pkg/opa-core v1.1.0 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
