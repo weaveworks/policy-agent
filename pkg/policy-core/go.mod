@@ -2,13 +2,19 @@ module github.com/weaveworks/policy-agent/pkg/policy-core
 
 go 1.20
 
+replace (
+	github.com/weaveworks/policy-agent/pkg/logger => ../logger
+	github.com/weaveworks/policy-agent/pkg/opa-core => ../opa-core
+	github.com/weaveworks/policy-agent/pkg/uuid-go => ../uuid-go
+)
+
 require (
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/stretchr/testify v1.8.1
-	github.com/weaveworks/policy-agent/pkg/logger v1.1.0
-	github.com/weaveworks/policy-agent/pkg/opa-core v1.1.0
-	github.com/weaveworks/policy-agent/pkg/uuid-go v0.1.0
+	github.com/weaveworks/policy-agent/pkg/logger v0.0.0-20230411201136-3d0c79150c68
+	github.com/weaveworks/policy-agent/pkg/opa-core v0.0.0-20230411202038-cd1a97b35eda
+	github.com/weaveworks/policy-agent/pkg/uuid-go v0.0.0-20230411202038-cd1a97b35eda
 	k8s.io/api v0.26.3
 	k8s.io/apimachinery v0.26.3
 	sigs.k8s.io/kustomize/kyaml v0.14.1
