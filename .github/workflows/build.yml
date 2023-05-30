@@ -45,6 +45,17 @@ jobs:
         env:
           CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
         run: |
+          echo "
+            go 1.20
+
+            use (
+                .
+                ./api
+                ./pkg/logger
+                ./pkg/opa-core
+                ./pkg/policy-core
+                ./pkg/uuid-go
+            )" >> go.work
           make test
           bash <(curl -s https://codecov.io/bash) -F unit
 
