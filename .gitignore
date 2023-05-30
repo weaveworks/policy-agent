@@ -17,3 +17,6 @@ __debug_bin
 bin/
 build/
 local.yml
+policy-agent
+go.work
+go.work.sum
