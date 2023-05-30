@@ -103,7 +103,7 @@ func TestEval(t *testing.T) {
 			violation[issue] {
 				issue = ""
 			}`,
-			violationMsg: "\"\"",
+			violationMsg: "[\"\"]",
 			hasViolation: true,
 		},
 		{
@@ -113,7 +113,7 @@ func TestEval(t *testing.T) {
 			violation[issue] {
 				issue = true
 			}`,
-			violationMsg: "true",
+			violationMsg: "[true]",
 			hasViolation: true,
 		},
 	}
@@ -150,7 +150,7 @@ violation[result] {
 }
 `,
 			hasViolation: true,
-			violationMsg: "\"kubernetes-downwardapi-volume-example\"",
+			violationMsg: "[\"kubernetes-downwardapi-volume-example\"]",
 		},
 	}
 

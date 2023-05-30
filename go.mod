@@ -2,15 +2,6 @@ module github.com/weaveworks/policy-agent
 
 go 1.20
 
-replace (
-	github.com/dgrijalva/jwt-go v3.2.2+incompatible => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
-	github.com/weaveworks/policy-agent/api => ./api
-	github.com/weaveworks/policy-agent/pkg/logger => ./pkg/logger
-	github.com/weaveworks/policy-agent/pkg/opa-core => ./pkg/opa-core
-	github.com/weaveworks/policy-agent/pkg/policy-core => ./pkg/policy-core
-	github.com/weaveworks/policy-agent/pkg/uuid-go => ./pkg/uuid-go
-)
-
 require (
 	github.com/elastic/go-elasticsearch/v7 v7.17.7
 	github.com/fluxcd/pkg/runtime v0.35.0
@@ -22,7 +13,7 @@ require (
 	github.com/urfave/cli/v2 v2.24.4
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/policy-agent/pkg/logger v1.1.0
-	github.com/weaveworks/policy-agent/pkg/policy-core v0.0.0-20230411203714-bf53ac3f4945
+	github.com/weaveworks/policy-agent/pkg/policy-core v1.2.0
 	github.com/weaveworks/policy-agent/pkg/uuid-go v0.1.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/sync v0.1.0
