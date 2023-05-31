@@ -45,7 +45,7 @@ spec:
       type: string
       required: false
       value:
-  code: |-
+  code: |
     package weave.advisor.pods.replica_count
 
     import future.keywords.in
