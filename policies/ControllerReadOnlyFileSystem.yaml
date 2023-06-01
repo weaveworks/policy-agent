@@ -1,4 +1,4 @@
-apiVersion: pac.weave.works/v2beta1
+apiVersion: pac.weave.works/v2beta2
 kind: Policy
 metadata:
   name: weave.policies.containers-read-only-root-filesystem
@@ -36,7 +36,7 @@ spec:
       type: string
       required: false
       value:
-  code: |-
+  code: |
     package weave.advisor.podSecurity.enforce_ro_fs
 
     import future.keywords.in

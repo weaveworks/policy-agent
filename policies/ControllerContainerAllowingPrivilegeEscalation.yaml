@@ -1,4 +1,4 @@
-apiVersion: pac.weave.works/v2beta1
+apiVersion: pac.weave.works/v2beta2
 kind: Policy
 metadata:
   name: weave.policies.containers-running-with-privilege-escalation
@@ -106,6 +106,6 @@ spec:
     }
 
     isExcludedNamespace = true {
-      controller_input.metadata.namespace
-      controller_input.metadata.namespace in exclude_namespaces
+    	controller_input.metadata.namespace
+    	controller_input.metadata.namespace in exclude_namespaces
     } else = false
