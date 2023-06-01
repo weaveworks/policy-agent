@@ -11,7 +11,7 @@ You can find the cutom resource schema [here](../config/crd/bases/pac.weave.work
 
 ## Policy Library
 
-Weaveworks offers an extensive policy library to Weave GitOps Enterprise customers. The library contains over 100 policies that cover security, best practices, and standards like SOC2, GDPR, PCI-DSS, HIPAA, Mitre Attack and more.
+Weaveworks offers an extensive policy library to Weave GitOps Assured and Enterprise customers. The library contains over 150 policies that cover security, best practices, and standards like SOC2, GDPR, PCI-DSS, HIPAA, Mitre Attack, and more.
 
 ## Tenant Policy
 
