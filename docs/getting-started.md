@@ -216,7 +216,7 @@ kubectl get policies
 
 If you have WeaveGitOps UI installed on your cluster, you can use it to explore the policies installed on the cluster, as well as, explore the details on each policy.
 
-<!-- ![Policies](imgs/policies.png) -->
+![Policies](imgs/policies.png)
 
 ## Explore Violations
 
@@ -295,19 +295,19 @@ Since Kubernetes events are configured as a sink for the admission mode, you can
 
 If you have WeaveGitOps UI installed, you can find each policy violations listed in Violations tab inside each policy.
 
-  <!-- ![WeaveGitOps UI](imgs/violations.png) -->
+  ![WeaveGitOps UI](imgs/policy-violations.png)
 
 ## Fix Policy Violations
 
 Your next step is to start fix policy violations, for that you can follow the remediation steps listed in each policy, apply them to the violating resources, and re-apply the resource or let flux sync the updated manifest.
 
-Remediation steps are aavailable in the policy custom resource `yaml`, under the `how_to_resolve` section.
+Remediation steps are available in the policy custom resource `yaml`, under the `how_to_resolve` section.
 
   ![how to solve](./imgs/how-to-solve.png)
 
 The remediation steps also are viewable using WeaveGitOps UI in each policy page.
 
-  <!-- ![how to solve](./imgs/how-to-solve-2.png) -->
+  ![how to solve](./imgs/policy-details.png)
 
 ### Fix Deployment Example Violation
 
