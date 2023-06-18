@@ -301,6 +301,7 @@ webhooks:
         - helmreleases
         - ocirepositories
         - horizontalpodautoscalers
+        - helmcharts
     timeoutSeconds: 5
     failurePolicy: {{ .Values.failurePolicy }}
     admissionReviewVersions: ["v1", "v1beta1"]
@@ -403,6 +404,7 @@ webhooks:
         - helmreleases
         - ocirepositories
         - horizontalpodautoscalers
+        - helmcharts
     timeoutSeconds: 5
     failurePolicy: {{ .Values.failurePolicy }}
     admissionReviewVersions: ["v1"]
