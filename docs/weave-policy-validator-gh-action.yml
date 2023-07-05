@@ -1,0 +1,14 @@
+name: Weaveworks Policy Validator
+on:
+  pull_request:
+    branches: [ main, dev ]
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: weaveworks/weave-action@v1
+        with:
+          path: ./                    # entites to scan
+          policies-path: ./policies   # policies path
+          remediate: true             # enable auto remediation
