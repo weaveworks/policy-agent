@@ -10,7 +10,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
-	github.com/urfave/cli/v2 v2.24.4
+	github.com/urfave/cli/v2 v2.25.7
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/policy-agent/pkg/logger v1.1.0
 	github.com/weaveworks/policy-agent/pkg/policy-core v1.2.0
