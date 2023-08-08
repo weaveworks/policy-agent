@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
 
       - name: setup go
         uses: actions/setup-go@v4
@@ -54,7 +54,7 @@ jobs:
         with:
           configuration: "${{ github.workspace }}/.github/workflows/changelog_configuration.json"
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
 
       - name: Release
         uses: softprops/action-gh-release@v1
