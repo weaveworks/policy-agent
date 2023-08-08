@@ -6,3 +6,5 @@ updates:
       interval: "daily"
     reviewers:
       - "weaveworks/timber-wolf"
+    # Only do security updates not version updates.
+    open-pull-requests-limit: 0
