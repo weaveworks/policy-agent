@@ -10,10 +10,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.5.0
         with:
           fetch-depth: 0
-          token: ${{ secrets.PAT }}
 
       - name: setup go
         uses: actions/setup-go@v4
