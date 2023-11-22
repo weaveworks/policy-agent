@@ -22,7 +22,6 @@ rules:
   - 'pac.weave.works'
   resources:
   - 'policies'
-  - 'policysets'
   - 'policyconfigs'
   - 'policies/status'
   - 'policyconfigs/status'

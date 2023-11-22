@@ -19,24 +19,10 @@ resources:
   path: api/v1
   version: v2beta1
 - api:
-    crdVersion: v2beta1
-    namespaced: false
-  domain: weave.works
-  kind: PolicySet
-  path: api/v1
-  version: v2beta1
-- api:
     crdVersion: v2beta2
     namespaced: false
   domain: weave.works
   kind: Policy
-  path: api/v1
-  version: v2beta2
-- api:
-    crdVersion: v2beta2
-    namespaced: false
-  domain: weave.works
-  kind: PolicySet
   path: api/v1
   version: v2beta2
 - api:

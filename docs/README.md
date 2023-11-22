@@ -4,7 +4,6 @@
   - [High Level Architecture](#high-level-architecture)
   - [Custom Resources](#custom-resources)
     - [Policy](#policy)
-    - [PolicySet](#policyset)
     - [PolicyConfig](#policyconfig)
   - [Modes](#modes)
     - [Audit](#audit)
@@ -43,12 +42,6 @@ Currently there are three [Kubernetes Custom Resources](https://kubernetes.io/do
 This is the main resource and it is used to define policies which will be evaluated by the policy agent.
 
 > See more about Policy CRD [here](./policy.md)
-
-### PolicySet
-
-This is an optional resource. It is used to select group of policies to work in specific [mode](#modes).
-
-> See more about PolicySet CRD [here](./policy_set.md)
 
 
 ### PolicyConfig
