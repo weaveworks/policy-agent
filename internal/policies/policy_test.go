@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta3"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -123,239 +123,23 @@ func TestGetPolicies(t *testing.T) {
 	cases := []struct {
 		description      string
 		policies         []pacv2.Policy
-		policySets       []pacv2.PolicySet
 		provider         string
-		mode             string
 		expectedPolicies []string
 	}{
 		{
 			policies:         policies,
-			policySets:       []pacv2.PolicySet{},
-			mode:             AuditMode,
-			provider:         KubernetesProvider,
+			provider:         pacv2.PolicyKubernetesProvider,
 			expectedPolicies: []string{"policy-1", "policy-2", "policy-3"},
 		},
 		{
 			policies:         policies,
-			policySets:       []pacv2.PolicySet{},
-			mode:             AdmissionMode,
-			provider:         KubernetesProvider,
+			provider:         pacv2.PolicyKubernetesProvider,
 			expectedPolicies: []string{"policy-1", "policy-2", "policy-3"},
 		},
 		{
 			policies:         policies,
-			policySets:       []pacv2.PolicySet{},
-			mode:             TFAdmissionMode,
-			provider:         TerraformProvider,
+			provider:         pacv2.PolicyTerraformProvider,
 			expectedPolicies: []string{"policy-4", "policy-5"},
-		},
-		{
-			policies: policies,
-			policySets: []pacv2.PolicySet{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAuditMode,
-						Filters: pacv2.PolicySetFilters{
-							IDs: []string{"policy-1"},
-						},
-					},
-				},
-			},
-			mode:             pacv2.PolicySetAuditMode,
-			provider:         pacv2.PolicyKubernetesProvider,
-			expectedPolicies: []string{"policy-1"},
-		},
-		{
-			policies: policies,
-			policySets: []pacv2.PolicySet{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAuditMode,
-						Filters: pacv2.PolicySetFilters{
-							Categories: []string{"category-x"},
-						},
-					},
-				},
-			},
-			mode:             pacv2.PolicySetAuditMode,
-			provider:         pacv2.PolicyKubernetesProvider,
-			expectedPolicies: []string{"policy-1"},
-		},
-		{
-			policies: policies,
-			policySets: []pacv2.PolicySet{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAuditMode,
-						Filters: pacv2.PolicySetFilters{
-							Severities: []string{"severity-x"},
-						},
-					},
-				},
-			},
-			mode:             pacv2.PolicySetAuditMode,
-			provider:         pacv2.PolicyKubernetesProvider,
-			expectedPolicies: []string{"policy-1"},
-		},
-		{
-			policies: policies,
-			policySets: []pacv2.PolicySet{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAuditMode,
-						Filters: pacv2.PolicySetFilters{
-							Tags: []string{"tag-x"},
-						},
-					},
-				},
-			},
-			mode:             pacv2.PolicySetAuditMode,
-			provider:         pacv2.PolicyKubernetesProvider,
-			expectedPolicies: []string{"policy-1"},
-		},
-		{
-			policies: policies,
-			policySets: []pacv2.PolicySet{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAuditMode,
-						Filters: pacv2.PolicySetFilters{
-							IDs:        []string{"policy-1"},
-							Categories: []string{"category-y"},
-							Tags:       []string{"random"},
-						},
-					},
-				},
-			},
-			mode:             pacv2.PolicySetAuditMode,
-			provider:         pacv2.PolicyKubernetesProvider,
-			expectedPolicies: []string{"policy-1", "policy-2"},
-		},
-		{
-			policies: policies,
-			policySets: []pacv2.PolicySet{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAuditMode,
-						Filters: pacv2.PolicySetFilters{
-							IDs: []string{"policy-1"},
-						},
-					},
-				},
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-2"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAuditMode,
-						Filters: pacv2.PolicySetFilters{
-							IDs: []string{"policy-2"},
-						},
-					},
-				},
-			},
-			mode:             pacv2.PolicySetAuditMode,
-			provider:         pacv2.PolicyKubernetesProvider,
-			expectedPolicies: []string{"policy-1", "policy-2"},
-		},
-		{
-			policies: policies,
-			policySets: []pacv2.PolicySet{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAdmissionMode,
-						Filters: pacv2.PolicySetFilters{
-							IDs: []string{"policy-1"},
-						},
-					},
-				},
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-2"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAdmissionMode,
-						Filters: pacv2.PolicySetFilters{
-							IDs: []string{"policy-2"},
-						},
-					},
-				},
-			},
-			mode:             pacv2.PolicySetAdmissionMode,
-			provider:         pacv2.PolicyKubernetesProvider,
-			expectedPolicies: []string{"policy-1", "policy-2", "policy-3"},
-		},
-		{
-			policies: policies,
-			policySets: []pacv2.PolicySet{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAuditMode,
-						Filters: pacv2.PolicySetFilters{
-							IDs: []string{"policy-4"},
-						},
-					},
-				},
-			},
-			mode:             pacv2.PolicySetAuditMode,
-			provider:         pacv2.PolicyKubernetesProvider,
-			expectedPolicies: nil,
-		},
-		{
-			policies: policies,
-			policySets: []pacv2.PolicySet{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAdmissionMode,
-						Filters: pacv2.PolicySetFilters{
-							IDs: []string{"policy-4"},
-						},
-					},
-				},
-			},
-			mode:             pacv2.PolicySetAdmissionMode,
-			provider:         pacv2.PolicyKubernetesProvider,
-			expectedPolicies: []string{"policy-3"},
-		},
-
-		{
-			policies: policies,
-			policySets: []pacv2.PolicySet{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAuditMode,
-						Filters: pacv2.PolicySetFilters{
-							IDs: []string{"policy-1"},
-						},
-					},
-				},
-			},
-			mode:             pacv2.PolicySetAdmissionMode,
-			provider:         pacv2.PolicyKubernetesProvider,
-			expectedPolicies: []string{"policy-1", "policy-2", "policy-3"},
-		},
-		{
-			policies: policies,
-			policySets: []pacv2.PolicySet{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "policyset-1"},
-					Spec: pacv2.PolicySetSpec{
-						Mode: pacv2.PolicySetAdmissionMode,
-						Filters: pacv2.PolicySetFilters{
-							IDs: []string{"policy-1"},
-						},
-					},
-				},
-			},
-			mode:             pacv2.PolicySetAdmissionMode,
-			provider:         pacv2.PolicyKubernetesProvider,
-			expectedPolicies: []string{"policy-1", "policy-3"},
 		},
 	}
 
@@ -370,16 +154,10 @@ func TestGetPolicies(t *testing.T) {
 			items = append(items, &item)
 		}
 
-		for idx := range cases[i].policySets {
-			item := cases[i].policySets[idx]
-			items = append(items, &item)
-		}
-
 		cache := NewFakeCache(schema, items...)
 
 		watcher := PoliciesWatcher{
 			cache:    cache,
-			Mode:     cases[i].mode,
 			Provider: cases[i].provider,
 		}
 

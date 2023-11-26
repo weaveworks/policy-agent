@@ -11,7 +11,7 @@ A new `PolicyConfig` CRD allows using policies with multiple configurations by c
 - Match by workspaces
 
   ```yaml
-  apiVersion: pac.weave.works/v2beta2 
+  apiVersion: pac.weave.works/v2beta3
   kind: PolicyConfig      # policy config resource kind 
   metadata:       
     name: my-config       # policy config name
@@ -28,7 +28,7 @@ A new `PolicyConfig` CRD allows using policies with multiple configurations by c
 - Match by namespaces
 
   ```yaml
-  apiVersion: pac.weave.works/v2beta2 
+  apiVersion: pac.weave.works/v2beta3
   kind: PolicyConfig      # policy config resource kind 
   metadata:       
     name: my-config       # policy config name
@@ -46,7 +46,7 @@ A new `PolicyConfig` CRD allows using policies with multiple configurations by c
 - Match by apps
 
   ```yaml
-  apiVersion: pac.weave.works/v2beta2 
+  apiVersion: pac.weave.works/v2beta3
   kind: PolicyConfig   # policy config resource kind 
   metadata:       
     name: my-config    # policy config name
@@ -65,7 +65,7 @@ A new `PolicyConfig` CRD allows using policies with multiple configurations by c
 - Match by resources
 
   ```yaml
-  apiVersion: pac.weave.works/v2beta2 
+  apiVersion: pac.weave.works/v2beta3
   kind: PolicyConfig   # policy config resource kind 
   metadata:       
     name: my-config    # policy config name
@@ -99,7 +99,7 @@ A new `PolicyConfig` CRD allows using policies with multiple configurations by c
 - We have Kustomization application `app-a` and deployment `deployment-1` part of this application
 
 ```yaml
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: PolicyConfig
 metadata:
   name: my-config-1
@@ -113,7 +113,7 @@ spec:
         replica_count: 2
         owner: owner-1
 ---
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: PolicyConfig
 metadata:
   name: my-config-2
@@ -127,7 +127,7 @@ spec:
       parameters:
         replica_count: 3
 ---
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: PolicyConfig
 metadata:
   name: my-config-3
@@ -142,7 +142,7 @@ spec:
       parameters:
         replica_count: 4
 ---
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: PolicyConfig
 metadata:
   name: my-config-4
@@ -158,7 +158,7 @@ spec:
         owner: owner-4
 ---
 
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: PolicyConfig
 metadata:
   name: my-config-5
@@ -271,7 +271,7 @@ Deploying `app-a` in another namespace other than `flux-system` won't be affecte
 - You can use one or more policies as the following example
 
   ```yaml
-  apiVersion: pac.weave.works/v2beta2
+  apiVersion: pac.weave.works/v2beta3
   kind: PolicyConfig
   metadata:
     name: my-app-config

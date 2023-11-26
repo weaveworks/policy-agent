@@ -1,4 +1,4 @@
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: PolicySet
 metadata:
   name: admission-set
@@ -11,7 +11,7 @@ spec:
 
 ---
 
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: PolicySet
 metadata:
   name: audit-set

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta3"
 	"github.com/weaveworks/policy-agent/pkg/uuid-go"
 	admissionv1 "k8s.io/api/admission/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -569,4 +569,33 @@ func TestPolicyConfigControllerReconciler(t *testing.T) {
 	for _, request := range reconcilationRequests {
 		assert.Contains(t, policyConfigNames, request.Name)
 	}
+}
+
+func createPolicy(id, category, severity, provider string, standards, tags []string) pacv2.Policy {
+	policy := pacv2.Policy{
+		TypeMeta: v1.TypeMeta{
+			APIVersion: pacv2.GroupVersion.Identifier(),
+			Kind:       pacv2.PolicyKind,
+		},
+		ObjectMeta: v1.ObjectMeta{
+			Name: id,
+		},
+		Spec: pacv2.PolicySpec{
+			ID:       id,
+			Name:     id,
+			Category: category,
+			Severity: severity,
+			Provider: provider,
+			Tags:     tags,
+			Targets: pacv2.PolicyTargets{
+				Kinds: []string{"Deployment"},
+			},
+		},
+	}
+	for i := range standards {
+		policy.Spec.Standards = append(policy.Spec.Standards, pacv2.PolicyStandard{
+			ID: standards[i],
+		})
+	}
+	return policy
 }

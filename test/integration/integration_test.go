@@ -3,14 +3,13 @@ package integration
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/policy-agent/api/v2beta2"
+	"github.com/weaveworks/policy-agent/api/v2beta3"
 	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -44,26 +43,9 @@ func TestIntegration(t *testing.T) {
 		panic(err)
 	}
 
-	v2beta2.AddToScheme(cl.Scheme())
+	v2beta3.AddToScheme(cl.Scheme())
 
 	ctx := context.Background()
-
-	t.Run("check policies modes are correct", func(t *testing.T) {
-		modes := map[string][]string{
-			minimumReplicaCountPolicy:        {"admission"},
-			containersInPrivilegedModePolicy: {"admission", "audit"},
-			missingOwnerLabelPolicy:          {"audit"},
-		}
-
-		policies, err := listPolicies(ctx, cl)
-		assert.Nil(t, err)
-
-		assert.Equal(t, len(policies.Items), 3)
-
-		for _, policy := range policies.Items {
-			assert.ElementsMatch(t, modes[policy.GetName()], policy.Status.Modes)
-		}
-	})
 
 	t.Run("check audit results", func(t *testing.T) {
 		opts := []client.ListOption{
@@ -77,11 +59,11 @@ func TestIntegration(t *testing.T) {
 		events, err := listViolationEvents(ctx, cl, opts)
 		assert.Nil(t, err)
 
-		assert.Equal(t, len(events.Items), 4)
+		assert.Equal(t, len(events.Items), 6)
 
 		expected := map[string]int{
-			missingOwnerLabelPolicy:          2,
-			containersInPrivilegedModePolicy: 2,
+			missingOwnerLabelPolicy:          3,
+			containersInPrivilegedModePolicy: 3,
 		}
 
 		actual := map[string]int{}
@@ -109,7 +91,7 @@ func TestIntegration(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		assert.Equal(t, 8, len(events.Items))
+		assert.Equal(t, 12, len(events.Items))
 
 		expected := map[string]struct {
 			value     float64
@@ -150,20 +132,20 @@ func TestIntegration(t *testing.T) {
 	})
 
 	t.Run("create conflicting policy configs", func(t *testing.T) {
-		configs := []v2beta2.PolicyConfig{
+		configs := []v2beta3.PolicyConfig{
 			{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: v2beta2.GroupVersion.Identifier(),
-					Kind:       v2beta2.PolicyConfigKind,
+					APIVersion: v2beta3.GroupVersion.Identifier(),
+					Kind:       v2beta3.PolicyConfigKind,
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "namespace-config-conflict",
 				},
-				Spec: v2beta2.PolicyConfigSpec{
-					Match: v2beta2.PolicyConfigTarget{
+				Spec: v2beta3.PolicyConfigSpec{
+					Match: v2beta3.PolicyConfigTarget{
 						Namespaces: []string{"default"},
 					},
-					Config: map[string]v2beta2.PolicyConfigConfig{
+					Config: map[string]v2beta3.PolicyConfigConfig{
 						minimumReplicaCountPolicy: {
 							Parameters: map[string]apiextensionsv1.JSON{},
 						},
@@ -172,15 +154,15 @@ func TestIntegration(t *testing.T) {
 			},
 			{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: v2beta2.GroupVersion.Identifier(),
-					Kind:       v2beta2.PolicyConfigKind,
+					APIVersion: v2beta3.GroupVersion.Identifier(),
+					Kind:       v2beta3.PolicyConfigKind,
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "app-config-conflict",
 				},
-				Spec: v2beta2.PolicyConfigSpec{
-					Match: v2beta2.PolicyConfigTarget{
-						Applications: []v2beta2.PolicyTargetApplication{
+				Spec: v2beta3.PolicyConfigSpec{
+					Match: v2beta3.PolicyConfigTarget{
+						Applications: []v2beta3.PolicyTargetApplication{
 							{
 								Kind:      "HelmRelease",
 								Name:      "helm-app",
@@ -188,7 +170,7 @@ func TestIntegration(t *testing.T) {
 							},
 						},
 					},
-					Config: map[string]v2beta2.PolicyConfigConfig{
+					Config: map[string]v2beta3.PolicyConfigConfig{
 						minimumReplicaCountPolicy: {
 							Parameters: map[string]apiextensionsv1.JSON{},
 						},
@@ -197,15 +179,15 @@ func TestIntegration(t *testing.T) {
 			},
 			{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: v2beta2.GroupVersion.Identifier(),
-					Kind:       v2beta2.PolicyConfigKind,
+					APIVersion: v2beta3.GroupVersion.Identifier(),
+					Kind:       v2beta3.PolicyConfigKind,
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "resource-config-conflict",
 				},
-				Spec: v2beta2.PolicyConfigSpec{
-					Match: v2beta2.PolicyConfigTarget{
-						Resources: []v2beta2.PolicyTargetResource{
+				Spec: v2beta3.PolicyConfigSpec{
+					Match: v2beta3.PolicyConfigTarget{
+						Resources: []v2beta3.PolicyTargetResource{
 							{
 								Kind:      "Deployment",
 								Name:      "test-deployment",
@@ -213,7 +195,7 @@ func TestIntegration(t *testing.T) {
 							},
 						},
 					},
-					Config: map[string]v2beta2.PolicyConfigConfig{
+					Config: map[string]v2beta3.PolicyConfigConfig{
 						minimumReplicaCountPolicy: {
 							Parameters: map[string]apiextensionsv1.JSON{},
 						},
@@ -228,7 +210,7 @@ func TestIntegration(t *testing.T) {
 	})
 
 	t.Run("test mutate resources", func(t *testing.T) {
-		raw, err := ioutil.ReadFile("data/resources/mutation_test_resources.yaml")
+		raw, err := os.ReadFile("data/resources/mutation_test_resources.yaml")
 		assert.Nil(t, err)
 
 		var m map[string]interface{}
@@ -245,7 +227,7 @@ func TestIntegration(t *testing.T) {
 		err = cl.Get(ctx, client.ObjectKey{Name: testMutationDeployment, Namespace: "default"}, &deployment)
 		assert.NotNil(t, err)
 
-		var policy v2beta2.Policy
+		var policy v2beta3.Policy
 		err = cl.Get(ctx, client.ObjectKey{Name: minimumReplicaCountPolicy}, &policy)
 		assert.Nil(t, err)
 

@@ -14,12 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v2beta2
+package v2beta3
 
 import (
-	"fmt"
-	"strings"
-
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -35,26 +32,7 @@ const (
 
 var (
 	PolicyGroupVersionResource = GroupVersion.WithResource(PolicyResourceName)
-	PolicyModeLabelPrefix      = fmt.Sprintf("%s/mode", GroupVersion.Group)
 )
-
-// PolicyStatus Policy Status object
-// PolicyStatus contains the list of modes the policy will be evaluated in.
-// It will be updated every time a policy set is got created, updated or deleted.
-type PolicyStatus struct {
-	// +optional
-	// Modes is the list of modes the policy will be evaluated in, must be one of audit,admission,tf-admission
-	Modes []string `json:"modes,omitempty"`
-	// +optional
-	// ModesString is the string format of the modes field to be displayed
-	ModesString string `json:"modes_str,omitempty"`
-}
-
-// SetModes sets policy status modes
-func (ps *PolicyStatus) SetModes(modes []string) {
-	ps.Modes = modes
-	ps.ModesString = strings.Join(modes, "/")
-}
 
 // PolicyParameters defines a needed input in a policy
 type PolicyParameters struct {
@@ -140,35 +118,14 @@ type PolicySpec struct {
 //+kubebuilder:printcolumn:name="Severity",type=string,JSONPath=`.spec.severity`
 //+kubebuilder:printcolumn:name="Category",type=string,JSONPath=`.spec.category`
 //+kubebuilder:printcolumn:name="Provider",type=string,JSONPath=`.spec.provider`
-//+kubebuilder:printcolumn:name="Modes",type=string,JSONPath=`.status.modes_str`
 //+kubebuilder:resource:scope=Cluster
-//+kubebuilder:subresource:status
+//+kubebuilder:storageversion
 
 // Policy is the Schema for the policies API
 type Policy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	Spec              PolicySpec `json:"spec,omitempty"`
-	//+optional
-	Status PolicyStatus `json:"status,omitempty"`
-}
-
-// SetModeLabels add policy modes to labels to support filtering
-func (p *Policy) SetModeLabels(modes []string) {
-	if p.Labels == nil {
-		p.Labels = make(map[string]string)
-	}
-	// remove old labels
-	for label := range p.Labels {
-		if strings.HasPrefix(label, PolicyModeLabelPrefix) {
-			delete(p.Labels, label)
-		}
-	}
-	// set new labels
-	for _, mode := range modes {
-		label := fmt.Sprintf("%s.%s", PolicyModeLabelPrefix, mode)
-		p.Labels[label] = ""
-	}
 }
 
 // +kubebuilder:object:root=true

@@ -10,7 +10,7 @@ import (
 
 	"github.com/fluxcd/pkg/runtime/events"
 	"github.com/urfave/cli/v2"
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta3"
 	"github.com/weaveworks/policy-agent/configuration"
 	"github.com/weaveworks/policy-agent/controllers"
 	"github.com/weaveworks/policy-agent/internal/admission"
@@ -280,7 +280,7 @@ func main() {
 		if config.Audit.Enabled {
 			logger.Info("starting audit policies watcher")
 
-			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.AuditMode, crd.KubernetesProvider)
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, pacv2.PolicyKubernetesProvider)
 
 			if err != nil {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
@@ -307,7 +307,7 @@ func main() {
 		if config.Admission.Enabled {
 			logger.Info("starting admission policies watcher")
 
-			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.AdmissionMode, crd.KubernetesProvider)
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, pacv2.PolicyKubernetesProvider)
 			if err != nil {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
 			}
@@ -350,7 +350,7 @@ func main() {
 		}
 
 		if config.TFAdmission.Enabled {
-			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, crd.TFAdmissionMode, crd.TerraformProvider)
+			policiesSource, err := crd.NewPoliciesWatcher(contextCli.Context, mgr, pacv2.PolicyTerraformProvider)
 
 			if err != nil {
 				return fmt.Errorf("failed to initialize CRD policies source: %w", err)
@@ -376,13 +376,6 @@ func main() {
 			if err != nil {
 				return fmt.Errorf("failed to start terraform webhook, error: %w", err)
 			}
-		}
-
-		if err = (&controllers.PolicyReconciler{
-			Client: mgr.GetClient(),
-		}).SetupWithManager(mgr); err != nil {
-			logger.Errorw("unable to create controller", "controller", "policy", "err", err)
-			os.Exit(1)
 		}
 
 		if err = (&controllers.PolicyConfigController{

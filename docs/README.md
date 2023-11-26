@@ -4,7 +4,6 @@
   - [High Level Architecture](#high-level-architecture)
   - [Custom Resources](#custom-resources)
     - [Policy](#policy)
-    - [PolicySet](#policyset)
     - [PolicyConfig](#policyconfig)
   - [Modes](#modes)
     - [Audit](#audit)
@@ -22,6 +21,7 @@
     - [v1](#v1)
     - [v1beta1](#v1beta1)
     - [v2beta2](#v2beta2)
+    - [v2beta3](#v2beta3)
   - [Development](#development)
 
 
@@ -43,12 +43,6 @@ Currently there are three [Kubernetes Custom Resources](https://kubernetes.io/do
 This is the main resource and it is used to define policies which will be evaluated by the policy agent.
 
 > See more about Policy CRD [here](./policy.md)
-
-### PolicySet
-
-This is an optional resource. It is used to select group of policies to work in specific [mode](#modes).
-
-> See more about PolicySet CRD [here](./policy_set.md)
 
 
 ### PolicyConfig
@@ -206,6 +200,8 @@ audit:
 - Introduced PolicyConfig CRD
 - Added `mode` field to PolicySet CRD
 - Added `status.modes` field to Policy CRD 
+### v2beta3
+- Remove PolicySet CRD
 
 ## Development
 

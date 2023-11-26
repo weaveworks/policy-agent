@@ -2,6 +2,8 @@ module github.com/weaveworks/policy-agent
 
 go 1.20
 
+replace github.com/weaveworks/policy-agent/api v1.0.5 => ./api/ // TODO: change when release API
+
 require (
 	github.com/elastic/go-elasticsearch/v7 v7.17.7
 	github.com/fluxcd/pkg/runtime v0.35.0

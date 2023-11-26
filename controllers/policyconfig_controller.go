@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta3"
 	"github.com/weaveworks/policy-agent/pkg/logger"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
@@ -184,7 +184,7 @@ func (p *PolicyConfigController) reconcile(obj client.Object) []reconcile.Reques
 
 func (pc *PolicyConfigController) SetupWithManager(mgr ctrl.Manager) error {
 	mgr.GetWebhookServer().Register(
-		"/validate-v2beta2-policyconfig",
+		"/validate-v2beta3-policyconfig",
 		&webhook.Admission{Handler: pc},
 	)
 
