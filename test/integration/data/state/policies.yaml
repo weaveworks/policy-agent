@@ -1,4 +1,4 @@
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: Policy
 metadata:
   name: weave.policies.containers-minimum-replica-count
@@ -89,7 +89,7 @@ spec:
 
 ---
 
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: Policy
 metadata:
   name: weave.policies.containers-running-in-privileged-mode
@@ -198,7 +198,7 @@ spec:
 
 ---
 
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: Policy
 metadata:
   name: weave.policies.missing-owner-label

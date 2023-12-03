@@ -12,7 +12,7 @@ import (
 
 	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta3"
 )
 
 func TestGetPolicyConfig(t *testing.T) {

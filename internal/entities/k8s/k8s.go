@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta3"
 	"github.com/weaveworks/policy-agent/internal/clients/kube"
 	"github.com/weaveworks/policy-agent/pkg/logger"
 	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"

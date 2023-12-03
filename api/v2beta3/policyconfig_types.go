@@ -1,4 +1,4 @@
-package v2beta2
+package v2beta3
 
 import (
 	"fmt"
@@ -68,6 +68,7 @@ type PolicyConfigSpec struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:scope=Cluster
+// +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`

@@ -1,6 +1,6 @@
 
 image: weaveworks/policy-agent
-imageTag: v2.5.0
+imageTag: v2.6.0
 failurePolicy: Fail
 
 # If you don't want to use cert-manager, set useCertManager to false and provide your own certs

@@ -1,4 +1,4 @@
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: PolicyConfig
 metadata:
   name: namespace-config
@@ -12,7 +12,7 @@ spec:
         replica_count: 3
 ---
 
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: PolicyConfig
 metadata:
   name: helm-app-config
@@ -29,7 +29,7 @@ spec:
 
 ---
 
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: PolicyConfig
 metadata:
   name: kustomize-app-config
@@ -46,7 +46,7 @@ spec:
 
 ---
 
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: PolicyConfig
 metadata:
   name: resource-config

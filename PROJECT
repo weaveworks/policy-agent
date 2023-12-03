@@ -46,8 +46,22 @@ resources:
   kind: PolicyConfig
   path: api/v1
   version: v2beta2
+- api:
+    crdVersion: v2beta3
+    namespaced: false
+  domain: weave.works
+  kind: Policy
+  path: api/v1
+  version: v2beta3
+- api:
+    crdVersion: v2beta3
+    namespaced: false
+  domain: weave.works
+  kind: PolicyConfig
+  path: api/v1
+  version: v2beta3
   webhooks:
     # defaulting: true
     validation: true
     webhookVersion: v1
-version: "3"
+version: "4"

@@ -4,7 +4,7 @@ Contains policy validation tools and defines its expected domain objects and int
 
 ## Policy Domain
 
-Defines the structures for `Policy` objects (Policy, Entity, PolicySet, PolicyConfig, PolicyValidation) also the mocking tools for unit testing.
+Defines the structures for `Policy` objects (Policy, Entity, PolicyConfig, PolicyValidation) also the mocking tools for unit testing.
 
 ### Generate mock data
 

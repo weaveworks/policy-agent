@@ -325,8 +325,6 @@ github.com/tchap/go-patricia/v2 v2.3.1 h1:6rQp39lgIYZ+MHmdEq4xzuk1t7OdC35z/xm0BG
 github.com/tchap/go-patricia/v2 v2.3.1/go.mod h1:VZRHKAb53DLaG+nA9EaYYiaEx6YztwDlLElMsnSHD4k=
 github.com/urfave/cli/v2 v2.24.4 h1:0gyJJEBYtCV87zI/x2nZCPyDxD51K6xM8SkwjHFCNEU=
 github.com/urfave/cli/v2 v2.24.4/go.mod h1:GHupkWPMM0M/sj1a2b4wUrWBPzazNrIjouW6fmdJLxc=
-github.com/weaveworks/policy-agent/api v1.0.5 h1:4pqzzta8xPUsE9h9YhGJVg5XQ2NuAU/CDoU7zdCw5A0=
-github.com/weaveworks/policy-agent/api v1.0.5/go.mod h1:LlhTiipsV5GSHkL/q7Wa7qrJPZGR9Xtoq2npXTWp9bI=
 github.com/weaveworks/policy-agent/pkg/logger v1.1.0 h1:LwWacSwGApgqniM0wzBS1XcAE46Iu0mCeczQBeIA11M=
 github.com/weaveworks/policy-agent/pkg/logger v1.1.0/go.mod h1:bhlwMW3rcPE294XrmlDYvx4EkRCbAzEqXBT9LI4KIFA=
 github.com/weaveworks/policy-agent/pkg/opa-core v1.1.0 h1:++9oPP/cNuo2SUbBjFim1o0YM8g42kcNWgXMBCOdl7w=

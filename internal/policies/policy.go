@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta3"
 	"github.com/weaveworks/policy-agent/pkg/logger"
 	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 	v1 "k8s.io/api/core/v1"
@@ -14,25 +14,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const (
-	AdmissionMode      = "admission"
-	AuditMode          = "audit"
-	TFAdmissionMode    = "tf-admission"
-	KubernetesProvider = "kubernetes"
-	TerraformProvider  = "terraform"
-)
-
 type PoliciesWatcher struct {
 	cache    ctrlCache.Cache
-	Mode     string
 	Provider string
 }
 
 // NewPoliciesWatcher returns a policies source that fetches them from Kubernetes API
-func NewPoliciesWatcher(ctx context.Context, mgr ctrl.Manager, mode, provider string) (*PoliciesWatcher, error) {
+func NewPoliciesWatcher(ctx context.Context, mgr ctrl.Manager, provider string) (*PoliciesWatcher, error) {
 	return &PoliciesWatcher{
 		cache:    mgr.GetCache(),
-		Mode:     mode,
 		Provider: provider,
 	}, nil
 }
@@ -47,17 +37,9 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 
 	logger.Debugw("retrieved CRD policies from cache", "count", len(policiesCRD.Items))
 
-	var policySets pacv2.PolicySetList
-	err = p.cache.List(ctx, &policySets)
-	if err != nil {
-		return nil, fmt.Errorf("error while retrieving policy sets CRD from cache: %w", err)
-	}
-
-	logger.Infow("retrieved CRD policy sets from cache", "count", len(policySets.Items))
-
 	var policies []domain.Policy
 	for i := range policiesCRD.Items {
-		if !p.match(policiesCRD.Items[i], policySets) {
+		if !p.match(policiesCRD.Items[i]) {
 			continue
 		}
 
@@ -117,32 +99,7 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 	return policies, nil
 }
 
-func (p *PoliciesWatcher) match(policy pacv2.Policy, policySets pacv2.PolicySetList) bool {
+func (p *PoliciesWatcher) match(policy pacv2.Policy) bool {
 	// check provider
-	if policy.Spec.Provider != p.Provider {
-		return false
-	}
-
-	// check if tenant policy when mode is admission
-	if p.Mode == AdmissionMode {
-		for _, tag := range policy.Spec.Tags {
-			if tag == pacv2.TenancyTag {
-				return true
-			}
-		}
-	}
-
-	var count int
-	for _, policySet := range policySets.Items {
-		// check only policy sets with same mode
-		if policySet.Spec.Mode == p.Mode {
-			if policySet.Match(policy) {
-				return true
-			}
-			count++
-		}
-	}
-
-	// if there are no policysets configured return true
-	return count == 0
+	return policy.Spec.Provider == p.Provider
 }

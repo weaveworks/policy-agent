@@ -313,7 +313,7 @@ func TestGetEntitiesSources(t *testing.T) {
 				discoveryClient: &DiscoveryMock{
 					ApiList: []*meta.APIResourceList{
 						{
-							GroupVersion: "pac.weave.works/v2beta2",
+							GroupVersion: "pac.weave.works/v2beta3",
 							APIResources: []meta.APIResource{
 								{
 									Name:  "policies",

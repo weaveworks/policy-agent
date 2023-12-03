@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os/exec"
 
-	v2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -15,14 +14,6 @@ func kubectl(args ...string) error {
 	stdout, err := cmd.Output()
 	fmt.Println(string(stdout))
 	return err
-}
-
-func listPolicies(ctx context.Context, c client.Client) (*v2beta2.PolicyList, error) {
-	var policies v2beta2.PolicyList
-	if err := c.List(ctx, &policies); err != nil {
-		return nil, err
-	}
-	return &policies, nil
 }
 
 func listViolationEvents(ctx context.Context, c client.Client, opts []client.ListOption) (*v1.EventList, error) {

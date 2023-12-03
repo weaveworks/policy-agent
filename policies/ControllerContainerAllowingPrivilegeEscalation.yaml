@@ -1,4 +1,4 @@
-apiVersion: pac.weave.works/v2beta2
+apiVersion: pac.weave.works/v2beta3
 kind: Policy
 metadata:
   name: weave.policies.containers-running-with-privilege-escalation

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	pacv2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pacv2 "github.com/weaveworks/policy-agent/api/v2beta3"
 	"github.com/weaveworks/policy-agent/internal/utils"
 	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 	v1 "k8s.io/api/core/v1"

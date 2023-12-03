@@ -326,13 +326,13 @@ webhooks:
       service:
         name: policy-agent
         namespace: {{ .Release.Namespace }}
-        path: /validate-v2beta2-policyconfig
+        path: /validate-v2beta3-policyconfig
     failurePolicy: Fail
     rules:
     - apiGroups:
       - pac.weave.works
       apiVersions:
-      - v2beta2
+      - v2beta3
       operations:
       - CREATE
       - UPDATE
