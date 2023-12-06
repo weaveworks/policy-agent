@@ -1,0 +1,58 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: policy-agent
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  timeout: 1m0s
+  url: https://weaveworks.github.io/policy-agent/
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: policy-agent
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: policy-agent
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: policy-agent
+        namespace: flux-system
+      version: 2.5.0
+  interval: 10m0s
+  targetNamespace: policy-system
+  install:
+    createNamespace: true
+  values:
+    caCertificate: ""
+    certificate: ""
+    config:
+      accountId: ""
+      admission:
+        enabled: false
+        sinks:
+          k8sEventsSink:
+            enabled: true
+      audit:
+        enabled: true
+        sinks:
+          k8sEventsSink:
+            enabled: true
+      clusterId: ""
+    excludeNamespaces:
+    - kube-system
+    - flux-system
+    failurePolicy: Fail
+    image: weaveworks/policy-agent
+    key: ""
+    persistence:
+      enabled: false
+    useCertManager: true
+status: {}
