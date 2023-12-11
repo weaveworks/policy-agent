@@ -5,7 +5,7 @@ metadata:
 spec:
   id: weave.policies.containers-running-with-privilege-escalation
   name: Containers Running With Privilege Escalation
-  enabled: true
+  enforce: true
   description: "Containers are running with PrivilegeEscalation configured. Setting this Policy to `true` allows child processes to gain more privileges than its parent process.  \n\nThis Policy gates whether or not a user is allowed to set the security context of a container to `allowPrivilegeEscalation` to `true`. The default value for this is `false` so no child process of a container can gain more privileges than its parent.\n\nThere are 2 parameters for this Policy:\n- exclude_namespace (string) : This sets a namespace you want to exclude from Policy compliance checking. \n- allow_privilege_escalation (bool) : This checks for the value of `allowPrivilegeEscalation` in your spec.  \n"
   how_to_solve: |
     Check the following path to see what the PrivilegeEscalation value is set to.

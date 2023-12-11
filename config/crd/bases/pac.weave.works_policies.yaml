@@ -518,9 +518,11 @@ spec:
               description:
                 description: Description is a summary of what that policy validates
                 type: string
-              enabled:
-                description: Enabled flag for third parties consumers that indicates
-                  if this policy should be considered or not
+              enforce:
+                default: true
+                description: 'Enforce flag to define whether a policy is enforced
+                  via the admission controller or just audited for a violation (default:
+                  false)'
                 type: boolean
               how_to_solve:
                 description: HowToSolve is a description of the steps required to

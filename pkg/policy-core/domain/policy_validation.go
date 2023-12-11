@@ -3,6 +3,7 @@ package domain
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -60,6 +61,7 @@ type PolicyValidation struct {
 	Trigger     string       `json:"trigger"`
 	CreatedAt   time.Time    `json:"created_at"`
 	Metadata    interface{}  `json:"metadata"`
+	Enforced    bool         `json:"enforced"`
 }
 
 // PolicyValidationSummary contains violation and compliance result of a validate operation
@@ -138,7 +140,7 @@ func NewK8sEventFromPolicyValidation(result PolicyValidation) (*v1.Event, error)
 		"description":     result.Policy.Description,
 		"how_to_solve":    result.Policy.HowToSolve,
 		"parameters":      string(parameters),
-		"modes":           strings.Join(result.Policy.Modes, ","),
+		"enforce":         fmt.Sprint(result.Policy.Enforce),
 	}
 
 	namespace := result.Entity.Namespace
@@ -186,6 +188,13 @@ func NewPolicyValidationFRomK8sEvent(event *v1.Event) (PolicyValidation, error) 
 	} else {
 		status = PolicyValidationStatusCompliant
 	}
+
+	enforced, err := strconv.ParseBool(annotations["enforce"])
+	if err != nil {
+		// defaults to true if not available
+		enforced = true
+	}
+
 	policyValidation := PolicyValidation{
 		AccountID: annotations["account_id"],
 		ClusterID: annotations["cluster_id"],
@@ -195,6 +204,7 @@ func NewPolicyValidationFRomK8sEvent(event *v1.Event) (PolicyValidation, error) 
 		CreatedAt: event.FirstTimestamp.Time,
 		Message:   event.Message,
 		Status:    status,
+		Enforced:  enforced,
 		Policy: Policy{
 			ID:          annotations["policy_id"],
 			Name:        annotations["policy_name"],
@@ -204,7 +214,6 @@ func NewPolicyValidationFRomK8sEvent(event *v1.Event) (PolicyValidation, error) 
 			HowToSolve:  annotations["how_to_solve"],
 			Reference:   event.Related,
 			Tags:        strings.Split(annotations["tags"], ","),
-			Modes:       strings.Split(annotations["modes"], ","),
 		},
 		Entity: Entity{
 			APIVersion:      event.InvolvedObject.APIVersion,
@@ -215,7 +224,7 @@ func NewPolicyValidationFRomK8sEvent(event *v1.Event) (PolicyValidation, error) 
 			ResourceVersion: event.InvolvedObject.ResourceVersion,
 		},
 	}
-	err := json.Unmarshal([]byte(annotations["standards"]), &policyValidation.Policy.Standards)
+	err = json.Unmarshal([]byte(annotations["standards"]), &policyValidation.Policy.Standards)
 	if err != nil {
 		return policyValidation, fmt.Errorf("failed to get standards from event: %w", err)
 	}

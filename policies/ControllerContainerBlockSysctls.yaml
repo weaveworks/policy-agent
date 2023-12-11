@@ -5,7 +5,7 @@ metadata:
 spec:
   id: weave.policies.container-block-sysctl
   name: Container Block Sysctls
-  enabled: true
+  enforce: true
   description: "Setting sysctls can allow containers unauthorized escalated privileges to a Kubernetes node. \n"
   how_to_solve: "You should not set  `securityContext.sysctls` \n```\n...\n  spec:\n    securityContext:\n      sysctls\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n"
   category: weave.categories.pod-security

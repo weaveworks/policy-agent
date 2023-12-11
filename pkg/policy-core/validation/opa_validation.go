@@ -55,12 +55,12 @@ func NewOPAValidator(
 func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, trigger string) (*domain.PolicyValidationSummary, error) {
 	policies, err := v.policiesSource.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get policies from source: %w", err)
+		return nil, fmt.Errorf("failed to get policies from source: %w", err)
 	}
 
 	config, err := v.policiesSource.GetPolicyConfig(ctx, entity)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get policy config from source: %w", err)
+		return nil, fmt.Errorf("failed to get policy config from source: %w", err)
 	}
 
 	var enqueueGroup sync.WaitGroup
@@ -156,6 +156,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, trigg
 						Message:     message,
 						Status:      domain.PolicyValidationStatusViolating,
 						Occurrences: occurrences,
+						Enforced:    policy.Enforce,
 					}
 					violationsChan <- result
 
@@ -177,6 +178,7 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, trigg
 					Trigger:   trigger,
 					CreatedAt: time.Now(),
 					Status:    domain.PolicyValidationStatusCompliant,
+					Enforced:  policy.Enforce,
 				}
 				compliancesChan <- result
 			}

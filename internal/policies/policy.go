@@ -48,7 +48,7 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 			Name:    policyCRD.Name,
 			ID:      policyCRD.ID,
 			Code:    policyCRD.Code,
-			Enabled: policyCRD.Enabled,
+			Enforce: policyCRD.Enforce,
 			Targets: domain.PolicyTargets{
 				Kinds:      policyCRD.Targets.Kinds,
 				Labels:     policyCRD.Targets.Labels,

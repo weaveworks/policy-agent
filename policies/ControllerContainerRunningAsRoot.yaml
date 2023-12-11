@@ -5,7 +5,7 @@ metadata:
 spec:
   id: weave.policies.container-running-as-root
   name: Container Running As Root
-  enabled: true
+  enforce: true
   description: "Running as root gives the container full access to all resources in the VM it is running on. Containers should not run with such access rights unless required by design. This Policy enforces that the `securityContext.runAsNonRoot` attribute is set to `true`. \n"
   how_to_solve: "You should set `securityContext.runAsNonRoot` to `true`. Not setting it will default to giving the container root user rights on the VM that it is running on. \n```\n...\n  spec:\n    securityContext:\n      runAsNonRoot: true\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n"
   category: weave.categories.pod-security

@@ -5,7 +5,7 @@ metadata:
 spec:
   id: weave.policies.containers-minimum-replica-count
   name: Containers Minimum Replica Count
-  enabled: false
+  enforce: true
   description: "Use this Policy to to check the replica count of your workloads. The value set in the Policy is greater than or equal to the amount desired, so if the replica count is lower than what is specified, the Policy will be in violation. \n"
   how_to_solve: |
     The replica count should be a value equal or greater than what is set in the Policy.
@@ -96,7 +96,7 @@ metadata:
 spec:
   id: weave.policies.containers-running-in-privileged-mode
   name: Containers Running In Privileged Mode
-  enabled: true
+  enforce: true
   description: |
     This Policy reports if containers are running in privileged mode. A privileged container is given access to all devices on the host. This allows the container nearly all the same access as processes running on the host.
 
@@ -205,7 +205,7 @@ metadata:
 spec:
   id: weave.policies.missing-owner-label
   name: Missing Owner Label
-  enabled: false
+  enforce: true
   description: "Custom labels can help enforce organizational standards for each artifact deployed. This Policy ensure a custom label key is set in the entity's `metadata`. The Policy detects the presence of the following: \n\n### owner\nA label key of `owner` will help identify who the owner of this entity is. \n\n### app.kubernetes.io/name\nThe name of the application\t\n\n### app.kubernetes.io/instance\nA unique name identifying the instance of an application\t  \n\n### app.kubernetes.io/version\nThe current version of the application (e.g., a semantic version, revision hash, etc.)\n\n### app.kubernetes.io/part-of\nThe name of a higher level application this one is part of\t\n\n### app.kubernetes.io/managed-by\nThe tool being used to manage the operation of an application\t\n\n### app.kubernetes.io/created-by\nThe controller/user who created this resource\t\n"
   how_to_solve: "Add these custom labels to `metadata`.\n* owner\n* app.kubernetes.io/name\n* app.kubernetes.io/instance\n* app.kubernetes.io/version\n* app.kubernetes.io/name\n* app.kubernetes.io/part-of\n* app.kubernetes.io/managed-by\n* app.kubernetes.io/created-by\n\n```\nmetadata:\n  labels:\n    <label>: value\n```  \nFor additional information, please check\n* https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels \n"
   category: weave.categories.organizational-standards

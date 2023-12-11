@@ -70,7 +70,18 @@ func (a *AdmissionHandler) Handle(ctx context.Context, req ctrlAdmission.Request
 	}
 
 	if len(result.Violations) > 0 {
-		return ctrlAdmission.ValidationResponse(false, generateResponse(result.Violations))
+		// If a resource has multiple policies evaluated
+		// and any of those policies are violated and has the enforce flag equals true
+		// then the resource submission is blocked.
+		allowed := true
+		for _, violation := range result.Violations {
+			if violation.Enforced {
+				allowed = false
+				break
+			}
+		}
+
+		return ctrlAdmission.ValidationResponse(allowed, generateResponse(result.Violations))
 	}
 
 	return ctrlAdmission.ValidationResponse(true, "")

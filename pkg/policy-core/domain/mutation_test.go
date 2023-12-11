@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -55,7 +55,7 @@ func TestMutation(t *testing.T) {
 		mutated, err := result.NewResource()
 		assert.Nil(t, err)
 
-		expectedMutatedEntity, err := ioutil.ReadFile(tt.mutatedEntityFile)
+		expectedMutatedEntity, err := os.ReadFile(tt.mutatedEntityFile)
 		assert.Nil(t, err)
 
 		assert.YAMLEq(t, string(expectedMutatedEntity), string(mutated))
@@ -64,7 +64,7 @@ func TestMutation(t *testing.T) {
 }
 
 func getEntityFromFile(path string) (Entity, error) {
-	raw, err := ioutil.ReadFile(path)
+	raw, err := os.ReadFile(path)
 	if err != nil {
 		return Entity{}, err
 	}

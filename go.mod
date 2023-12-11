@@ -2,7 +2,10 @@ module github.com/weaveworks/policy-agent
 
 go 1.20
 
-replace github.com/weaveworks/policy-agent/api v1.0.5 => ./api/ // TODO: change when release API
+replace (
+	github.com/weaveworks/policy-agent/api v1.0.5 => ./api/ // TODO: change when release API
+	github.com/weaveworks/policy-agent/pkg/policy-core v1.2.0 => ./pkg/policy-core // TODO: change when release API
+)
 
 require (
 	github.com/elastic/go-elasticsearch/v7 v7.17.7
