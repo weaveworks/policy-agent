@@ -119,6 +119,7 @@ type PolicySpec struct {
 //+kubebuilder:printcolumn:name="Severity",type=string,JSONPath=`.spec.severity`
 //+kubebuilder:printcolumn:name="Category",type=string,JSONPath=`.spec.category`
 //+kubebuilder:printcolumn:name="Provider",type=string,JSONPath=`.spec.provider`
+//+kubebuilder:printcolumn:name="Enforced",type=string,JSONPath=`.spec.enforce`
 //+kubebuilder:resource:scope=Cluster
 //+kubebuilder:storageversion
 
