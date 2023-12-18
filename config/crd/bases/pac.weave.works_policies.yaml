@@ -522,7 +522,7 @@ spec:
                 default: true
                 description: 'Enforce flag to define whether a policy is enforced
                   via the admission controller or just audited for a violation (default:
-                  false)'
+                  true)'
                 type: boolean
               how_to_solve:
                 description: HowToSolve is a description of the steps required to

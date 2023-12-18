@@ -79,7 +79,7 @@ type PolicySpec struct {
 	Code string `json:"code"`
 	// +optional
 	// +kubebuilder:default:=true
-	// Enforce flag to define whether a policy is enforced via the admission controller or just audited for a violation (default: false)
+	// Enforce flag to define whether a policy is enforced via the admission controller or just audited for a violation (default: true)
 	Enforce bool `json:"enforce,omitempty"`
 	// +optional
 	// Parameters are the inputs needed for the policy validation
