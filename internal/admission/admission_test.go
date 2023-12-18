@@ -138,7 +138,10 @@ func TestAdmissionHandler_Handle(t *testing.T) {
 					Allowed: false,
 					Result: &metav1.Status{
 						Reason: metav1.StatusReason(generateResponse([]domain.PolicyValidation{
-							{Message: "violation"},
+							{
+								Message:  "violation",
+								Enforced: true,
+							},
 						})),
 						Code: http.StatusForbidden,
 					},
@@ -148,7 +151,39 @@ func TestAdmissionHandler_Handle(t *testing.T) {
 				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).Return(&domain.PolicyValidationSummary{
 					Violations: []domain.PolicyValidation{
-						{Message: "violation"},
+						{
+							Message:  "violation",
+							Enforced: true,
+						},
+					},
+				}, nil)
+			},
+		},
+		{
+			name: "test allowed (not enforced)",
+			body: testdata.ValidadmissionBody,
+			wantResponse: ctrlAdmission.Response{
+				AdmissionResponse: v1.AdmissionResponse{
+					Allowed: true,
+					Result: &metav1.Status{
+						Reason: metav1.StatusReason(generateResponse([]domain.PolicyValidation{
+							{
+								Message:  "violation",
+								Enforced: false,
+							},
+						})),
+						Code: http.StatusOK,
+					},
+				},
+			},
+			loadStubs: func(val *validationmock.MockValidator) {
+				val.EXPECT().Validate(gomock.Any(), gomock.Any(), gomock.Any()).
+					Times(1).Return(&domain.PolicyValidationSummary{
+					Violations: []domain.PolicyValidation{
+						{
+							Message:  "violation",
+							Enforced: false,
+						},
 					},
 				}, nil)
 			},

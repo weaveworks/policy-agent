@@ -81,6 +81,10 @@ func cmpPolicyValidation(arg1, arg2 domain.PolicyValidation) bool {
 		return false
 	}
 
+	if arg1.Enforced != arg2.Enforced {
+		return false
+	}
+
 	return arg1.Type == arg2.Type &&
 		arg1.Trigger == arg2.Trigger &&
 		arg1.Status == arg2.Status
@@ -214,6 +218,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 								Message: "Image contains unapproved tag 'latest'",
 							},
 						},
+						Enforced: false,
 					},
 					{
 						Policy:  testdata.Policies["missingOwner"],
@@ -227,6 +232,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 								Message: "you are missing a label with the key 'owner'",
 							},
 						},
+						Enforced: false,
 					},
 				},
 			},
@@ -283,6 +289,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 								Message: "you are missing a label with the key 'owner'",
 							},
 						},
+						Enforced: false,
 					},
 				},
 			},
@@ -323,6 +330,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 								Message: "you are missing a label with the key 'owner'",
 							},
 						},
+						Enforced: false,
 					},
 				},
 			},
@@ -363,6 +371,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 								Message: "you are missing a label with the key 'owner'",
 							},
 						},
+						Enforced: false,
 					},
 				},
 			},
@@ -411,6 +420,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 								Message: "you are missing a label with the key 'owner'",
 							},
 						},
+						Enforced: false,
 					},
 				},
 			},
@@ -458,18 +468,20 @@ func TestOpaValidator_Validate(t *testing.T) {
 			want: &domain.PolicyValidationSummary{
 				Compliances: []domain.PolicyValidation{
 					{
-						Policy:  testdata.Policies["imageTag"],
-						Entity:  compliantEntity,
-						Type:    validationType,
-						Status:  domain.PolicyValidationStatusCompliant,
-						Trigger: validationType,
+						Policy:   testdata.Policies["imageTag"],
+						Entity:   compliantEntity,
+						Type:     validationType,
+						Status:   domain.PolicyValidationStatusCompliant,
+						Trigger:  validationType,
+						Enforced: false,
 					},
 					{
-						Policy:  testdata.Policies["missingOwner"],
-						Entity:  compliantEntity,
-						Type:    validationType,
-						Status:  domain.PolicyValidationStatusCompliant,
-						Trigger: validationType,
+						Policy:   testdata.Policies["missingOwner"],
+						Entity:   compliantEntity,
+						Type:     validationType,
+						Status:   domain.PolicyValidationStatusCompliant,
+						Trigger:  validationType,
+						Enforced: false,
 					},
 				},
 			},
@@ -508,6 +520,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 								Message: "Pod spec.template.spec.securityContext.runAsNonRoot should be set to true",
 							},
 						},
+						Enforced: false,
 					},
 				},
 			},
@@ -543,11 +556,12 @@ func TestOpaValidator_Validate(t *testing.T) {
 			want: &domain.PolicyValidationSummary{
 				Compliances: []domain.PolicyValidation{
 					{
-						Policy:  testdata.Policies["replicaCount"],
-						Entity:  compliantEntity,
-						Type:    validationType,
-						Status:  domain.PolicyValidationStatusCompliant,
-						Trigger: validationType,
+						Policy:   testdata.Policies["replicaCount"],
+						Entity:   compliantEntity,
+						Type:     validationType,
+						Status:   domain.PolicyValidationStatusCompliant,
+						Trigger:  validationType,
+						Enforced: false,
 					},
 				},
 			},
@@ -594,6 +608,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 								Message: "Replica count must be greater than or equal to '5'; found '3'.",
 							},
 						},
+						Enforced: false,
 					},
 				},
 			},
@@ -617,6 +632,42 @@ func TestOpaValidator_Validate(t *testing.T) {
 			entity:  entity,
 			want:    nil,
 			wantErr: true,
+		},
+		{
+			name: "default test with enforce is true",
+			init: init{
+				writeCompliance: false,
+				loadStubs: func(policiesSource *mock.MockPoliciesSource, sink *mock.MockPolicyValidationSink) {
+					policiesSource.EXPECT().GetAll(gomock.Any()).
+						Times(1).Return([]domain.Policy{
+						testdata.Policies["imageTagEnforced"],
+					}, nil)
+					policiesSource.EXPECT().GetPolicyConfig(gomock.Any(), gomock.Any()).
+						Times(1).Return(nil, nil)
+					sink.EXPECT().Write(gomock.Any(), gomock.Any()).
+						Times(1).Return(nil)
+				},
+			},
+			entity: entity,
+			want: &domain.PolicyValidationSummary{
+				Violations: []domain.PolicyValidation{
+					{
+						Policy:  testdata.Policies["imageTagEnforced"],
+						Entity:  entity,
+						Type:    validationType,
+						Status:  domain.PolicyValidationStatusViolating,
+						Trigger: validationType,
+						Message: "Using latest image tag in container in deployment nginx-deployment (1 occurrences)",
+						Occurrences: []domain.Occurrence{
+							{
+								Message: "Image contains unapproved tag 'latest'",
+							},
+						},
+						Enforced: true,
+					},
+				},
+			},
+			wantErr: false,
 		},
 	}
 

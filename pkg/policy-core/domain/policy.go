@@ -30,7 +30,7 @@ type Policy struct {
 	Name        string             `json:"name"`
 	ID          string             `json:"id"`
 	Code        string             `json:"code"`
-	Enabled     bool               `json:"enabled"`
+	Enforce     bool               `json:"enforce"`
 	Parameters  []PolicyParameters `json:"parameters"`
 	Targets     PolicyTargets      `json:"targets"`
 	Description string             `json:"description"`
@@ -41,7 +41,6 @@ type Policy struct {
 	Standards   []PolicyStandard   `json:"standards"`
 	Reference   interface{}        `json:"-"`
 	GitCommit   string             `json:"git_commit,omitempty"`
-	Modes       []string           `json:"modes"`
 	Mutate      bool               `json:"mutate"`
 }
 

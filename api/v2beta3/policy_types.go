@@ -78,8 +78,9 @@ type PolicySpec struct {
 	// Code contains the policy rego code
 	Code string `json:"code"`
 	// +optional
-	// Enabled flag for third parties consumers that indicates if this policy should be considered or not
-	Enabled bool `json:"enabled,omitempty"`
+	// +kubebuilder:default:=true
+	// Enforce flag to define whether a policy is enforced via the admission controller or just audited for a violation (default: true)
+	Enforce bool `json:"enforce,omitempty"`
 	// +optional
 	// Parameters are the inputs needed for the policy validation
 	Parameters []PolicyParameters `json:"parameters,omitempty"`
@@ -118,6 +119,7 @@ type PolicySpec struct {
 //+kubebuilder:printcolumn:name="Severity",type=string,JSONPath=`.spec.severity`
 //+kubebuilder:printcolumn:name="Category",type=string,JSONPath=`.spec.category`
 //+kubebuilder:printcolumn:name="Provider",type=string,JSONPath=`.spec.provider`
+//+kubebuilder:printcolumn:name="Enforced",type=string,JSONPath=`.spec.enforce`
 //+kubebuilder:resource:scope=Cluster
 //+kubebuilder:storageversion
 

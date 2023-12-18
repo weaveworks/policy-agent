@@ -329,8 +329,6 @@ github.com/weaveworks/policy-agent/pkg/logger v1.1.0 h1:LwWacSwGApgqniM0wzBS1XcA
 github.com/weaveworks/policy-agent/pkg/logger v1.1.0/go.mod h1:bhlwMW3rcPE294XrmlDYvx4EkRCbAzEqXBT9LI4KIFA=
 github.com/weaveworks/policy-agent/pkg/opa-core v1.1.0 h1:++9oPP/cNuo2SUbBjFim1o0YM8g42kcNWgXMBCOdl7w=
 github.com/weaveworks/policy-agent/pkg/opa-core v1.1.0/go.mod h1:ZY18awHQq5tvh4lL9PvaRbP34qOIw709wGcKhtf6ZbI=
-github.com/weaveworks/policy-agent/pkg/policy-core v1.2.0 h1:n7B1SazaMKcr/xfp9JdnaXm24T+zAGnxb5vA4pC41tQ=
-github.com/weaveworks/policy-agent/pkg/policy-core v1.2.0/go.mod h1:+XSiyuRBM+RXWGeh2RLUbKQ3nlBFbmmsPAFzG7onKKg=
 github.com/weaveworks/policy-agent/pkg/uuid-go v0.1.0 h1:2zODdAnMFAgYhNJj/Oe59OxG98LWuFRxF7cIovPnSVE=
 github.com/weaveworks/policy-agent/pkg/uuid-go v0.1.0/go.mod h1:norQi1tZAienB1ad0kAbiJlTe85j+LVef5P53kW7qAo=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=

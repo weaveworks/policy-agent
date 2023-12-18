@@ -5,7 +5,7 @@ metadata:
 spec:
   id: weave.policies.containers-read-only-root-filesystem
   name: Containers Read Only Root Filesystem
-  enabled: false
+  enforce: true
   description: "This Policy will cause a violation if the root file system is not mounted as specified. As a security practice, the root file system should be read-only or expose risk to your nodes if compromised. \n\nThis Policy requires containers must run with a read-only root filesystem (i.e. no writable layer).\n"
   how_to_solve: "Set `readOnlyRootFilesystem` in your `securityContext` to the value specified in the Policy. \n```\n...\n  spec:\n    containers:\n      - securityContext:\n          readOnlyRootFilesystem: <read_only>\n```\n\nhttps://kubernetes.io/docs/concepts/policy/pod-security-policy/#volumes-and-file-systems\n"
   category: weave.categories.pod-security

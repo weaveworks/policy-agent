@@ -2,6 +2,7 @@ package domain
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -19,6 +20,7 @@ func TestPolicyToEvent(t *testing.T) {
 		Name:     "my-policy",
 		Category: "my-category",
 		Severity: "low",
+		Enforce:  true,
 		Reference: v1.ObjectReference{
 			UID:             "my-policy",
 			APIVersion:      "pac.weave.works/v1",
@@ -42,7 +44,6 @@ func TestPolicyToEvent(t *testing.T) {
 				ConfigRef: "config-1",
 			},
 		},
-		Modes: []string{"audit", "admission"},
 	}
 
 	entity := Entity{
@@ -65,6 +66,7 @@ func TestPolicyToEvent(t *testing.T) {
 			Type:      "Admission",
 			Trigger:   "Admission",
 			CreatedAt: time.Now(),
+			Enforced:  true,
 			Occurrences: []Occurrence{
 				{
 					Message: "test",
@@ -75,6 +77,7 @@ func TestPolicyToEvent(t *testing.T) {
 			Policy:    policy,
 			Entity:    entity,
 			Status:    PolicyValidationStatusCompliant,
+			Enforced:  true,
 			Message:   "message",
 			Type:      "Audit",
 			Trigger:   "PolicyChange",
@@ -135,13 +138,13 @@ func TestPolicyToEvent(t *testing.T) {
 			"severity":        result.Policy.Severity,
 			"category":        result.Policy.Category,
 			"description":     result.Policy.Description,
+			"enforce":         fmt.Sprint(result.Policy.Enforce),
 			"how_to_solve":    result.Policy.HowToSolve,
 			"tags":            strings.Join(result.Policy.Tags, ","),
 			"standards":       string(standards),
 			"entity_manifest": string(manifest),
 			"occurrences":     string(occurrences),
 			"parameters":      string(parameters),
-			"modes":           "audit,admission",
 		})
 		assert.Equal(t, event.Labels, map[string]string{
 			PolicyValidationIDLabel:      result.ID,
@@ -166,6 +169,7 @@ func TestEventToPolicy(t *testing.T) {
 				"account_id":      uuid.NewV4().String(),
 				"cluster_id":      uuid.NewV4().String(),
 				"policy_id":       uuid.NewV4().String(),
+				"enforce":         "true",
 				"description":     uuid.NewV4().String(),
 				"how_to_solve":    uuid.NewV4().String(),
 				"policy_name":     "my-policy",
@@ -175,7 +179,6 @@ func TestEventToPolicy(t *testing.T) {
 				"entity_manifest": `{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"nginx-deployment","namespace":"default","uid":"af912668-957b-46d4-bc7a-51e6994cba56"},"spec":{"template":{"spec":{"containers":[{"image":"nginx:latest","imagePullPolicy":"Always","name":"nginx","ports":[{"containerPort":80,"protocol":"TCP"}]}]}}}}`,
 				"standards":       `[{"id":"weave.standards.cis-benchmark","controls":["weave.controls.cis-benchmark.5.5.1"]},{"id":"weave.standards.mitre-attack","controls":["weave.controls.mitre-attack.1.2"]},{"id":"weave.standards.gdpr","controls":["weave.controls.gdpr.25","weave.controls.gdpr.32","weave.controls.gdpr.24"]},{"id":"weave.standards.soc2-type-i","controls":["weave.controls.soc2-type-i.1.6.8"]}]`,
 				"occurrences":     `[{"message":"test1"},{"message":"test2"}]`,
-				"modes":           "audit,admission",
 			},
 			Labels: map[string]string{
 				PolicyValidationIDLabel:      uuid.NewV4().String(),
@@ -218,8 +221,6 @@ func TestEventToPolicy(t *testing.T) {
 	occurrences, err := json.Marshal(policyValidation.Occurrences)
 	assert.Nil(t, err)
 
-	assert.Equal(t, []string{"audit", "admission"}, policyValidation.Policy.Modes)
-
 	assert.Equal(t, event.Annotations, map[string]string{
 		"account_id":      policyValidation.AccountID,
 		"cluster_id":      policyValidation.ClusterID,
@@ -227,13 +228,13 @@ func TestEventToPolicy(t *testing.T) {
 		"policy_name":     policyValidation.Policy.Name,
 		"severity":        policyValidation.Policy.Severity,
 		"category":        policyValidation.Policy.Category,
+		"enforce":         fmt.Sprint(policyValidation.Enforced),
 		"description":     policyValidation.Policy.Description,
 		"how_to_solve":    policyValidation.Policy.HowToSolve,
 		"tags":            strings.Join(policyValidation.Policy.Tags, ","),
 		"standards":       string(standards),
 		"occurrences":     string(occurrences),
 		"entity_manifest": string(manifest),
-		"modes":           "audit,admission",
 	})
 
 	assert.Equal(t, event.Labels, map[string]string{
