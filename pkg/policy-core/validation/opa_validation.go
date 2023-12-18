@@ -84,6 +84,9 @@ func (v *OpaValidator) Validate(ctx context.Context, entity domain.Entity, trigg
 			if !matchEntity(entity, policy) {
 				return
 			}
+			if isExcluded(entity, policy) {
+				return
+			}
 
 			opaPolicy, err := opa.Parse(policy.Code, PolicyQuery)
 			if err != nil {

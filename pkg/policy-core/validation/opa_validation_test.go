@@ -669,6 +669,86 @@ func TestOpaValidator_Validate(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "entity namespace exclusion",
+			init: init{
+				writeCompliance: false,
+				loadStubs: func(policiesSource *mock.MockPoliciesSource, sink *mock.MockPolicyValidationSink) {
+					imageTag := testdata.Policies["imageTagExcluded"]
+					policiesSource.EXPECT().GetAll(gomock.Any()).
+						Times(1).Return([]domain.Policy{
+						imageTag,
+					}, nil)
+					policiesSource.EXPECT().GetPolicyConfig(gomock.Any(), gomock.Any()).
+						Times(1).Return(nil, nil)
+				},
+			},
+			entity: entity,
+			want: &domain.PolicyValidationSummary{
+				Violations: []domain.PolicyValidation{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "entity labels exclusion",
+			init: init{
+				writeCompliance: false,
+				loadStubs: func(policiesSource *mock.MockPoliciesSource, sink *mock.MockPolicyValidationSink) {
+					imageTag := testdata.Policies["imageTagExcluded"]
+					policiesSource.EXPECT().GetAll(gomock.Any()).
+						Times(1).Return([]domain.Policy{
+						imageTag,
+					}, nil)
+					policiesSource.EXPECT().GetPolicyConfig(gomock.Any(), gomock.Any()).
+						Times(1).Return(nil, nil)
+				},
+			},
+			entity: entity,
+			want: &domain.PolicyValidationSummary{
+				Violations: []domain.PolicyValidation{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "entity resource exclusion",
+			init: init{
+				writeCompliance: false,
+				loadStubs: func(policiesSource *mock.MockPoliciesSource, sink *mock.MockPolicyValidationSink) {
+					missingOwner := testdata.Policies["missingOwner"]
+					imageTag := testdata.Policies["imageTag"]
+					imageTag.Exclude.Resources = []string{"unit-testing/nginx-deployment"}
+					policiesSource.EXPECT().GetAll(gomock.Any()).
+						Times(1).Return([]domain.Policy{
+						missingOwner,
+						imageTag,
+					}, nil)
+					policiesSource.EXPECT().GetPolicyConfig(gomock.Any(), gomock.Any()).
+						Times(1).Return(nil, nil)
+					sink.EXPECT().Write(gomock.Any(), gomock.Any()).
+						Times(1).Return(nil)
+				},
+			},
+			entity: entity,
+			want: &domain.PolicyValidationSummary{
+				Violations: []domain.PolicyValidation{
+					{
+						Policy:  testdata.Policies["missingOwner"],
+						Entity:  entity,
+						Type:    validationType,
+						Status:  domain.PolicyValidationStatusViolating,
+						Trigger: validationType,
+						Message: "Missing owner label in metadata in deployment nginx-deployment (1 occurrences)",
+						Occurrences: []domain.Occurrence{
+							{
+								Message: "you are missing a label with the key 'owner'",
+							},
+						},
+						Enforced: false,
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {

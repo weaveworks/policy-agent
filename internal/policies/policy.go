@@ -68,6 +68,11 @@ func (p *PoliciesWatcher) GetAll(ctx context.Context) ([]domain.Policy, error) {
 				ResourceVersion: policiesCRD.Items[i].ResourceVersion,
 			},
 			Mutate: policyCRD.Mutate,
+			Exclude: domain.PolicyExclusions{
+				Namespaces: policyCRD.Exclude.Namespaces,
+				Resources:  policyCRD.Exclude.Resources,
+				Labels:     policyCRD.Exclude.Labels,
+			},
 		}
 
 		for _, standardCRD := range policyCRD.Standards {

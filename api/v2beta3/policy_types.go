@@ -67,6 +67,20 @@ type PolicyStandard struct {
 	Controls []string `json:"controls,omitempty"`
 }
 
+// PolicyExclusions are the structure which resources should not be evaluated against the policy
+type PolicyExclusions struct {
+	// +optional
+	// Namespaces is a list of Kubernetes namespaces that a resource needs to be a part of to excluded from this policy
+	Namespaces []string `json:"namespaces"`
+	// +optional
+	// Resources is a list of Kubernetes resources that are excluded by this policy (namespace/name)
+	Resources []string `json:"resources"`
+	// +optional
+	// Labels is a list of Kubernetes labels that are needed to excluded the policy against a resource
+	// this filter is statisfied if only one label existed, using * for value make it so it will match if the key exists regardless of its value
+	Labels []map[string]string `json:"labels"`
+}
+
 // PolicySpec defines the desired state of Policy
 // It describes all that is needed to evaluate a resource against a rego code
 // +kubebuilder:object:generate:true
@@ -113,6 +127,11 @@ type PolicySpec struct {
 	//+kubebuilder:default:=false
 	// Mutate is a flag that indicates whether to enable mutation of resources violating this policy or not
 	Mutate bool `json:"mutate"`
+
+	// +optional
+	// Exclude describes the policy exclusions on (Namespaces, Labels, Resources)
+	// Select one or more by defining the exclusion list
+	Exclude PolicyExclusions `json:"exclude,omitempty"`
 }
 
 //+kubebuilder:object:root=true

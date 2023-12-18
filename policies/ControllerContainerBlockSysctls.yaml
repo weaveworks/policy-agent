@@ -31,32 +31,16 @@ spec:
         - weave.controls.gdpr.25
         - weave.controls.gdpr.32
   tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default]
-  parameters:
-    - name: exclude_namespaces
-      type: array
-      required: false
-      value: [kube-system]
-    - name: exclude_label_key
-      type: string
-      required: false
-      value:
-    - name: exclude_label_value
-      type: string
-      required: false
-      value:
+  exclude:
+    namespaces:
+      - kube-system
   code: |
     package weave.advisor.podSecurity.block_sysctls
 
     import future.keywords.in
 
-    exclude_namespaces := input.parameters.exclude_namespaces
-    exclude_label_key := input.parameters.exclude_label_key
-    exclude_label_value := input.parameters.exclude_label_value
 
     violation[result] {
-    	isExcludedNamespace == false
-    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
-        controller_spec.securityContext.sysctls
     	result = {
     		"issue detected": true,
     		"msg": "Adding sysctls could lead to unauthorized escalated privileges to the underlying node",
@@ -79,8 +63,3 @@ spec:
     } else = controller_input.spec.jobTemplate.spec.template.spec {
     	controller_input.kind == "CronJob"
     }
-
-    isExcludedNamespace = true {
-    	controller_input.metadata.namespace
-    	controller_input.metadata.namespace in exclude_namespaces
-    } else = false
