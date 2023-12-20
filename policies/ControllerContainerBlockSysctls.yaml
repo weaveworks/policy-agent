@@ -41,6 +41,7 @@ spec:
 
 
     violation[result] {
+      controller_spec.securityContext.sysctls
     	result = {
     		"issue detected": true,
     		"msg": "Adding sysctls could lead to unauthorized escalated privileges to the underlying node",
