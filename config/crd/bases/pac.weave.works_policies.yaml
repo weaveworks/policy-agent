@@ -527,6 +527,34 @@ spec:
                   via the admission controller or just audited for a violation (default:
                   true)'
                 type: boolean
+              exclude:
+                description: Exclude describes the policy exclusions on (Namespaces,
+                  Labels, Resources) Select one or more by defining the exclusion
+                  list
+                properties:
+                  labels:
+                    description: Labels is a list of Kubernetes labels that are needed
+                      to excluded the policy against a resource this filter is statisfied
+                      if only one label existed, using * for value make it so it will
+                      match if the key exists regardless of its value
+                    items:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    type: array
+                  namespaces:
+                    description: Namespaces is a list of Kubernetes namespaces that
+                      a resource needs to be a part of to excluded from this policy
+                    items:
+                      type: string
+                    type: array
+                  resources:
+                    description: Resources is a list of Kubernetes resources that
+                      are excluded by this policy (namespace/name)
+                    items:
+                      type: string
+                    type: array
+                type: object
               how_to_solve:
                 description: HowToSolve is a description of the steps required to
                   solve the issues reported by the policy

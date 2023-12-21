@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/weaveworks/policy-agent/pkg/policy-core/domain"
 )
@@ -54,6 +55,37 @@ func matchEntity(entity domain.Entity, policy domain.Policy) bool {
 	}
 
 	return matchKind && matchNamespace && matchLabel
+}
+
+// isExcluded evaluates the policy exclusion against the requested entity
+func isExcluded(entity domain.Entity, policy domain.Policy) bool {
+	resourceNamespace := entity.Namespace
+	for _, namespace := range policy.Exclude.Namespaces {
+		if resourceNamespace == namespace {
+			return true
+		}
+	}
+
+	resourceName := fmt.Sprintf("%s/%s", entity.Namespace, entity.Name)
+	for _, resource := range policy.Exclude.Resources {
+		if resourceName == resource {
+			return true
+		}
+	}
+
+	for _, obj := range policy.Exclude.Labels {
+		for key, val := range obj {
+			entityVal, ok := entity.Labels[key]
+			if ok {
+				if val != "*" && val != entityVal {
+					continue
+				}
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func writeToSinks(

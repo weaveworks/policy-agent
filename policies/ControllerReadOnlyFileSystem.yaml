@@ -24,31 +24,13 @@ spec:
       type: boolean
       required: true
       value: true
-    - name: exclude_namespaces
-      type: array
-      required: false
-      value:
-    - name: exclude_label_key
-      type: string
-      required: false
-      value:
-    - name: exclude_label_value
-      type: string
-      required: false
-      value:
   code: |
     package weave.advisor.podSecurity.enforce_ro_fs
 
     import future.keywords.in
 
     read_only = input.parameters.read_only
-    exclude_namespaces := input.parameters.exclude_namespaces
-    exclude_label_key := input.parameters.exclude_label_key
-    exclude_label_value := input.parameters.exclude_label_value
-
     violation[result] {
-      isExcludedNamespace == false
-      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
       some i
       containers := controller_spec.containers[i]
       root_fs := containers.securityContext.readOnlyRootFilesystem
@@ -77,7 +59,3 @@ spec:
       kinds[_] = kind
     }
 
-    isExcludedNamespace = true {
-      controller_input.metadata.namespace
-      controller_input.metadata.namespace in exclude_namespaces
-    } else = false

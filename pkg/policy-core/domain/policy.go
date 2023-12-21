@@ -25,6 +25,13 @@ type PolicyStandard struct {
 	Controls []string `json:"controls"`
 }
 
+// PolicyExclusions are the structure which resources should not be evaluated against the policy
+type PolicyExclusions struct {
+	Namespaces []string            `json:"namespaces"`
+	Resources  []string            `json:"resources"`
+	Labels     []map[string]string `json:"labels"`
+}
+
 // Policy represents a policy
 type Policy struct {
 	Name        string             `json:"name"`
@@ -42,6 +49,7 @@ type Policy struct {
 	Reference   interface{}        `json:"-"`
 	GitCommit   string             `json:"git_commit,omitempty"`
 	Mutate      bool               `json:"mutate"`
+	Exclude     PolicyExclusions   `json:"exclude"`
 }
 
 // ObjectRef returns the kubernetes object reference of the policy
