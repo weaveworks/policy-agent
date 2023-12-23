@@ -27,9 +27,9 @@ type PolicyStandard struct {
 
 // PolicyExclusions are the structure which resources should not be evaluated against the policy
 type PolicyExclusions struct {
-	Namespaces []string            `json:"namespaces"`
-	Resources  []string            `json:"resources"`
-	Labels     []map[string]string `json:"labels"`
+	Namespaces []string          `json:"namespaces"`
+	Resources  []string          `json:"resources"`
+	Labels     map[string]string `json:"labels"`
 }
 
 // Policy represents a policy

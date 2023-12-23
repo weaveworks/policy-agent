@@ -549,10 +549,8 @@ var (
 			Exclude: domain.PolicyExclusions{
 				Namespaces: []string{"unit-testing", "flux-system"},
 				Resources:  []string{"unit-testing/nginx-deployment"},
-				Labels: []map[string]string{
-					{
-						"app": "nginx",
-					},
+				Labels: map[string]string{
+					"app": "nginx",
 				},
 			},
 			Enforce: true,

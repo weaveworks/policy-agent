@@ -533,15 +533,13 @@ spec:
                   list
                 properties:
                   labels:
+                    additionalProperties:
+                      type: string
                     description: Labels is a list of Kubernetes labels that are needed
                       to excluded the policy against a resource this filter is statisfied
                       if only one label existed, using * for value make it so it will
                       match if the key exists regardless of its value
-                    items:
-                      additionalProperties:
-                        type: string
-                      type: object
-                    type: array
+                    type: object
                   namespaces:
                     description: Namespaces is a list of Kubernetes namespaces that
                       a resource needs to be a part of to excluded from this policy

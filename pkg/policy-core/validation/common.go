@@ -73,15 +73,13 @@ func isExcluded(entity domain.Entity, policy domain.Policy) bool {
 		}
 	}
 
-	for _, obj := range policy.Exclude.Labels {
-		for key, val := range obj {
-			entityVal, ok := entity.Labels[key]
-			if ok {
-				if val != "*" && val != entityVal {
-					continue
-				}
-				return true
+	for key, val := range policy.Exclude.Labels {
+		entityVal, ok := entity.Labels[key]
+		if ok {
+			if val != "*" && val != entityVal {
+				continue
 			}
+			return true
 		}
 	}
 
