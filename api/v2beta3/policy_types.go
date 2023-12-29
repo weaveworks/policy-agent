@@ -78,7 +78,7 @@ type PolicyExclusions struct {
 	// +optional
 	// Labels is a list of Kubernetes labels that are needed to excluded the policy against a resource
 	// this filter is statisfied if only one label existed, using * for value make it so it will match if the key exists regardless of its value
-	Labels []map[string]string `json:"labels"`
+	Labels map[string]string `json:"labels"`
 }
 
 // PolicySpec defines the desired state of Policy

@@ -674,7 +674,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 			init: init{
 				writeCompliance: false,
 				loadStubs: func(policiesSource *mock.MockPoliciesSource, sink *mock.MockPolicyValidationSink) {
-					imageTag := testdata.Policies["imageTagExcluded"]
+					imageTag := testdata.Policies["imageTagExcludedNamespaces"]
 					policiesSource.EXPECT().GetAll(gomock.Any()).
 						Times(1).Return([]domain.Policy{
 						imageTag,
@@ -694,7 +694,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 			init: init{
 				writeCompliance: false,
 				loadStubs: func(policiesSource *mock.MockPoliciesSource, sink *mock.MockPolicyValidationSink) {
-					imageTag := testdata.Policies["imageTagExcluded"]
+					imageTag := testdata.Policies["imageTagExcludedLabels"]
 					policiesSource.EXPECT().GetAll(gomock.Any()).
 						Times(1).Return([]domain.Policy{
 						imageTag,
@@ -715,7 +715,7 @@ func TestOpaValidator_Validate(t *testing.T) {
 				writeCompliance: false,
 				loadStubs: func(policiesSource *mock.MockPoliciesSource, sink *mock.MockPolicyValidationSink) {
 					missingOwner := testdata.Policies["missingOwner"]
-					imageTag := testdata.Policies["imageTag"]
+					imageTag := testdata.Policies["imageTagExcludedResources"]
 					imageTag.Exclude.Resources = []string{"unit-testing/nginx-deployment"}
 					policiesSource.EXPECT().GetAll(gomock.Any()).
 						Times(1).Return([]domain.Policy{

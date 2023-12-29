@@ -544,15 +544,175 @@ var (
 				},
 			},
 		},
-		"imageTagExcluded": {
+		"imageTagExcludedNamespaces": {
 			Name: "Using latest image tag in container",
 			Exclude: domain.PolicyExclusions{
 				Namespaces: []string{"unit-testing", "flux-system"},
-				Resources:  []string{"unit-testing/nginx-deployment"},
-				Labels: []map[string]string{
-					{
-						"app": "nginx",
-					},
+			},
+			Enforce: true,
+			ID:      uuid.NewV4().String(),
+			Code: `
+		package magalix.advisor.images.image_tag_enforce
+
+		image_tag := input.parameters.image_tag
+
+		violation[result] {
+		some i
+		containers = controller_spec.containers[i]
+		splittedUrl = split(containers.image, "/")
+		image = splittedUrl[count(splittedUrl)-1]
+		not contains(image, ":")
+		result = {
+			"issue detected": true,
+			"msg": "Image is not tagged",
+			"violating_key": sprintf("spec.template.spec.containers[%v].image", [i])
+		}
+		}
+
+		violation[result] {
+		some i
+		containers = controller_spec.containers[i]
+		splittedUrl = split(containers.image, "/")
+		image = splittedUrl[count(splittedUrl)-1]
+		count(split(image, ":")) == 2
+		[image_name, tag] = split(image, ":")
+		tag == image_tag
+		result = {
+			"issue detected": true,
+			"msg": sprintf("Image contains unapproved tag '%v'", [image_tag]),
+			"image": image,
+			"violating_key": sprintf("spec.template.spec.containers[%v].image", [i])
+		}
+		}
+
+		violation[result] {
+		some i
+		containers = controller_spec.containers[i]
+		splittedUrl = split(containers.image, "/")
+		image = splittedUrl[count(splittedUrl)-1]
+		count(split(image, ":")) == 3
+		[image_name, port, tag] = split(image, ":")
+		tag == image_tag
+		result = {
+			"issue detected": true,
+			"msg": sprintf("Image contains unapproved tag:'%v'", [image_tag]),
+			"image": image,
+			"violating_key": sprintf("spec.template.spec.containers[%v].image", [i])
+		}
+		}
+
+		# Controller input
+		controller_input = input.review.object
+
+		# controller_container acts as an iterator to get containers from the template
+		controller_spec = controller_input.spec.template.spec {
+		contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+		} else = controller_input.spec {
+		controller_input.kind == "Pod"
+		} else = controller_input.spec.jobTemplate.spec.template.spec {
+		controller_input.kind == "CronJob"
+		}
+
+		contains_kind(kind, kinds) {
+		kinds[_] = kind
+		}`,
+			Mutate: true,
+			Parameters: []domain.PolicyParameters{
+				{
+					Name:     "image_tag",
+					Type:     "string",
+					Required: true,
+					Value:    "latest",
+				},
+			},
+		},
+		"imageTagExcludedResources": {
+			Name: "Using latest image tag in container",
+			Exclude: domain.PolicyExclusions{
+				Resources: []string{"unit-testing/nginx-deployment"},
+			},
+			Enforce: true,
+			ID:      uuid.NewV4().String(),
+			Code: `
+		package magalix.advisor.images.image_tag_enforce
+
+		image_tag := input.parameters.image_tag
+
+		violation[result] {
+		some i
+		containers = controller_spec.containers[i]
+		splittedUrl = split(containers.image, "/")
+		image = splittedUrl[count(splittedUrl)-1]
+		not contains(image, ":")
+		result = {
+			"issue detected": true,
+			"msg": "Image is not tagged",
+			"violating_key": sprintf("spec.template.spec.containers[%v].image", [i])
+		}
+		}
+
+		violation[result] {
+		some i
+		containers = controller_spec.containers[i]
+		splittedUrl = split(containers.image, "/")
+		image = splittedUrl[count(splittedUrl)-1]
+		count(split(image, ":")) == 2
+		[image_name, tag] = split(image, ":")
+		tag == image_tag
+		result = {
+			"issue detected": true,
+			"msg": sprintf("Image contains unapproved tag '%v'", [image_tag]),
+			"image": image,
+			"violating_key": sprintf("spec.template.spec.containers[%v].image", [i])
+		}
+		}
+
+		violation[result] {
+		some i
+		containers = controller_spec.containers[i]
+		splittedUrl = split(containers.image, "/")
+		image = splittedUrl[count(splittedUrl)-1]
+		count(split(image, ":")) == 3
+		[image_name, port, tag] = split(image, ":")
+		tag == image_tag
+		result = {
+			"issue detected": true,
+			"msg": sprintf("Image contains unapproved tag:'%v'", [image_tag]),
+			"image": image,
+			"violating_key": sprintf("spec.template.spec.containers[%v].image", [i])
+		}
+		}
+
+		# Controller input
+		controller_input = input.review.object
+
+		# controller_container acts as an iterator to get containers from the template
+		controller_spec = controller_input.spec.template.spec {
+		contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+		} else = controller_input.spec {
+		controller_input.kind == "Pod"
+		} else = controller_input.spec.jobTemplate.spec.template.spec {
+		controller_input.kind == "CronJob"
+		}
+
+		contains_kind(kind, kinds) {
+		kinds[_] = kind
+		}`,
+			Mutate: true,
+			Parameters: []domain.PolicyParameters{
+				{
+					Name:     "image_tag",
+					Type:     "string",
+					Required: true,
+					Value:    "latest",
+				},
+			},
+		},
+		"imageTagExcludedLabels": {
+			Name: "Using latest image tag in container",
+			Exclude: domain.PolicyExclusions{
+				Labels: map[string]string{
+					"app": "nginx",
 				},
 			},
 			Enforce: true,
