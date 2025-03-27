@@ -3,7 +3,7 @@ module github.com/weaveworks/policy-agent/pkg/policy-core
 go 1.20
 
 require (
-	github.com/golang/mock v1.6.0
+	github.com/golang/mock v1.6.0 //undefined commit to be removed later
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/stretchr/testify v1.8.1
 	github.com/weaveworks/policy-agent/pkg/logger v1.1.0
